@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ===== Theme CSS Variables ===== */
+:root {
+  /* Main backgrounds */
+  --bg-app: #11121d;
+  --bg-header: #13141f;
+  --bg-card: #141418;
+  --bg-deep: #0d0d11;
+  --bg-deepest: #0a0a0c;
+  --bg-deep-alt: #0a0a0f;
+  --bg-elevated: #1a1a24;
+  --bg-elevated-alt: #1a1a20;
+  --bg-hover: #1e1e2d;
+  --bg-alarm: #161a29;
+  --bg-alarm-hover: #1a1f33;
+  --bg-dropdown: #1c1c22;
+  --bg-tooltip: #1e202e;
+  --bg-active: #2b2d3b;
+  --bg-active-alt: #2c2d3c;
+  --bg-sidebar-btn: #141624;
+  --bg-panel: #111324;
+  --bg-panel-alt: #16161d;
+  --bg-panel-deep: #111115;
+  --bg-navy: #0b1220;
+  --bg-navy-alt: #141b2d;
+  --bg-input: #0a0b14;
+  --bg-overlay: #050508;
+  --bg-surface: #111118;
+  --bg-surface-alt: #111116;
+  --bg-muted: #0d0d12;
+  --bg-muted-alt: #0d1425;
+  --bg-item: #1f1f27;
+}
+
+/* ===== Light Theme ===== */
+.light {
+  --bg-app: #f0f2f5;
+  --bg-header: #ffffff;
+  --bg-card: #ffffff;
+  --bg-deep: #f5f6fa;
+  --bg-deepest: #eef0f4;
+  --bg-deep-alt: #f3f4f8;
+  --bg-elevated: #f8f9fc;
+  --bg-elevated-alt: #ffffff;
+  --bg-hover: #ebedf2;
+  --bg-alarm: #ffffff;
+  --bg-alarm-hover: #f5f6fa;
+  --bg-dropdown: #ffffff;
+  --bg-tooltip: #1f2937;
+  --bg-active: #e2e4ea;
+  --bg-active-alt: #dfe1e8;
+  --bg-sidebar-btn: #f0f1f5;
+  --bg-panel: #ffffff;
+  --bg-panel-alt: #f8f9fc;
+  --bg-panel-deep: #f0f1f5;
+  --bg-navy: #f5f6fa;
+  --bg-navy-alt: #f0f2f5;
+  --bg-input: #f5f6fa;
+  --bg-overlay: #e8eaef;
+  --bg-surface: #f8f9fc;
+  --bg-surface-alt: #f5f6fa;
+  --bg-muted: #f0f1f5;
+  --bg-muted-alt: #eef0f5;
+  --bg-item: #f5f6fa;
+
+  /* Remap Tailwind slate palette for light mode */
+  /* Dark bg shades → Light bg shades */
+  --color-slate-900: #f3f4f6;
+  --color-slate-800: #e5e7eb;
+  --color-slate-700: #d1d5db;
+  --color-slate-600: #c5c8cf;
+
+  /* Text shades: invert (light text → dark text) */
+  --color-slate-500: #6b7280;
+  --color-slate-400: #4b5563;
+  --color-slate-300: #374151;
+  --color-slate-200: #1f2937;
+  --color-slate-100: #111827;
+  --color-slate-50: #f9fafb;
+
+  /* Reduce shadow intensity - remap black to a soft gray for overlays */
+  --color-black: #94a3b8;
+
+  /* Indigo adjustments for light mode - slightly deeper for contrast */
+  --color-indigo-600: #4f46e5;
+  --color-indigo-500: #6366f1;
+  --color-indigo-400: #818cf8;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    background: var(--bg-app);
+    color: var(--text-primary, #e2e8f0);
+  }
+  .light body, body.light {
+    color: #1e293b;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

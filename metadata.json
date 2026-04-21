@@ -1,0 +1,5 @@
+{
+  "name": "AI SRE Console",
+  "description": "Multimodal AI SRE Unified Entry - Interaction Prototype",
+  "requestFramePermissions": ["microphone", "camera"]
+}
