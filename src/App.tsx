@@ -8,7 +8,8 @@ import {
   AlertTriangle, Box, Filter, SlidersHorizontal, ArrowUpDown, Cpu, Server, Layers, HardDrive, Brain, Flame, Sparkles, Minus, Maximize,
   PlusCircle, BarChart3, LayoutDashboard, ListTodo, FilePieChart, ArrowUpRight, ArrowDownRight, RefreshCw, History, Maximize2, Folder, PanelLeft, PanelLeftClose, ShieldCheck,
   Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2,
-  Sun, Moon
+  Sun, Moon, HelpCircle, LayoutGrid, List, Tag
+
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -26,38 +27,17 @@ interface InspectionTarget {
   status: 'online' | 'warning' | 'offline';
 }
 
+
+const MOCK_KNOWLEDGE_DOCS = [
+  { id: 'doc-1', name: 'SRE 操作手册 - 核心组件故障排查.pdf', size: '2.4 MB', type: 'PDF', updated: '2024-04-10', status: 'indexed' },
+  { id: 'doc-2', name: 'payment-svc 内存漏排查 SOP.md', size: '45 KB', type: 'Markdown', updated: '2024-04-15', status: 'indexed' },
+  { id: 'doc-3', name: '集群扩缩容最佳实践指南.docx', size: '1.2 MB', type: 'DOCX', updated: '2024-04-18', status: 'processing' },
+  { id: 'doc-4', name: 'JVM 优化及故障隔离规范.pdf', size: '3.1 MB', type: 'PDF', updated: '2024-04-20', status: 'indexed' },
+  { id: 'doc-5', name: '告警收敛逻辑说明文档.md', size: '12 KB', type: 'Markdown', updated: '2024-04-21', status: 'indexed' },
+];
+
+
 const MOCK_TARGETS: InspectionTarget[] = [
-  // 数据库实例 (DB)
-  { id: 'db-1', name: 'mysql-order-primary', type: 'DB', environment: 'prod', cluster: 'db-cluster-01', status: 'online' },
-  { id: 'db-2', name: 'mysql-order-replica', type: 'DB', environment: 'prod', cluster: 'db-cluster-01', status: 'online' },
-  { id: 'db-3', name: 'pg-user-master', type: 'DB', environment: 'prod', cluster: 'db-cluster-02', status: 'warning' },
-  // Redis
-  { id: 'redis-1', name: 'redis-cache-main', type: 'Redis', environment: 'prod', cluster: 'redis-cluster-01', status: 'online' },
-  { id: 'redis-2', name: 'redis-session-store', type: 'Redis', environment: 'prod', cluster: 'redis-cluster-02', status: 'online' },
-  // MQ
-  { id: 'mq-1', name: 'kafka-broker-node-1', type: 'MQ', environment: 'prod', cluster: 'kafka-prod-01', status: 'online' },
-  { id: 'mq-2', name: 'rocketmq-namesrv-A', type: 'MQ', environment: 'prod', cluster: 'rocketmq-core', status: 'online' },
-  { id: 'mq-3', name: 'rabbitmq-vhost-main', type: 'MQ', environment: 'staging', cluster: 'rabbitmq-test', status: 'warning' },
-  // 应用服务 (Service)
-  { id: 'svc-1', name: 'order-api-service', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  { id: 'svc-2', name: 'payment-processor', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  { id: 'svc-3', name: 'auth-gateway', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  // 负载均衡 (LB)
-  { id: 'lb-1', name: 'clb-external-ingress', type: 'LB', environment: 'prod', cluster: 'clb-sh-main', status: 'online' },
-  { id: 'lb-2', name: 'slb-internal-grpc', type: 'LB', environment: 'prod', cluster: 'slb-sh-core', status: 'online' },
-  // 云主机 (Host)
-  { id: 'h-1', name: 'cvm-jumpbox-01', type: 'Host', environment: 'prod', cluster: 'cvm-manage', status: 'online' },
-  { id: 'h-2', name: 'cvm-worker-node-102', type: 'Host', environment: 'prod', cluster: 'cvm-worker-pool', status: 'warning' },
-  { id: 'h-3', name: 'cvm-db-backup-svr', type: 'Host', environment: 'prod', cluster: 'cvm-storage', status: 'online' },
-  // VPC
-  { id: 'vpc-1', name: 'vpc-prod-main-sh', type: 'VPC', environment: 'prod', cluster: 'network-region-1', status: 'online' },
-  { id: 'vpc-2', name: 'vpc-test-sandbox', type: 'VPC', environment: 'staging', cluster: 'network-region-1', status: 'online' },
-  // Pod
-  { id: 'pod-1', name: 'nginx-ingress-controller-p9x', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  { id: 'pod-2', name: 'redis-sentinel-pod-a21', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  { id: 'pod-3', name: 'app-error-logger-v2', type: 'Pod', environment: 'staging', cluster: 'k8s-test-1', status: 'offline' },
-  { id: 'pod-4', name: 'worker-pod-res-01', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
-  { id: 'pod-5', name: 'worker-pod-res-02', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
   { id: 'pod-6', name: 'worker-pod-res-03', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
   { id: 'pod-7', name: 'batch-job-pod-77', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-2', status: 'online' },
   { id: 'pod-8', name: 'batch-job-pod-78', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-2', status: 'online' },
@@ -147,6 +127,10 @@ const QUICK_RULES = [
   '检测 服务错误率 > 5% 持续 3 分钟'
 ];
 
+// --- Environment Detection ---
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const ENV_LABEL = IS_LOCAL ? '本地开发' : '局域网';
+
 // --- Menu Configuration ---
 const MENU_ITEMS = [
   { id: 'home', label: '新会话', icon: Plus },
@@ -158,6 +142,7 @@ const MENU_ITEMS = [
   { id: 'capacity', label: '采控集成', icon: Cpu },
   { id: 'settings', label: '集成设置', icon: Settings },
   { id: 'tasks', label: '模型接入', icon: Brain },
+  { id: 'dev', label: '开发者', icon: Terminal },
 ];
 
 // --- Components ---
@@ -1354,7 +1339,7 @@ const CronConfirmCard = ({ data, onAction }: any) => (
 );
 
 // --- 巡检规则极简版：全行内可编辑卡片 ---
-const RuleDraftCard = ({ data, onAction }: any) => {
+const RuleDraftCard = ({ data, onAction, mode }: any) => {
   const [internalRules, setInternalRules] = useState<any[]>(data.rules || []);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -1487,10 +1472,16 @@ const RuleDraftCard = ({ data, onAction }: any) => {
           <span>新增自定义规则项</span>
         </button>
         <button 
-          onClick={() => onAction('STEP_FREQUENCY')} 
+          onClick={() => {
+            if (mode === 'immediate') {
+              onAction('STEP_CONFIRMATION_IMMEDIATE');
+            } else {
+              onAction('STEP_FREQUENCY');
+            }
+          }} 
           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[12px] font-black rounded-xl hover:opacity-90 shadow-xl shadow-blue-500/10 active:scale-[0.98] transition-all flex items-center gap-2 group"
         >
-          确认并设置执行规则 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          {mode === 'immediate' ? '确认规则并开始执行' : '确认并设置执行频率'} <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
@@ -1499,7 +1490,26 @@ const RuleDraftCard = ({ data, onAction }: any) => {
 };
 
 // --- 新巡检流程：频率设定卡片 ---
-const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setFrequency }: any) => {
+const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setFrequency, cronValue, setCronValue }: any) => {
+  const [customMode, setCustomMode] = useState<'day' | 'week'>('day');
+  const [customWeeks, setCustomWeeks] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [customHours, setCustomHours] = useState<number[]>([9, 12]);
+  const [showHourPicker, setShowHourPicker] = useState(false);
+
+  const weekLabels = ['一', '二', '三', '四', '五', '六', '日'];
+
+  // Sync natural UI to Cron
+  useEffect(() => {
+    if (frequency === '自定义周期') {
+      const hoursStr = customHours.length > 0 ? customHours.sort((a,b) => a-b).join(',') : '0';
+      if (customMode === 'day') {
+        setCronValue(`0 ${hoursStr} * * *`);
+      } else if (customMode === 'week') {
+        setCronValue(`0 ${hoursStr} * * ${customWeeks.sort().join(',')}`);
+      }
+    }
+  }, [frequency, customMode, customWeeks, customHours, setCronValue]);
+
   return (
     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[400px]">
       <div className="p-5 border-b border-slate-800/60 flex items-center gap-3">
@@ -1516,7 +1526,7 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
         <div>
           <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-3">常选项</label>
           <div className="grid grid-cols-2 gap-2">
-            {['每天一次', '每天早晚二次', '每周一至周五', '自定义 Cron'].map(opt => (
+            {['每天一次', '每天早晚二次', '每周一至周五', '自定义周期'].map(opt => (
               <button 
                 key={opt}
                 onClick={() => setFrequency(opt)}
@@ -1530,6 +1540,113 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
               </button>
             ))}
           </div>
+
+          {/* Simplified Natural Frequency Sentence Row */}
+          <AnimatePresence>
+            {frequency === '自定义周期' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                className="mt-3 z-10 relative"
+              >
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 space-y-3">
+                   {/* Row 1: Frequency Type */}
+                   <div className="flex flex-col gap-2 bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-500 font-bold w-14 shrink-0 pl-1">巡检周期</span>
+                        <select 
+                          value={customMode} 
+                          onChange={(e) => setCustomMode(e.target.value as any)}
+                          className="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-[11px] text-slate-300 font-bold outline-none cursor-pointer hover:border-indigo-500/50 transition-colors flex-1"
+                        >
+                          <option value="day">每天执行</option>
+                          <option value="week">每周执行</option>
+                        </select>
+                      </div>
+
+                      {/* Weekday Selection */}
+                      {customMode === 'week' && (
+                        <div className="flex gap-1.5 pl-[64px] pr-1">
+                          {[1, 2, 3, 4, 5, 6, 0].map((w, idx) => (
+                            <button
+                              key={w}
+                              onClick={() => {
+                                setCustomWeeks(prev => prev.includes(w) ? prev.filter(x => x !== w) : [...prev, w]);
+                              }}
+                              className={`flex-1 h-7 rounded-md flex items-center justify-center text-[11px] font-bold transition-all ${
+                                customWeeks.includes(w) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-800 text-slate-500 hover:text-slate-300 hover:bg-slate-700 border border-slate-700/50'
+                              }`}
+                            >
+                              {weekLabels[idx]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                   </div>
+
+                   {/* Row 2: Time Points */}
+                   <div className="flex items-center gap-2 bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
+                      <span className="text-[11px] text-slate-500 font-bold w-14 shrink-0 pl-1">触发时间</span>
+                      <div className="relative flex-1">
+                        <button 
+                          onClick={() => setShowHourPicker(!showHourPicker)}
+                          className="flex items-center px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-[11px] font-bold text-slate-300 hover:border-indigo-500/50 transition-all w-full justify-between cursor-pointer"
+                        >
+                          <div className="flex items-center gap-1.5 overflow-hidden">
+                            <Clock size={12} className="text-indigo-400/70 shrink-0" />
+                            <span className="truncate max-w-[200px]">
+                              {customHours.length === 0 ? '请选择时间' : customHours.sort((a,b)=>a-b).map(h => String(h).padStart(2,'0')+':00').join(', ')}
+                            </span>
+                          </div>
+                          <ChevronDown size={12} className={`text-slate-500 transition-transform shrink-0 ${showHourPicker ? 'rotate-180' : ''}`} />
+                        </button>
+
+                          {/* Hour Picker Popover */}
+                          <AnimatePresence>
+                            {showHourPicker && (
+                              <motion.div 
+                                initial={{ opacity: 0, scale: 0.95, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                                className="absolute left-0 top-full mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[100] p-2"
+                              >
+                                <div className="grid grid-cols-4 gap-1.5">
+                                  {Array.from({ length: 24 }).map((_, h) => (
+                                    <button
+                                      key={h}
+                                      onClick={() => {
+                                        setCustomHours(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
+                                      }}
+                                      className={`h-7 rounded-md text-[10px] font-mono font-bold transition-all ${customHours.includes(h) ? 'bg-indigo-600 text-white shadow-inner shadow-indigo-400/20' : 'bg-slate-900 text-slate-400 hover:bg-slate-700'}`}
+                                    >
+                                      {String(h).padStart(2, '0')}:00
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-slate-700/50 flex justify-end">
+                                  <button 
+                                    onClick={() => setShowHourPicker(false)}
+                                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-colors shadow-sm"
+                                  >
+                                    确定
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                        </AnimatePresence>
+                      </div>
+                   </div>
+
+                   <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between px-1">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">预览计划</span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-[11px] text-indigo-400 font-black text-right">
+                          {`${customMode === 'day' ? '每天' : `每周${customWeeks.sort().map(w => weekLabels[w === 0 ? 6 : w-1]).join(',')}`} 的 ${customHours.sort((a,b)=>a-b).map(h=>h+':00').join(', ')}`}
+                        </span>
+                        <span className="text-[9px] font-mono text-slate-600 opacity-50">{cronValue}</span>
+                      </div>
+                   </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="space-y-4">
@@ -1610,7 +1727,9 @@ const TaskConfirmationCard = ({ onAction, data }: any) => {
   
       <div className="p-5 bg-slate-900/20 border-t border-slate-800/50 flex gap-3">
          <button onClick={() => onAction?.('STEP_SCHEDULE_BACK')} className="flex-1 py-1.5 bg-slate-800/50 hover:bg-slate-800 text-slate-500 hover:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-all uppercase tracking-widest">返回修改</button>
-         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">确认创建任务</button>
+         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">
+           {data.frequency === '立即执行' ? '确认并立即执行' : '确认创建计划'}
+         </button>
       </div>
     </motion.div>
   );
@@ -2549,14 +2668,14 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/60 z-[100]"
           />
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[92%]' : 'w-[85%]'} max-w-7xl bg-[var(--bg-deep-alt)] border-l border-slate-700 z-[101] flex shadow-[0_0_100px_rgba(0,0,0,0.8)]`}
+            transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
+            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[92%]' : 'w-[85%]'} max-w-7xl bg-[var(--bg-deep-alt)] border-l border-slate-700 z-[101] flex shadow-[-20px_0_60px_rgba(0,0,0,0.5)]`}
           >
             {/* Sidebar for History (Only for Phase-style Inspection Reports) */}
             {isPhased && (
@@ -2568,7 +2687,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
             )}
 
             <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-              <div className="sticky top-0 bg-[var(--bg-deep-alt)]/80 backdrop-blur-md border-b border-slate-800/50 p-6 flex justify-between items-center z-10 shrink-0">
+              <div className="sticky top-0 bg-[var(--bg-deep-alt)] border-b border-slate-800/50 p-6 flex justify-between items-center z-10 shrink-0">
                 <div>
                   <h2 className="text-2xl font-black text-slate-100 tracking-tighter flex items-center gap-3">
                     <div className={`p-2 ${isPhased ? 'bg-indigo-600/20 text-indigo-400' : 'bg-blue-600/20 text-blue-400'} rounded-xl`}>
@@ -3726,7 +3845,8 @@ const ChatBubble: React.FC<{
     frequency: string,
     setFrequency: (val: string) => void,
     ruleDraft: any,
-    targets: any[]
+    targets: any[],
+    mode?: string
   }
 }> = ({ message, onAction, inspectionContext }) => {
   const isAI = message.type === 'ai';
@@ -3892,7 +4012,7 @@ const ChatBubble: React.FC<{
           {message.contentType === 'change_list' && <ChangeListCard data={message.data} onAction={onAction} />}
           {message.contentType === 'recovery_action' && <RecoveryRecommendationCard data={message.data} onAction={onAction} />}
           {message.contentType === 'target_select' && <TargetSelectionCard data={message.data} onAction={onAction} />}
-          {message.contentType === 'rule_draft' && <RuleDraftCard data={message.data} onAction={onAction} />}
+          {message.contentType === 'rule_draft' && <RuleDraftCard data={message.data} onAction={onAction} mode={inspectionContext?.mode} />}
           {message.contentType === 'frequency_select' && (
             <FrequencySettingCard 
               onAction={onAction} 
@@ -3900,6 +4020,8 @@ const ChatBubble: React.FC<{
               setTaskName={inspectionContext?.setTaskName || (() => {})} 
               frequency={inspectionContext?.frequency || '每天一次'} 
               setFrequency={inspectionContext?.setFrequency || (() => {})} 
+              cronValue={inspectionContext?.cronValue || '0 0 * * *'} 
+              setCronValue={inspectionContext?.setCronValue || (() => {})} 
             />
           )}
           {message.contentType === 'task_summary' && (
@@ -3909,7 +4031,7 @@ const ChatBubble: React.FC<{
                 taskName: inspectionContext?.taskName || '',
                 targets: inspectionContext?.targets || [],
                 ruleDraft: inspectionContext?.ruleDraft || null,
-                frequency: inspectionContext?.frequency || '每天一次'
+                frequency: inspectionContext?.mode === 'immediate' ? '立即执行' : (inspectionContext?.frequency || '每天一次')
               }} 
             />
           )}
@@ -5669,13 +5791,22 @@ const MOCK_LOG_EVENTS = [
 ];
 
 const MOCK_KNOWLEDGE_LIBS = [
+  { id: 'lib-1', name: 'OCR 模型部署', docCount: 42, tagCount: 12, updated: '2024-05-20 10:24', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
+  { id: 'lib-2', name: '容器服务指南', docCount: 36, tagCount: 8, updated: '2024-05-19 16:45', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
+  { id: 'lib-3', name: '网络故障排查', docCount: 28, tagCount: 6, updated: '2024-05-18 09:30', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
+  { id: 'lib-4', name: '日志采集方案', docCount: 15, tagCount: 4, updated: '2024-05-15 14:20', status: 'inactive', statusLabel: '未启用', icon: Folder, documents: [] },
+  { id: 'lib-5', name: 'GPU 资源管理', docCount: 22, tagCount: 5, updated: '2024-05-12 11:10', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
+  { id: 'lib-6', name: '测试知识库', docCount: 3, tagCount: 1, updated: '2024-05-10 17:00', status: 'draft', statusLabel: '草稿', icon: Folder, documents: [] },
   {
     id: 'sop',
     name: '标准 SOP',
     icon: ClipboardList,
     type: 'txt',
-    count: 24,
-    updatedAt: '2024-03-24 14:20',
+    docCount: 24,
+    tagCount: 5,
+    updated: '2024-03-24 14:20',
+    status: 'active',
+    statusLabel: '已启用',
     category: 'SOP',
     documents: [
       {
@@ -5710,8 +5841,11 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '核心架构',
     icon: Network,
     type: 'pdf',
-    count: 12,
-    updatedAt: '2024-04-10 09:15',
+    docCount: 12,
+    tagCount: 3,
+    updated: '2024-04-10 09:15',
+    status: 'active',
+    statusLabel: '已启用',
     category: '架构',
     documents: [
       {
@@ -5726,8 +5860,11 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '故障复盘库',
     icon: History,
     type: 'txt',
-    count: 48,
-    updatedAt: '2024-04-12 11:30',
+    docCount: 48,
+    tagCount: 10,
+    updated: '2024-04-12 11:30',
+    status: 'active',
+    statusLabel: '已启用',
     category: '故障复盘',
     documents: [
       {
@@ -5742,8 +5879,11 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '监控告警规则',
     icon: ShieldCheck,
     type: 'yml',
-    count: 156,
-    updatedAt: '2024-04-11 18:45',
+    docCount: 156,
+    tagCount: 22,
+    updated: '2024-04-11 18:45',
+    status: 'active',
+    statusLabel: '已启用',
     category: '监控规则',
     documents: [
       { id: 'r1', title: '基础资源 CPU/内存 阈值规范', author: '架构组', date: '2024-04-11', hot: true, content: "规范全站服务的告警基准线..." },
@@ -6081,7 +6221,8 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
   );
 };
 
-const KnowledgeChatPanel = ({ messages, chatEndRef, renderInput, selectedLibIds, selectedDocId, isCollapsed, onToggle, onAction, inspectionContext }: any) => {
+const KnowledgeChatPanel = ({ messages, chatEndRef, renderInput, selectedLibIds, selectedDocId, isCollapsed, onToggle, onAction, inspectionContext, knowledgeTab, setKnowledgeTab, renderKnowledgeManagement }: any) => {
+
   const selectedLibs = MOCK_KNOWLEDGE_LIBS.filter(l => selectedLibIds.includes(l.id));
   const doc = selectedLibs.flatMap(l => l.documents).find(d => d.id === selectedDocId);
 
@@ -6089,84 +6230,115 @@ const KnowledgeChatPanel = ({ messages, chatEndRef, renderInput, selectedLibIds,
     <div className="flex flex-col h-full bg-[var(--bg-deepest)]">
       {/* Context Header */}
       <div className="h-14 border-b border-slate-800/80 flex items-center justify-between px-6 bg-[var(--bg-card)] shrink-0">
-        <div className="flex items-center gap-2">
-          {/* Subtle title to match Inspection style */}
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AI 知识专家</span>
+        <div className="flex items-center gap-6">
+          {/* Header Tabs (Relocated) */}
+          <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-slate-800/40 backdrop-blur-md">
+            <button 
+              onClick={() => setKnowledgeTab('qa')}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-tight transition-all relative ${knowledgeTab === 'qa' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              {knowledgeTab === 'qa' && (
+                <motion.div layoutId="knowTabHeader" className="absolute inset-0 bg-indigo-600 rounded-lg -z-10 shadow-lg shadow-indigo-500/20" />
+              )}
+              AI 知识专家
+            </button>
+            <button 
+              onClick={() => setKnowledgeTab('manage')}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-tight transition-all relative ${knowledgeTab === 'manage' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              {knowledgeTab === 'manage' && (
+                <motion.div layoutId="knowTabHeader" className="absolute inset-0 bg-indigo-600 rounded-lg -z-10 shadow-lg shadow-indigo-500/20" />
+              )}
+              知识库管理
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <button className="text-slate-500 hover:text-slate-100 transition-colors"><Maximize2 size={16} /></button>
         </div>
+
       </div>
+
+
 
       <div className={`flex-1 overflow-y-auto p-8 no-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.03),transparent_40%)] flex flex-col`}>
-        <div className={`max-w-4xl mx-auto w-full ${messages.length === 0 ? 'flex-1 flex flex-col items-center justify-center' : 'space-y-6'}`}>
-          <AnimatePresence>
-            {messages.length === 0 ? (
-              <motion.div
-                key="knowledge-welcome"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="flex flex-col items-center justify-center text-center w-full max-w-2xl px-10 -mt-10"
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="w-20 h-20 rounded-[28px] mx-auto bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)] flex items-center justify-center mb-6"
-                >
-                  <Brain size={40} className="text-indigo-400" />
-                </motion.div>
-                <motion.h2
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="text-xl font-bold text-slate-200 mb-3"
-                >
-                  AI 知识专家
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-base text-slate-500 leading-relaxed max-w-[480px]"
-                >
-                  您的企业级智能知识引擎。无缝对接各类文档源，智能解析结构化与非结构化数据，打造会说话的内部百科全书，全面赋能团队的高效协同与知识创新。
-                </motion.p>
-
-              </motion.div>
-            ) : (
-              <motion.div
-                key="knowledge-messages"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-6"
-              >
-                {messages.map((msg: any) => (
-                  <ChatBubble key={msg.id} message={msg} onAction={onAction} inspectionContext={inspectionContext} />
-                ))}
-                <div ref={chatEndRef} className="h-20" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <div className="p-6 bg-gradient-to-t from-[var(--bg-deepest)] via-[var(--bg-deepest)]/95 to-transparent shrink-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-4">
-            {['生成摘要', '发布后 pod 持续重启怎么排查？', 'CPU 突增如何定位？'].map(cmd => (
-              <button
-                key={cmd}
-                onClick={() => onAction('SEND_PROMPT', cmd)}
-                className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 transition-all font-mono"
-              >
-                {cmd}
-              </button>
-            ))}
+        {knowledgeTab === 'manage' ? (
+          <div className="max-w-4xl mx-auto w-full">
+            {renderKnowledgeManagement()}
           </div>
-          {renderInput()}
-        </div>
+        ) : (
+          <div className={`max-w-4xl mx-auto w-full ${messages.length === 0 ? 'flex-1 flex flex-col items-center justify-center' : 'space-y-6'}`}>
+            <AnimatePresence>
+              {messages.length === 0 ? (
+                <motion.div
+                  key="knowledge-welcome"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex flex-col items-center justify-center text-center w-full max-w-2xl px-10 -mt-10"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-20 h-20 rounded-[28px] mx-auto bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)] flex items-center justify-center mb-6"
+                  >
+                    <Brain size={40} className="text-indigo-400" />
+                  </motion.div>
+                  <motion.h2
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="text-xl font-bold text-slate-200 mb-3"
+                  >
+                    AI 知识专家
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-base text-slate-500 leading-relaxed max-w-[480px]"
+                  >
+                    您的企业级智能知识引擎。无缝对接各类文档源，智能解析结构化与非结构化数据，打造会说话的内部百科全书，全面赋能团队的高效协同与知识创新。
+                  </motion.p>
+
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="knowledge-messages"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  {messages.map((msg: any) => (
+                    <ChatBubble key={msg.id} message={msg} onAction={onAction} inspectionContext={inspectionContext} />
+                  ))}
+                  <div ref={chatEndRef} className="h-20" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
+
+
+      {knowledgeTab === 'qa' && (
+        <div className="p-6 bg-gradient-to-t from-[var(--bg-deepest)] via-[var(--bg-deepest)]/95 to-transparent shrink-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-2 mb-4">
+              {['发布后 pod 持续重启怎么排查？', 'CPU 突增如何定位？'].map(cmd => (
+                <button
+                  key={cmd}
+                  onClick={() => onAction('SEND_PROMPT', cmd)}
+                  className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 transition-all font-mono"
+                >
+                  {cmd}
+                </button>
+              ))}
+            </div>
+            {renderInput()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -6510,7 +6682,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
                         <div className="flex items-center gap-2 mb-1.5">
 
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded leading-none ${selectedAlarm.level === 'P0' ? 'bg-rose-500 text-white' : 'bg-orange-500 text-white'
-                            }`}>{selectedAlarm.level} 告警联动</span>
+                            }`}>{selectedAlarm.level === 'P0' ? '紧急' : '严重'}</span>
                         </div>
                         <h3 className="text-sm font-bold text-slate-200 truncate group-hover/banner:text-white transition-colors">{selectedAlarm.title}</h3>
 
@@ -6850,6 +7022,3188 @@ const AssistantChatView = ({ messages, chatEndRef, onAction, renderInput, isColl
   </div>
 );
 
+
+// --- Interaction Guide Components ---
+const GUIDE_TABS = [
+  {
+    id: 'home',
+    title: '首页',
+    icon: <Home size={16} />,
+    children: [
+      { id: 'home-rules', title: '首页交互规则', content: `# SRE Agent 首页 PRD / 测试用例版
+
+## 1. 文档信息
+- **文档名称**：SRE Agent 首页交互规则 PRD / 测试用例
+- **适用范围**：SRE Agent 首页
+- **文档目的**：用于产品、设计、开发、测试对齐首页各入口、输入区、上传能力、卡片跳转、空状态与排序规则
+- **当前状态**：含已确认规则 + 待确认建议项
+
+---
+
+## 2. 产品目标
+SRE Agent 首页作为平台统一入口，承载以下能力：
+- 快速进入告警相关分析流程
+- 通过输入框发起不同场景的智能助手任务
+- 快速跳转至各核心模块页面
+- 在首页预览关键业务信息，并在无数据时保持可理解的状态反馈
+
+---
+
+## 3. 页面范围
+本次规则覆盖以下区域：
+
+1. 顶部通知条
+2. 首页输入框区域
+3. 首页核心能力卡片
+   - 故障根因分析
+   - 告警收敛
+   - 运维知识专家
+   - 智能巡检助手
+4. 首页空状态
+5. 附件/图片上传规则
+6. 告警排序规则
+
+---
+
+## 4. 术语说明
+
+### 4.1 \`@标签\`
+指输入框底部可选的场景标签，用于指定当前消息的目标能力模块。
+当前包含：
+- \`@诊断专家\`
+- \`@巡检助手\`
+- \`@知识专家\`
+
+
+### 4.2 快捷指令
+指输入框下方的常用指令按钮，点击后可将预设内容写入输入框。
+
+### 4.3 空状态
+指模块在无数据时展示的占位内容，用于反馈当前无内容可展示。
+
+### 4.4 空数据状态
+与空状态语义一致，强调当前模块暂无数据，非系统异常。
+
+---
+
+## 5. 功能需求说明（PRD）
+
+---
+
+## 5.1 顶部通知条
+
+### 5.1.1 功能说明
+顶部通知条用于展示待处理告警信息，支持轮播查看，并可快捷进入单条告警分析流程。
+
+### 5.1.2 交互规则
+1. 顶部通知条同一时刻仅展示 **1 条告警信息**
+2. 当存在多条告警时，通知条以 **滚动轮播** 形式依次展示
+3. 当首页 **没有告警数据时**：
+   - 通知条整体隐藏
+   - 不占据页面布局空间
+4. 点击通知条内操作按钮后：
+   - 进入 **AI 诊断助手页面**
+   - 自动带入当前通知条对应的 **单条告警上下文**
+   - 并 **直接开始分析**
+
+### 5.1.3 输出要求
+- 当前展示的告警需可被识别为单条告警对象
+- 跳转后分析上下文应与通知条当前展示内容一致
+
+---
+
+## 5.2 首页输入框区域
+
+### 5.2.1 功能说明
+输入框为首页统一任务发起入口，支持文本输入、附件上传、图片上传、\`@标签\` 路由以及快捷指令辅助输入。
+
+### 5.2.2 输入框能力范围
+输入框支持：
+- 文本输入
+- 上传附件
+- 上传图片
+- 选择 \`@标签\`
+- 点击快捷指令
+- 发送消息
+
+---
+
+## 5.3 \`@标签\` 规则
+
+### 5.3.1 标签选择规则
+1. \`@标签\` **不支持多选**
+2. 用户可在 **输入前** 选择 \`@标签\`
+3. 用户也可在 **输入完成后** 再选择 \`@标签\`
+
+### 5.3.2 标签替换规则
+1. 当用户点击新的 \`@标签\` 时：
+   - 当前已选中的 \`@标签\` 被替换
+   - 新标签成为当前唯一生效标签
+2. 切换标签时：
+   - 已输入文本内容保留
+   - 不清空已有输入内容
+
+### 5.3.3 标签取消规则
+1. 当某个 \`@标签\` 已选中时，用户再次点击输入框下方同一个标签：
+   - 取消该标签选中状态
+   - 输入框内对应标签同步移除
+2. 取消后，当前消息恢复为 **无标签状态**
+
+### 5.3.4 标签与快捷指令联动规则
+1. 当用户已选择 \`@标签\` 后，再点击输入框下方快捷指令：
+   - 快捷指令内容写入输入框
+   - 当前 \`@标签\` 保持不变
+   - 不触发标签替换或取消
+2. 快捷指令仅补充输入内容，不改变当前路由目标
+
+---
+
+## 5.4 输入发送路由规则
+
+### 5.4.1 路由映射
+- \`@诊断专家\` → **AI 诊断专家页面**
+- \`@巡检助手\` → **AI巡检助手页面**
+- \`@知识专家\` → **AI知识专家页面**
+
+### 5.4.2 发送时携带内容
+发送时需带入以下内容（如当前场景支持）：
+- 用户输入文本
+- 当前选中 \`@标签\`
+- 已上传附件
+- 已上传图片
+- 已选择知识库
+
+
+### 5.4.3 用户输入内容发送后的意图识别
+参考下面的md文档（1.2首页通用智能体意图识别）
+
+
+---
+
+## 5.5 附件与图片上传
+
+### 5.5.1 功能说明
+用户可在首页输入框区域上传附件和图片，作为输入上下文的一部分参与后续任务处理。
+
+### 5.5.2 附件展示规则（已确认）
+附件上传成功后，输入框区域展示附件卡片，卡片内容包括：
+- 文件类型 icon
+- 文件名
+- 格式名称（展示在文件名下方）
+
+### 5.5.3 文件名展示规则（已确认 + 待确认）
+1. 文件名需限制展示字符数，避免撑开布局
+2. 文件名单行展示
+3. 超出展示长度后以省略号截断
+
+#### 建议值（待确认）
+- 建议最多展示 **10 个中文字符**
+
+### 5.5.4 图片与文件展示规则
+建议图片上传成功后展示图片卡片，包含：
+- 图片缩略图
+
+建议图片上传成功后展示文件卡片，包含：
+- 文件icon
+- 文件名称
+- 文件格式名称
+
+### 5.5.5 上传成功后行为
+建议支持：
+- 展示已上传的文件与图片卡片
+
+### 5.5.6 上传限制
+建议补充明确以下规则：
+- 支持的文件格式（目前Aone支持的所有）
+- 最大上传数量（10个）
+- 单文件大小限制（待定）
+- 上传失败提示文案
+
+---
+
+
+
+## 5.6 首页核心能力卡片
+
+---
+
+### 5.6.1 故障根因分析模块
+
+#### 功能说明
+用于展示当前重点告警（前5条），并支持进入诊断页面或直接对单条告警发起分析。
+
+#### 交互规则
+1. 点击模块整块：
+   - 进入 **AI 诊断专家页面**
+2. 点击模块内某条告警卡片：
+   - 进入 **AI 诊断专家页面**
+   - 自动带入该条告警上下文
+   - 并 **直接开始分析**
+3. 当模块 **无告警数据时**：
+   - 展示 **空状态**
+
+#### 告警排序规则
+1. 一级排序：按告警严重级别降序排列  
+   \`严重 > 重要 > 次要 > 警告 > 信息\`
+2. 二级排序：同级别下按 **最新更新时间倒序**
+
+---
+
+### 5.6.2 告警收敛模块
+
+#### 交互规则
+- 点击卡片整块：
+  - 进入 **告警收敛页面**
+
+---
+
+### 5.6.3 运维知识专家模块
+
+#### 交互规则
+- 点击卡片整块：
+  - 进入 **告警收敛页面**
+- 当模块无数据时：
+  - 展示 **空状态**
+
+---
+
+### 5.6.4 智能巡检助手模块
+
+#### 交互规则
+- 点击卡片整块：
+  - 进入 **AI巡检助手页面**
+- 当模块无数据时：
+  - 展示 **空数据状态**
+
+---
+
+## 5.7 首页空状态规则
+
+### 5.7.1 顶部通知条
+- 无告警数据时隐藏
+
+### 5.7.2 故障根因分析模块
+- 无告警数据时展示空状态
+
+### 5.7.3 运维知识专家模块
+- 无数据时展示空状态
+
+### 5.7.4 智能巡检助手模块
+- 无数据时展示空数据状态
+
+---
+
+## 6. 验收标准（Acceptance Criteria）
+
+### AC-01 顶部通知条展示
+- 当存在告警数据时，首页顶部展示通知条
+- 同一时刻仅展示 1 条告警
+
+### AC-02 顶部通知条轮播
+- 当存在多条告警时，通知条按滚动轮播形式展示
+
+### AC-03 顶部通知条隐藏
+- 当无告警数据时，通知条隐藏且不占位
+
+### AC-04 顶部通知条按钮跳转
+- 点击通知条操作按钮后，进入 AI 诊断助手页面
+- 自动带入当前展示的单条告警
+- 进入后直接开始分析
+
+### AC-05 \`@标签\` 单选
+- \`@标签\` 不支持多选
+- 选择新标签时替换旧标签
+
+### AC-06 \`@标签\` 选择时机
+- 用户可在输入前选择标签
+- 用户可在输入后再选择标签
+
+### AC-07 \`@标签\` 替换不清空内容
+- 用户切换标签时，输入内容保留
+
+### AC-08 \`@标签\` 取消
+- 点击已选中的同一个标签后，标签被取消
+
+### AC-09 \`@标签\` 与快捷指令联动
+- 已选标签后点击快捷指令，标签保持不变
+- 快捷指令内容写入输入框
+
+### AC-10 输入发送路由
+- 根据当前选中的唯一标签跳转到对应页面
+
+### AC-11 附件卡片展示
+- 附件上传成功后展示附件卡片
+- 卡片展示 icon、文件名、格式名称
+
+### AC-12 文件名截断
+- 文件名超出展示限制后，以省略号截断，不影响布局
+
+### AC-13 根因分析整块跳转
+- 点击根因分析整块进入 AI 诊断助手页面
+
+### AC-14 根因分析单条告警直达分析
+- 点击根因分析模块内某条告警卡片后：
+  - 进入 AI 诊断助手页面
+  - 自动带入告警
+  - 直接开始分析
+
+### AC-15 根因分析排序
+- 告警按严重级别降序展示
+- 同级别下按最新更新时间倒序展示
+
+### AC-16 告警收敛跳转
+- 点击告警收敛卡片进入告警收敛页面
+
+### AC-17 运维知识专家跳转
+- 点击运维知识专家卡片进入 AI知识专家页面
+
+### AC-18 智能巡检助手跳转
+- 点击智能巡检助手卡片进入 AI巡检助手页面
+
+### AC-19 根因分析空状态
+- 根因分析无告警数据时展示空状态
+
+### AC-20 运维知识专家空状态
+- 运维知识专家无数据时展示空状态
+
+### AC-21 智能巡检助手空数据状态
+- 智能巡检助手无数据时展示空数据状态
+
+---
+
+## 7. 测试用例
+
+---
+
+### TC-01 顶部通知条单条展示
+- **前置条件**：存在 1 条以上的告警数据
+- **操作步骤**：进入首页
+- **预期结果**：
+  - 顶部通知条展示
+  - 仅显示 1 条告警内容
+  - **单条规则**：告警单条规则为：告警设备+告警名称
+
+---
+
+### TC-02 顶部通知条轮播展示
+- **前置条件**：存在多条告警数据
+- **操作步骤**：进入首页并观察通知条
+- **预期结果**：
+  - 顶部通知条以轮播方式展示多条告警
+  - 任一时刻仅显示 1 条
+
+---
+
+### TC-03 顶部通知条隐藏
+- **前置条件**：无告警数据
+- **操作步骤**：进入首页
+- **预期结果**：
+  - 顶部通知条不展示
+  - 页面布局正常，无空白占位
+
+---
+
+### TC-04 顶部通知条按钮跳转分析
+- **前置条件**：首页存在顶部告警通知条
+- **操作步骤**：点击通知条操作按钮
+- **预期结果**：
+  - 跳转至 AI 诊断助手页面
+  - 自动带入当前告警
+  - 自动开始分析
+
+---
+
+### TC-05 输入前选择 \`@标签\`
+- **前置条件**：进入首页
+- **操作步骤**：
+  1. 先点击任一 \`@标签\`
+  2. 再输入文本
+- **预期结果**：
+  - 标签处于选中态
+  - 输入内容正常保留
+
+---
+
+### TC-06 输入后选择 \`@标签\`
+- **前置条件**：进入首页
+- **操作步骤**：
+  1. 先输入文本
+  2. 再点击任一 \`@标签\`
+- **预期结果**：
+  - 标签选中成功
+  - 已输入文本不丢失
+
+---
+
+### TC-07 \`@标签\` 替换
+- **前置条件**：已选中一个 \`@标签\`
+- **操作步骤**：点击另一个 \`@标签\`
+- **预期结果**：
+  - 原标签取消
+  - 新标签选中
+  - 输入内容保留
+
+---
+
+### TC-08 \`@标签\` 取消
+- **前置条件**：已选中一个 \`@标签\`
+- **操作步骤**：再次点击当前已选标签
+- **预期结果**：
+  - 当前标签取消选中
+  - 输入框中的对应标签同步移除
+
+---
+
+### TC-09 \`@标签\` 与快捷指令联动
+- **前置条件**：已选中任一 \`@标签\`
+- **操作步骤**：点击底部任一快捷指令
+- **预期结果**：
+  - 快捷指令内容写入输入框
+  - 当前标签保持不变
+
+---
+
+### TC-10 \`@诊断专家\` 路由
+- **前置条件**：已选中 \`@诊断专家\`
+- **操作步骤**：输入内容并发送
+- **预期结果**：
+  - 跳转至 AI 诊断助手页面
+  - 带入当前输入内容及上下文
+
+---
+
+### TC-12 \`@巡检助手\` 路由
+- **前置条件**：已选中 \`@巡检助手\`
+- **操作步骤**：输入内容并发送
+- **预期结果**：
+  - 跳转至 AI巡检助手页面
+
+---
+
+### TC-13 \`@知识专家\` 路由
+- **前置条件**：已选中 \`@知识专家\`
+- **操作步骤**：输入内容并发送
+- **预期结果**：
+  - 跳转至 AI知识专家页面
+
+---
+
+### TC-14 附件卡片展示
+- **前置条件**：选择并成功上传附件
+- **操作步骤**：观察输入框上传区域
+- **预期结果**：
+  - 展示附件卡片
+  - 包含 icon、文件名、格式名称
+
+---
+
+### TC-15 文件名超长截断
+- **前置条件**：上传超长文件名附件
+- **操作步骤**：观察附件卡片
+- **预期结果**：
+  - 文件名按规则截断
+  - 不撑开布局
+  - 显示省略号
+
+---
+
+### TC-16 根因分析整块跳转
+- **前置条件**：首页展示根因分析模块
+- **操作步骤**：点击模块整块
+- **预期结果**：
+  - 跳转至 AI 诊断助手页面
+
+---
+
+### TC-17 根因分析单条告警直接分析
+- **前置条件**：根因分析模块存在告警卡片
+- **操作步骤**：点击某条告警卡片
+- **预期结果**：
+  - 跳转至 AI 诊断助手页面
+  - 自动带入该条告警
+  - 自动开始分析
+  - **单条规则**：告警单条规则为：告警级别+告警设备+告警名称
+
+---
+
+### TC-18 根因分析排序验证
+- **前置条件**：根因分析模块存在多条不同等级及不同更新时间的告警
+- **操作步骤**：观察告警顺序
+- **预期结果**：
+  - 按严重级别降序排列
+  - 同级别下按最新更新时间倒序排列
+
+---
+
+### TC-19 告警收敛跳转
+- **前置条件**：首页展示告警收敛模块
+模块中数据内容可参考「告警收敛」页面
+- **操作步骤**：点击告警收敛卡片
+- **预期结果**：
+  - 跳转至告警收敛页面
+
+---
+
+### TC-20 运维知识专家跳转
+- **前置条件**：首页展示运维知识专家模块
+- **操作步骤**：点击运维知识专家卡片
+- **预期结果**：
+  - 跳转至 AI知识专家页面
+
+---
+
+### TC-21 智能巡检助手跳转
+- **前置条件**：首页展示智能巡检助手模块
+- **操作步骤**：点击智能巡检助手卡片
+- **预期结果**：
+  - 跳转至 AI巡检助手页面
+
+---
+
+### TC-22 根因分析空状态
+- **前置条件**：根因分析模块无告警数据
+- **操作步骤**：进入首页
+- **预期结果**：
+  - 模块展示空状态
+
+---
+
+### TC-23 运维知识专家空状态
+- **前置条件**：知识专家模块无数据
+- **操作步骤**：进入首页
+- **预期结果**：
+  - 模块展示空状态
+  - 页面列表为用户发出提问的高频问题，从最多次到最低次展示，当次数一样时，按照最新时间排序
+
+---
+
+### TC-24 智能巡检助手空数据状态
+- **前置条件**：巡检助手模块无数据
+- **操作步骤**：进入首页
+- **预期结果**：
+  - 模块展示空数据状态
+
+---
+
+## 8. 待确认项
+
+以下内容建议在后续评审中补齐，以完善测试边界：
+
+1. 无 \`@标签\` 时发送消息的默认去向超级智能体助手
+2. 支持的文件格式清单（目前Aone支持的所有）
+3. 最大上传数量（10）
+4. 单文件大小限制（待定）
+5. 上传失败提示文案与样式
+6. 输入内容为空时发送按钮是否禁用
+
+
+---` },
+      { id: 'home-intent', title: '首页输入内容意图识别', content: `# 通用智能体页「系统推荐转交」交互流程（含意图识别优先级）
+
+## 一、补充目标
+本补充规则用于完善首页「SRE超级助手」页面（以下称为通用智能体页）的以下能力：
+- 用户问题的意图识别优先级
+- 推荐转交按钮的触发条件
+- 问题留在通用智能体时的回答方式
+- 意图不明确场景下的引导逻辑
+
+---
+
+## 二、意图识别优先级
+
+### 1. 路由原则
+系统对用户在首页提出的问题的处理优先级如下：
+
+#### 第一优先级：显式标签优先
+当用户输入中包含显式标签时，优先按显式标签路由：
+- \`@诊断专家\`
+- \`@巡检助手\`
+- \`@知识专家\`
+
+若命中显式标签：
+- 直接按标签进入对应智能体
+- 不再进入通用智能体的意图判断逻辑
+
+---
+
+#### 第二优先级：关键词匹配（高置信度）
+当用户未使用显式标签时，系统优先根据关键词进行高置信度匹配。
+
+##### 诊断类关键词示例
+- 怎么回事
+- 原因
+- 报错
+- 异常
+- 慢
+- 高延迟
+- P99
+- P95
+- 超时
+- 失败
+- 错误
+- 故障
+- 分析
+
+##### 巡检类关键词示例
+- 检查
+- 告警
+- 巡检
+- 扫描
+- 健康
+- 状态
+- 有没有问题
+- SLA
+- 达标
+- 风险
+- 配置检查
+
+##### 知识类关键词示例
+- SOP
+- 文档
+- 怎么做
+- 如何
+- 步骤
+- 流程
+- 最佳实践
+- 规范
+- 手册
+- 知识
+- 知识库
+
+##### 通用类关键词示例
+- 你好
+- 帮我
+- 什么
+- 介绍
+- 能做什么
+- 最近
+- 总结
+- 概览
+
+---
+
+#### 第三优先级：上下文延续
+当用户当前问题为明显追问，且当前会话已有上一个智能体上下文时：
+- 若识别为追问问题，则优先延续上一轮智能体上下文
+- 避免用户在连续追问时频繁跳转页面
+
+适用示例：
+- 上一轮已进入通用智能体场景语境，用户继续问：\`那根因更可能是什么？\`
+- 上一轮已进入诊断语境，用户继续问：\`那这个 SOP 的前置条件呢？\`
+
+---
+
+#### 第四优先级：LLM 意图分类（中等置信度）
+当显式标签、关键词匹配、上下文延续都无法明确判断时：
+- 由 LLM 进行意图分类
+- 当分类置信度大于阈值（建议 \`0.8\`）时，按其识别结果处理
+
+---
+
+#### 第五优先级：兜底到通用智能体
+当以上规则均无法形成明确结论时：
+- 问题留在通用智能体
+- 通用智能体先进行初步回答与引导
+
+---
+
+## 三、通用智能体与推荐转交的关系
+
+### 1. 什么时候直接转交
+满足以下任一条件时，可推荐转交到专业智能体：
+- 命中显式专业标签
+- 关键词命中明显，且场景高度明确
+- LLM 意图分类置信度高
+- 用户问题具有明确执行目标（如创建巡检任务、排查异常、查看 SOP 来源）
+
+---
+
+### 2. 什么时候留在通用智能体
+满足以下任一条件时，问题继续留在通用智能体：
+- 问题属于简单泛问答
+- 问题属于平台能力咨询
+- 问题属于概览 / 汇总 / 复合信息协调
+- 问题意图不明确
+- 当前更适合先做一轮澄清，而不是立即转交
+
+---
+
+## 四、问题留在通用智能体时的回答模式
+
+当问题最终未被直接转交，而是留在通用智能体中时，通用智能体应根据问题类型采用不同回答模式。
+
+---
+
+### 模式 1：简单问题直接回答
+
+#### 适用场景
+- 用户咨询平台能力
+- 用户进行泛问题提问
+- 用户问题无需进入专业智能体也可直接回答
+
+#### 示例
+用户问题：
+- \`你能做什么？\`
+
+通用智能体回答方式：
+- 直接说明能力范围，同时支持点击操作
+- 给出可继续操作的方向
+- 不强制推荐转交
+
+#### 示例回答结构
+- 我是 SRE 智能助手，可以帮你：
+  - [诊断故障和性能问题→] **（支持点击，并提示转到 AI诊断专家）**
+  - [巡检系统健康状态→] **（支持点击，并提示转到 AI巡检助手）**
+  - [查询运维知识和 SOP→] **（支持点击，并提示转到 AI知识专家）**
+  - [处理和分析告警→] **（支持点击，并提示转到 AI诊断专家）**
+- 欢迎您继续提问
+---
+
+### 模式 2：复合问题协调回答
+
+#### 适用场景
+- 用户的问题不是单一子任务
+- 用户更像在问“整体情况”
+- 用户希望先看到概览，再决定深入哪个方向
+
+#### 示例
+用户问题：
+- \`最近系统有什么问题吗？\`
+
+通用智能体回答方式：
+- 不立即强制跳去某个专业智能体
+- 先给出多维度汇总结果
+- 再在不同模块结果中给出对应入口
+
+#### 示例回答结构
+- 告警情况（最近24小时）
+  - 3 条严重告警，2 条已处理
+  - \`[查看详情 →]\`
+- 性能诊断
+  - payment-svc P99 偏高（245ms）
+  - \`[深入分析 →]\`
+- 巡检结果
+  - 整体健康度 87%，有 3 个待优化项
+  - \`[查看报告 →]\`
+
+#### 交互特点
+- 此类回答不是单一“转交按钮”
+- 而是“通用协调回答 + 多入口继续深入”
+- 当用户点击其中一个入口后，跳转到对应的专业智能体页面，不需要用户确认，直接点击后跳转到专业智能体页面
+
+---
+
+### 模式 3：意图不明确时引导
+
+#### 适用场景
+- 用户描述过于模糊
+- 系统无法准确判断其目标场景
+- 若直接转交，容易误判
+
+#### 示例
+用户问题：
+- \`帮我看看\`
+
+通用智能体回答方式：
+- 不直接转交
+- 给出可选方向，引导用户补充
+- 降低误跳转概率
+
+#### 示例回答结构
+- 好的，我可以帮你：
+  - 诊断某个服务的问题
+  - 巡检系统健康状态
+  - 查询运维文档
+- 请告诉我你想看什么？
+
+#### 推荐交互形式
+可在回答下方给出引导按钮：
+- \`诊断问题\`
+- \`查看巡检\`
+- \`选择文档查询\`
+
+---
+
+## 五、推荐转交按钮触发规则（补充版）
+
+### 1. 诊断助手推荐触发
+当问题满足以下特征时，在回答下方展示：
+- \`转到 AI诊断专家\`
+
+#### 典型特征
+- 性能指标异常
+- 服务报错
+- 超时 / 失败 / 高延迟
+- 根因分析诉求
+- 日志分析诉求
+
+#### 示例问题
+- \`payment-svc 为什么 P99 飙升？\`
+- \`为什么最近接口老是超时？\`
+- \`这段报错日志帮我看下\`
+
+---
+
+### 2. 知识专家推荐触发
+当问题满足以下特征时，在回答下方展示：
+- \`转到 AI知识专家\`
+
+#### 典型特征
+- 查询 SOP
+- 查询步骤 / 流程
+- 查询最佳实践
+- 查询规范 / 手册 / 文档
+
+#### 示例问题
+- \`K8s OOMKill 的 SOP 是什么？\`
+- \`Redis timeout 一般怎么处理？\`
+- \`这个流程在哪份文档里？\`
+
+---
+
+### 3. 巡检助手推荐触发
+当问题满足以下特征时，在回答下方展示：
+- \`进入 AI巡检助手\`
+
+#### 典型特征
+- 创建巡检任务
+- 巡检规则配置
+- 定时巡检
+- 风险检查 / 健康检查
+
+#### 示例问题
+- \`帮我创建一个每日巡检任务\`
+- \`我想检查服务健康状态\`
+- \`想配一个 CPU 和内存巡检\`
+
+---
+
+## 六、通用智能体推荐转交的最终判断逻辑
+
+### 判断顺序
+1. 是否存在显式标签（首页）  
+2. 是否命中高置信度关键词  
+3. 是否应延续上一轮上下文  
+4. 是否可由 LLM 高置信度分类  
+5. 若仍不明确，则留在通用智能体
+
+### 输出方式
+- 若识别明确：  
+  - 先给简要回答  
+  - 再推荐转交按钮
+- 若识别不明确：  
+  - 留在通用智能体  
+  - 用澄清式回答引导用户补充
+- 若属于复合问题：  
+  - 通用智能体先协调输出概览  
+  - 再提供多个方向入口
+
+---
+
+## 七、测试关注点（补充）
+
+### 1. 意图识别优先级是否生效
+- 显式标签是否覆盖关键词判断
+- 关键词匹配是否先于 LLM 分类
+- 上下文追问是否正确延续
+- 未命中时是否正确兜底到通用智能体
+
+### 2. 通用智能体回答模式是否符合问题类型
+- 简单问题是否直接回答
+- 复合问题是否输出协调型概览
+- 模糊问题是否先澄清再引导
+
+### 3. 推荐按钮是否与问题类型一致
+- 诊断类 → AI诊断助手
+- 知识类 → AI知识专家
+- 巡检类 → AI巡检助手
+
+### 4. 跳转交互保持一致
+- 当用户点击其中一个入口后，跳转到对应的专业智能体页面
+
+---` }
+    ]
+  },
+  {
+    id: 'diagnostic',
+    title: '诊断专家',
+    icon: <Activity size={16} />,
+    children: [
+
+      { id: 'diag-rules', title: '诊断通用交互规则', content: `# AI 诊断助手页面交互说明（测试版）
+
+---
+
+## 1. 文档目的
+
+本文档用于明确 **AI 诊断助手页面** 的页面结构、核心交互、状态流转、异常处理与测试关注点，供测试人员进行功能验证、交互验收与边界场景覆盖。
+
+---
+
+## 2. 页面定位
+
+AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故障诊断，并基于 AI 完成根因分析、自愈建议查看、报告查阅与知识归档。
+
+页面由两部分组成：
+
+- 左侧：告警列表区
+- 右侧：诊断工作区
+
+---
+
+## 3. 页面结构说明
+
+### 3.1 左侧告警列表区
+
+包含以下模块：
+
+- 告警列表标题区
+- 搜索框
+- 筛选区
+- 告警卡片列表
+
+### 3.2 右侧诊断工作区
+
+包含以下模块：
+
+- 面包屑/当前功能标识区
+- 欢迎态 / 空状态内容区
+- AI 对话 / 任务流展示区
+- 底部输入框
+- 输入框上方的“已选告警吸附区”
+
+---
+
+## 4. 告警列表规则
+
+### 4.1 排序规则
+
+左侧告警列表默认按以下规则排序：
+
+#### 一级排序：告警严重级别降序
+排序优先级为：
+
+1. 严重
+2. 重要
+3. 次要
+4. 警告
+5. 信息
+
+#### 二级排序：同级别内按最新更新时间倒序
+即：
+- 同一严重级别下，更新时间越新，越靠上展示
+
+---
+
+### 4.2 告警卡片基础信息
+
+每张告警卡片需至少展示：
+
+- 告警级别
+- 告警类型
+- 告警标题
+- 所属对象/服务名
+- 收敛数量（如有）
+- 触发时间（当天触发：HH:MM:SS； 非当天触发：MM-DD HH:mm； 跨年触发：YYYY-MM-DD HH:mm；）
+- 操作按钮：\`一键诊断\`
+
+---
+
+### 4.3 告警卡片可执行动作
+
+每张告警卡片支持两类独立操作：
+
+#### 操作 A：点击卡片主体
+用于“选中告警”，不直接启动诊断流程，将吸附在右侧输入框顶部，支持与自然语言一起发送给AI。
+
+#### 操作 B：点击「一键诊断」
+用于直接启动该告警的根因分析流程。
+
+---
+
+## 5. 告警卡片交互规则
+
+### 5.1 点击卡片主体：选中逻辑
+
+当用户点击告警卡片主体时：
+
+#### 系统行为
+- 该卡片进入“选中态”
+- 右侧输入框上方生成一条“已选告警吸附卡片”
+- 右侧不立即进入根因分析流程
+- 输入框保留可继续输入的能力
+
+#### 设计意图
+- 支持用户先绑定告警上下文，再补充问题后发起诊断
+- 满足“带上下文提问”而不是“立即分析”的使用场景
+
+---
+
+### 5.2 吸附卡片规则
+
+当左侧告警被选中后，右侧输入框上方需展示对应的吸附卡片。
+
+#### 吸附卡片展示内容建议
+- 告警标题
+- 严重级别
+- 来源
+- 类型（指标/链路/日志/拨测/其他）
+- 持续时间
+- 触发时间
+- 可选：移除按钮 / 取消选择按钮
+
+#### 吸附规则
+- 同一时刻仅允许吸附 1 条告警
+- 若用户再次点击其他告警卡片，则替换当前吸附内容
+- 吸附后输入框仍可继续输入文本
+- 吸附卡片仅表示“上下文绑定成功”，不代表已启动分析
+
+---
+
+### 5.3 点击「一键诊断」：直接诊断逻辑
+
+当用户点击某张告警卡片上的 \`一键诊断\` 按钮时：
+
+#### 系统行为
+- 自动将该告警作为当前诊断对象
+- 若右侧已有其他吸附告警，则替换为当前告警
+- 直接进入根因分析流程
+- 右侧从空状态切换为“AI 任务流执行态”
+
+#### 设计原则
+根据既有规范，点击告警卡片仅完成上下文绑定，必须点击 \`一键诊断\` 才真正启动诊断流程。
+
+---
+
+## 6. 右侧工作区状态定义
+
+### 6.1 空状态
+
+触发条件：
+- 页面初次进入
+- 当前未选中任何告警
+- 未发起任何诊断任务
+
+展示内容：
+- AI 诊断专家说明文案
+- 输入框占位提示
+- 不展示任务流内容
+
+---
+
+### 6.2 已选中未诊断状态
+
+触发条件：
+- 用户点击左侧告警卡片主体
+- 尚未点击 \`一键诊断\`
+- 尚未发送输入框内容触发诊断
+
+展示内容：
+- 输入框上方显示吸附告警卡片
+- AI 主体区域仍可为默认态，或进入“待发起诊断”提示态
+- 用户可继续补充文本后发起分析
+
+---
+
+### 6.3 诊断进行中状态
+
+触发条件：
+- 用户点击 \`一键诊断\`
+- 或用户在吸附告警后，通过输入框发送诊断请求
+
+展示内容：
+- 右侧进入任务流执行区
+- 展示阶段进度、执行状态、关键结果
+- 输入框可根据产品策略设为可继续追问，或在执行中临时限制重复触发
+
+---
+
+### 6.4 诊断完成状态
+
+触发条件：
+- 根因分析流程全部执行完成
+
+展示内容：
+- 根因结论
+- 推荐操作
+- 根因分析报告入口
+- 归档到知识库入口
+
+---
+
+## 7. 根因分析主流程
+
+根因分析流程采用三步任务流结构：
+
+### Step 1：告警解析与拓扑发现
+对应阶段：初始化调查与范围界定。
+
+#### 触发方式
+- 用户点击 \`一键诊断\`
+
+#### 系统动作
+- 自动提取告警元数据：对象、时间、级别等
+- 调用拓扑图谱 API，识别受影响调用链路
+- 在任务流中展示关键调用路径
+- 当前步骤状态更新为“解析完成 / 拓扑调用成功”
+
+---
+
+### Step 2：多智能体并行诊断
+对应阶段：深度证据探索与路径验证。
+
+#### 系统动作
+- 分配多个分析智能体并行执行
+- 分析链路
+- 采集指标
+- 识别监控缺失、调用失败、接口异常等证据
+- 实时展示各分析器状态：运行中 / 成功 / 失败
+
+#### 页面要求
+- 每个分析节点需有状态标识
+- 失败与异常证据需可见，不可静默吞掉
+
+---
+
+### Step 3：结果汇总与自愈方案
+对应阶段：根因确认、结论输出与操作落地。
+
+#### 系统动作
+- 汇总所有分析证据
+- 输出结构化根因结论
+- 输出推荐操作建议
+- 提供三个核心操作入口：
+  - \`一键执行自愈\`
+  - \`根因分析报告\`
+  - \`归档\`
+
+#### 页面要求
+- 根因结论需清晰可读
+- 推荐操作与报告入口需在分析完成后出现
+- 任务流状态更新为“已完成”
+
+---
+
+## 8. 结果区后续交互
+
+### 8.1 点击「一键执行自愈」
+
+点击后不弹窗，而是在 AI 对话流中插入一张“操作授权卡片”。
+
+#### 卡片需包含
+- 风险提示
+- 执行预览（Dry Run）
+- 影响范围
+- 操作按钮：
+  - \`取消\`
+  - \`授权并执行\`
+
+#### 用户点击授权并执行后
+- 卡片切换为执行日志视图
+- 实时滚动展示执行日志
+- 最终输出执行成功或失败结论
+
+---
+
+### 8.2 点击「根因分析报告」
+
+点击后从右侧滑出全屏抽屉，或以宽屏模态形式展示完整报告。
+
+#### 报告内容应包含
+1. Header 区
+2. 执行摘要
+3. 故障时间轴
+4. 拓扑与证据快照
+5. 后续预防建议
+
+#### 支持操作
+- 导出
+- 分享
+- 关联知识库/工单
+
+---
+
+### 8.3 点击「归档到知识库」
+
+该入口应出现在根因分析完成后的结果区域底部，为弱化按钮，不打断主流程。
+
+#### 初始态
+- 展示按钮： \`归档\`
+
+#### 点击后
+在按钮下方 Inline 展开归档区，不使用弹窗。
+
+展开后字段：
+- 知识库选择器
+- 确认归档按钮
+
+#### 交互规则
+- 未选择知识库时，确认按钮禁用
+- 选择知识库后，确认按钮可点击
+- 点击确认后调用归档接口
+- 成功后展示：
+  - \`已归档到 xxx 知识库\`
+  - \`文档名称\`
+  - \`查看知识库\`
+
+---
+
+## 9. 状态流转关系
+
+### 9.1 左侧告警卡片状态
+
+告警卡片可存在以下状态：
+
+- 默认态
+- Hover态
+- 选中态
+- 诊断中态
+- 不可操作态（异常情况下）
+
+---
+
+### 9.2 右侧工作区状态流转
+
+主状态流转如下：
+
+\`空状态\`
+→ \`已选中未诊断\`
+→ \`诊断进行中\`
+→ \`诊断完成\`
+→ \`自愈执行中 / 报告查看 / 归档展开\`
+
+---
+
+## 10. 异常与边界场景
+
+### 10.1 告警选择相关
+
+#### 场景 1：重复点击同一张卡片
+预期：
+- 保持选中态
+- 不重复生成多个吸附卡片
+
+#### 场景 2：已有吸附卡片时再选另一张
+预期：
+- 替换为新卡片
+- 不允许多条同时吸附
+
+#### 场景 3：点击卡片后未做任何操作
+预期：
+- 仅完成绑定，不自动分析
+
+---
+
+### 10.2 一键诊断相关
+
+#### 场景 4：连续快速点击一键诊断
+预期：
+- 仅触发一次有效请求
+- 按钮进入 loading 或禁用态，防止重复发起
+
+#### 场景 5：诊断接口失败
+预期：
+- 右侧显示失败提示
+- 保留当前告警上下文
+- 支持重试
+
+#### 场景 6：拓扑接口失败但基础诊断仍可继续
+预期：
+- 明确提示拓扑获取失败
+- 保留后续步骤可继续执行的能力，或按策略中断并提示原因
+
+---
+
+### 10.3 归档相关
+
+#### 场景 7：未选择知识库直接确认
+预期：
+- 按钮不可点击
+
+#### 场景 8：归档接口失败
+预期：
+- 展示失败提示
+- 支持重试
+- 不影响已有诊断结果查看
+
+---
+
+### 10.4 自愈相关
+
+#### 场景 9：执行授权后日志中断
+预期：
+- 显示执行异常状态
+- 输出失败原因或超时提示
+- 不可只停留在 loading
+
+---
+
+## 11. 测试重点建议
+
+### 11.1 核心功能验证
+- 告警列表排序是否符合“严重级别优先 + 同级按更新时间倒序”
+- 点击卡片是否仅选中，不触发诊断
+- 点击一键诊断是否直接进入根因分析
+- 吸附卡片是否只允许单条存在
+- 诊断流程是否严格按步骤流转
+- 分析完成后是否展示推荐操作、报告入口、归档入口
+
+### 11.2 状态验证
+- 卡片选中态是否清晰
+- 任务流各步骤状态是否正确
+- 按钮 loading / disabled / success / error 是否完整
+
+### 11.3 边界验证
+- 快速重复点击
+- 网络慢 / 超时 / 接口失败
+- 告警切换时上下文替换是否正确
+- 报告与归档入口在异常情况下是否仍能正确展示或禁用
+
+### 11.4 一致性验证
+- 左侧当前操作对象与右侧诊断对象是否始终一致
+- 一键诊断触发对象是否与吸附对象一致
+- 归档内容是否对应当前分析结果，而非历史结果
+
+---
+
+## 12. 验收口径
+
+满足以下条件可视为交互验收通过：
+
+1. 左侧列表排序规则准确无误
+2. 卡片点击与一键诊断两类动作语义清晰且不混淆
+3. 右侧吸附机制稳定，仅单条存在
+4. 根因分析流程可完整执行并正确展示状态
+5. 分析结果后的自愈、报告、归档入口完整可用
+6. 异常场景下有明确反馈，不出现静默失败或状态错乱` },
+      { id: 'diag-archive', title: '归档交互流程', content: `# AI SRE - 根因分析报告归档交互方案
+
+---
+
+## 一、设计目标
+
+在 AI 完成根因分析后，提供一个轻量入口，引导用户将本次分析报告归档到指定知识库，形成可复用的运维知识资产。
+
+设计原则：
+- 不打断主流程（诊断 / 执行操作）
+- 操作路径最短（1次选择 + 1次点击）
+- 无额外填写成本
+- 渐进式交互（按需展开）
+
+---
+
+## 二、交互位置
+
+所属区域：右侧 AI 诊断结果面板底部
+
+层级关系（从上到下）：
+1. 根因结论（ROOT CAUSE）
+2. 推荐操作（RECOMMENDED PLANS）
+3. 主操作按钮（建议执行自愈 / 根因分析报告）
+4. ↓（新增按钮）
+5. [归档到知识库]
+
+界面结构：
+
+[建议执行自愈]   [根因分析报告]  
+↓  
+[归档到知识库]
+
+---
+
+## 三、交互方式（按钮触发）
+
+初始形态：
+
+[归档到知识库]
+
+类型：Secondary Button（弱于主操作）
+
+设计意图：
+- 不打断用户主任务（处理故障）
+- 提供明确但低干扰的知识沉淀入口
+
+---
+
+## 四、点击后展开（Inline 展开，不弹窗）：
+
+📚 归档到知识库  
+[选择知识库 ▼]     [确认归档]
+
+展开方式说明：
+- 默认采用 Inline 展开（按钮下方展开）
+- 不遮挡当前诊断内容
+- 不允许使用 Modal（避免打断流程）
+- 空间不足时可降级为 Popover
+
+---
+
+## 五、字段设计
+
+1. 知识库选择器
+
+类型：Dropdown（下拉选择）
+
+默认值策略：
+- 优先使用「最近使用的知识库」
+- 若无历史记录 → 默认「SRE故障案例库」
+
+下拉内容：
+- 最近使用的知识库
+- 没有使用过的展示系统默认知识库
+
+---
+
+2. 标题（系统自动生成，不展示）
+
+标题由系统自动生成，不在当前界面展示，也不可编辑。
+
+生成规则：
+{服务名} + {问题描述} + {告警ID}
+
+示例：
+- order-service 错误率升高根因分析报告
+- payment P99 延迟告警根因分析报告
+- 数据库连接异常根因分析报告
+
+---
+
+3. 确认归档按钮
+
+类型：Primary Button
+
+状态规则：
+- 未选择知识库 → disabled
+- 已选择知识库 → active（可点击）
+
+---
+
+## 六、交互流程
+
+Step 1：AI分析完成  
+系统展示：
+- 根因结论
+- 推荐操作
+- 页面底部出现「归档」按钮
+
+---
+
+Step 2：用户点击按钮  
+系统行为：
+- 在按钮下方展开归档操作区域
+
+---
+
+Step 3：用户选择知识库  
+用户行为：
+- 点击下拉框
+- 选择目标知识库
+
+系统行为：
+- 激活「确认归档」按钮
+
+---
+
+Step 4：用户确认归档  
+用户行为：
+- 点击「确认归档」
+
+系统行为：
+- 调用归档接口
+- 将本次根因分析报告写入知识库
+
+---
+
+Step 5：归档成功反馈  
+
+界面状态更新为：
+
+✅ 已归档到「SRE故障案例库」  
+[查看知识库]
+
+同时提示 Toast：
+
+根因分析报告已成功归档到知识库
+
+---
+
+## 七、状态设计
+
+初始态：
+[归档到知识库]
+
+---
+
+展开态（未选择）：
+
+📚 归档到知识库  
+[选择知识库 ▼]     [确认归档（disabled）]
+
+---
+
+展开态（已选择）：
+
+📚 归档到知识库  
+[已选择：SRE故障案例库 ▼]     [确认归档]
+
+---
+
+成功态：
+
+✅ 已归档到「SRE故障案例库」  
+[查看知识库]
+点击后跳转新窗口打开该知识库
+
+---
+
+异常态（可选）：
+
+归档失败，请稍后重试  
+[重试]
+
+---
+
+## 八、交互约束
+
+- 不弹窗（避免打断诊断流程）
+- 不强制用户归档
+- 不提供“取消/不归档”按钮（用户可忽略）
+- 不展示标签、分类、结构化字段
+- 不展示内容预览
+- 不允许编辑标题
+- 保持最小操作路径（选择 + 点击）
+
+---
+
+## 九、设计总结
+
+该方案实现：
+- 极简交互（最低操作成本）
+- 非侵入式体验（不打断用户主流程）
+- 清晰闭环（诊断 → 归档 → 知识沉淀）
+- 可扩展能力（未来可接入AI推荐、分类、去重等）
+
+---
+
+## 十、未来扩展（非当前版本）
+
+（不在本期实现）
+
+- AI推荐知识库
+- 相似案例检测（去重）
+- 自动分类（问题类型）
+- 知识库结构化增强
+- 与AI知识助手联动（RAG）` },
+    ]
+  },
+  {
+    id: 'knowledge',
+    title: '知识专家',
+    icon: <BookOpen size={16} />,
+    children: [
+
+      { id: 'know-flow', title: '知识检索交互流程规则', content: `# AI 运维知识助手 Markdown 文档
+
+## 一、产品定位
+
+AI 运维知识助手是一个融合以下能力的运维知识工作台：
+
+- 知识浏览（Browse）
+- AI 问答（Ask）
+- 数据溯源（Trace）
+
+系统基于企业内部知识库，为用户提供：
+
+- 标准操作流程（SOP）查询
+- 架构与系统说明
+- 故障排查与复盘经验
+- 结构化运维建议
+- 可验证的答案来源
+
+---
+
+## 二、设计目标
+
+### 核心目标
+
+1. 提供 AI + 文档双路径获取知识
+2. 提升运维问题定位效率
+3. 确保答案可信（可溯源）
+4. 支持从“查文档”到“问问题”的自然过渡
+
+### 设计原则
+
+- 所有回答支持可溯源
+- 默认简洁，按需展开信息
+- 输出结构化优于对话式
+- 明确能力边界（避免误导）
+- 浏览与问答分离但可切换
+- 检索过程透明化（增强可信度）
+
+---
+
+## 三、关键能力边界（必须明确）
+
+- AI 回答粒度：知识库级（Knowledge Base Level）
+
+### 当前不支持
+
+- 基于单文档回答
+- 限定某一文档范围提问
+
+---
+
+## 四、页面信息架构
+
+页面结构分为：
+
+- 主工作区（知识库选择/问答）
+- 右侧：溯源抽屉（默认隐藏，按需触发）
+
+---
+
+## 五、核心模式划分
+
+
+---
+
+## 六、知识浏览流程
+
+### 流程 1：进入知识库
+
+#### 用户操作
+
+- 点击选择知识库
+
+#### 气泡展示
+
+- 知识库名称
+- 标签
+- 更新时间
+- xx 篇文档
+- 全选按钮
+
+
+#### 操作区
+
+- ✔ 去 AI 助手提问（基于当前选择的知识库/未选择时按照通用场景考虑）
+- ✔ 加入当前问答范围（知识库级）
+
+#### 关键提示
+
+- AI 回答基于整个知识库生成，而非当前文档
+
+---
+
+## 七、AI 问答流程（增强版）
+
+### 流程 3：选择知识库
+
+当前知识范围：
+
+- [标准 SOP]
+- [架构文档]
+
+
+
+### 流程 4：输入问题
+
+请输入运维问题、故障现象或日志信息。
+
+### 流程 5：AI 检索与生成（核心增强）
+
+#### 5.1 检索阶段总览
+
+正在基于所选知识库检索相关内容...
+
+#### 5.2 检索过程分阶段展示
+
+##### 阶段 1：问题解析
+
+- 阶段 1：问题语义理解
+
+识别信息：
+
+- 故障对象：pod
+- 故障现象：持续重启
+- 关键词：CrashLoopBackOff / 启动失败
+
+##### 阶段 2：知识库检索
+
+- 阶段 2：检索方式
+
+已检索关键词：
+
+- 标准 SOP
+- Kubernetes 手册
+
+
+##### 阶段 3：命中文档筛选
+
+- 阶段 3：候选文档召回
+
+高相关文档片段统计（Top 8），并根据初步分值进行第一次过滤，并保留x篇核心文档：
+
+
+##### 阶段 4：证据提取与归纳
+
+- 阶段 4：重排序&片段精提
+
+提取结果：
+
+- 保留最相关片段：x 段
+- 相似度：0.91/0.87
+
+
+##### 阶段 5：生成回答
+
+- 阶段 5：构建上下文
+
+#### 5.3 展示策略
+
+- 检索过程中：默认展示
+- 检索完成后：自动收起
+- 支持「查看知识检索过程」展开完整过程
+---
+
+
+## 九、数据溯源机制（增强版）
+
+### 9.1 来源摘要
+
+- [查看来源]
+
+### 9.2 来源详情（抽屉）
+
+每条来源包含：
+
+- 文档名称：Pod 重启排查 SOP
+- 相关度：0.92
+- 命中章节：pod 重启
+- 标签
+- [跳转查看原文]
+
+
+### 9.3 原文片段
+
+- 高亮展示
+- 标识引用位置
+- 展示所属的页码 
+
+
+---
+
+## 十、推荐追问
+
+- 标准 SOP 是什么？
+- 历史案例有哪些？
+- 如何确认根因？
+
+---
+
+## 十一、继续追问
+
+- 保持上下文
+- 基于当前知识范围
+
+---
+
+## 十二、异常与边界
+
+### 未选择知识库
+
+支持通用回答
+
+### 未命中
+
+建议扩大范围或补充信息。
+
+### 命中不足
+
+当前回答基于少量资料，请谨慎参考。
+
+### 文档异常
+
+- 空
+- 加载失败
+
+---
+
+## 十三、核心流程总结
+
+
+### 问答路径
+
+选择知识库 → 输入问题 → 检索 → 回答 → 查看来源 → 抽屉 → 继续追问
+
+---
+
+## 十四、设计策略总结
+
+### 1. 双路径
+
+问答
+
+### 2. 渐进式信息
+
+默认简洁 → 按需展开
+
+### 3. 检索透明化（核心升级）
+
+让用户看到：
+
+- 检索范围
+- 命中数量
+- 文档质量
+- 证据来源
+
+### 4. 用溯源建立信任
+
+- AI 总结
+- 用户验证
+
+### 5. 明确能力边界
+
+避免误解 AI 精度
+
+---
+
+## 十五、组件定位
+
+### 组件名称
+
+检索过程摘要组件（Retrieval Summary）
+
+### 放置位置（非常关键）
+
+👉 放在 AI 回答卡片顶部
+
+
+### 二、默认展示（核心 UI）
+
+#### 2.1 完成态（最终效果）
+ 
+[知识检索过程]
+
+#### 2.2 加载态
+
+🔍 知识检索过程...
+
+
+
+### 三、交互行为
+
+#### 4.1 点击行为
+
+点击「知识检索过程」  
+👉 展开一个折叠面板（Accordion）
+
+#### 4.2 收起行为
+
+- 再次点击 → 收起
+
+
+---` },
+    ]
+  },
+  {
+    id: 'inspection',
+    title: '巡检助手',
+    icon: <FileText size={16} />,
+    children: [
+      { id: 'ins-targets', title: '巡检对象选择提示交互逻辑', content: `# AI巡检助手 - 巡检对象选择数量提示交互（原型生成版）
+
+## 一、页面说明
+该页面为「AI巡检助手 - 新建任务」流程中的「巡检对象选择」步骤。  
+用户在右侧面板中选择巡检对象，系统在底部实时反馈选择数量及对应的报告生成成本（时间 & 性能风险）。
+
+---
+
+## 二、页面结构
+
+### 布局
+- 左侧：巡检对象分类列表（数据库 / Redis / MQ / 应用服务 / 云主机 / VPC 等）
+- 右侧：对象选择列表（支持勾选）
+- 顶部：搜索框（按名称筛选对象）
+- 底部：状态提示区 + 操作按钮
+
+---
+
+## 三、底部状态提示区（核心交互）
+
+### 位置
+固定在选择面板底部，紧邻「确认执行」按钮
+
+### 结构
+--------------------------------------------------
+| 共选中：X 项 | 状态提示信息                     |
+|                                                |
+|                          [确认执行]             |
+--------------------------------------------------
+
+---
+
+## 四、交互逻辑
+
+### 1. 初始状态（未选择）
+- 共选中：0 项  
+- 提示文案：
+  将根据所选巡检对象生成 AI 巡检报告，选择数量越多，生成耗时越长  
+- 按钮状态：
+  [确认执行] 禁用
+
+---
+
+### 2. 实时反馈机制
+用户每勾选 / 取消勾选对象时：
+- 实时更新：
+  - 已选数量（X）
+  - 预计生成时间
+  - 风险提示等级
+- 无需点击确认即可动态变化
+
+---
+
+## 五、数量分级策略
+
+| 等级 | 数量范围 | 状态 | UI表现 | 是否允许执行 |
+|------|----------|------|--------|--------------|
+| L1 | 1 ~ 10 | 正常 | 默认颜色（灰） | 是 |
+| L2 | 11 ~ 20 | 提醒 | 蓝色提示 | 是 |
+| L3 | 21 ~ 30 | 警告 | 黄色提示 | 是 |
+| L4 | > 30 | 超限 | 红色提示 | 否 |
+
+---
+
+## 六、提示文案规则
+
+### L1 正常状态（1~10）
+共选中：6 项  
+预计报告生成时长：约 30s ~ 1min  
+
+---
+
+### L2 提醒状态（11~20）
+共选中：14 项  
+巡检范围较大，预计报告生成时间将有所增加（约 1~3 分钟）
+
+---
+
+### L3 警告状态（21~30）
+共选中：26 项  
+当前巡检范围较大，可能导致报告生成时间明显变长，建议缩小范围或分批执行（约 3~6 分钟）
+
+UI要求：
+- 文案颜色：黄色
+- 可配警告图标（⚠️）
+
+---
+
+### L4 超限状态（>30）
+共选中：32 项  
+已超出单次巡检建议上限，可能影响系统性能与报告稳定性，请减少巡检对象数量后再执行
+
+UI要求：
+- 文案颜色：红色
+- 按钮禁用
+
+---
+
+## 七、按钮状态逻辑
+
+### 「确认执行」按钮规则
+- 未选择：禁用
+- L1 / L2 / L3：可点击
+- L4：禁用
+
+---
+
+### 禁用提示（hover 或下方提示）
+当前选择数量已超出上限（最多 30 项）
+
+---
+
+## 八、时间估算规则（用于显示，待定）
+
+| 数量范围 | 时间估算 |
+|----------|----------|
+| 1~5 | 30s 内 |
+| 6~10 | 30s ~ 1min |
+| 11~20 | 1~3 min |
+| 21~30 | 3~6 min |
+| >30 | 不支持 |
+
+说明：
+- 时间为区间估算，不要求精确
+- 可根据后端能力动态调整
+
+---
+
+## 九、辅助信息（顶部说明）
+
+在选择面板顶部增加一行说明：
+
+建议单次巡检对象不超过 30 项
+
+---
+
+## 十、用户完整流程
+
+1. 用户点击「新建任务」
+2. 进入巡检对象选择界面
+3. 用户开始勾选巡检对象
+4. 底部状态区实时反馈：
+   - 已选数量
+   - 预计耗时
+   - 风险等级
+5. 当数量增加：
+   - 提示从正常 → 提醒 → 警告
+6. 当超过上限：
+   - 提示变为红色
+   - 「确认执行」禁用
+7. 用户调整选择数量
+8. 点击「确认执行」
+9. 进入 AI 巡检分析流程
+
+---
+
+## 十一、设计原则
+
+- 即时反馈：选择即看到成本变化
+- 渐进提示：从轻提示到强限制
+- 明确边界：提供清晰上限（30项）
+- 避免打断：仅在超限时强制拦截
+
+---` },
+      { id: 'ins-full-flow', title: '巡检整体交互流程', content: `# AI 巡检助手交互与分析方案
+
+## 1. 巡检对象类型
+
+系统支持多类型巡检对象（统一抽象），根据当前采集情况判断：
+
+- 主机（Host）
+- 应用服务（Service）
+- 容器 / Pod（Container）
+- 数据库（Database）
+- 中间件（Middleware）
+
+---
+
+## 2. 每个巡检对象的基础信息
+
+### 2.1 基础属性
+
+- 对象名称（如：\`order-service\` / \`10.0.1.45\`）
+- 类型（Service / Host 等）
+- 所属环境（\`prod\` / \`staging\`）
+- 所属集群
+- 最近部署时间（可选）
+
+---
+
+## 3. 核心指标结构（用于详情页展示）
+
+### 3.1 资源类指标
+
+- CPU 使用率（%）
+- 内存使用率（%）
+- 磁盘使用率（%）
+
+### 3.2 运行状态指标
+
+- 线程数（Thread Count）
+- 负载（Load Average）
+- 进程状态（Running / Crash）
+
+### 3.3 JVM / 应用指标（如适用）
+
+- Heap 使用率（Eden / Old Gen）
+- GC 次数（Minor / Full）
+- GC 停顿时间（Pause Time）
+
+### 3.4 业务与错误指标
+
+- 错误率（Error Rate）
+- 请求成功率
+- QPS / TPS
+- 异常日志数量
+
+---
+
+## 4. 整体架构
+
+### 4.1 页面结构
+
+**一级页面：巡检任务面板**
+
+- 左侧：任务列表
+- 右侧：AI 对话面板（支持分析选中任务）
+
+↓
+
+**二级页面：任务详情页**
+
+- 左侧：任务详情（数据与证据）
+- 右侧：AI 对话面板（分析当前任务）
+
+↑ 支持返回一级页面
+
+---
+
+## 5. 核心设计原则
+
+- 分层结构：列表页 → 详情页
+- 左侧负责数据（What）
+- 右侧负责分析（Why + Next）
+- AI 分析由用户手动触发
+- 页面支持返回，保持操作路径清晰
+
+---
+
+## 6. 主流程（核心用户路径）
+
+### 6.1 用户进入巡检任务面板
+
+- 浏览任务列表
+- 识别异常 / 高风险任务
+
+### 6.2 用户选择任务
+
+路径：
+
+- 点击「开始分析」
+- 右侧 AI 面板开始分析（不跳转页面）
+
+### 6.3 AI 输出结果
+
+- 右侧 AI 输出分析过程与结果
+- 用户执行推荐动作
+
+---
+
+## 7. 一级页面：巡检任务面板
+
+### 7.1 任务列表
+
+#### 功能
+
+- 展示巡检任务卡片
+- 支持任务选择
+- 支持任务分析
+
+#### 卡片信息结构
+
+每个巡检任务卡片包含：
+
+- 任务名称
+- 巡检对象（根据当前采集的资源类型）
+- 当前状态（根据当前可采集到的状态：巡检中 / 已结束）
+- 风险等级（根据当前可采集到的等级：健康 / 异常）
+- 异常摘要（简要描述问题，根据可实现情况可选展示）
+- 最近更新时间
+
+#### 卡片操作
+
+- 主按钮：「开始分析」
+- 点击卡片：吸附在输入框上方，作为提问上下文
+
+#### 状态流转
+
+\`未分析 → 分析中 → 查看报告\`
+
+---
+
+### 7.2 AI 对话面板（右侧）
+
+#### 功能
+
+- 支持分析当前选中任务
+- 展示分析过程与结果
+
+#### 未分析状态
+
+当未触发分析时：
+
+> 当前任务尚未进行 AI 分析
+
+按钮：
+
+- 「开始分析」
+
+#### 分析触发
+
+用户点击「开始分析」后：
+
+- AI 开始分阶段分析
+- 右侧展示分析过程
+
+---
+
+## 8. 关键交互补充
+
+### 8.1 分析中
+
+- 按钮显示 Loading 状态
+- AI 流式输出分析过程
+
+### 8.2 已分析
+
+- 展示「查看报告」
+- 支持重新分析
+- 若定时巡检任务完成后需要自动分析，则自动生成巡检报告，无需人工手动点击分析
+
+---
+
+## 9. 系统能力边界
+
+### 9.1 当前支持
+
+- 异常识别
+- 分阶段分析
+- 推荐分析动作
+
+### 9.2 暂不支持
+
+- 自动修复
+- 长期优化建议
+
+---
+
+## 10. AI 分析流程（分阶段 · 可视化增强版）
+
+### 阶段 1：启动调查（Initialization）
+
+#### 目标
+
+识别巡检对象与异常入口，建立分析上下文。
+
+#### AI 行为
+
+- 确认巡检对象（类型 / 名称 / 环境）
+- 加载基础指标数据（CPU / 内存 / GC / 错误率等）
+- 获取最近时间窗口数据（如近 30 分钟）
+- 初步识别异常指标（超过阈值或明显偏离基线）
+
+#### 输出（结构化 + 数据化）
+
+##### （1）巡检对象信息
+
+| 字段 | 内容 |
+|---|---|
+| 对象名称 | order-service |
+| 类型 | Service |
+| 环境 | prod |
+| 集群 | cluster-A |
+
+##### （2）关键指标快照
+
+| 指标 | 当前值 | 阈值 | 状态 |
+|---|---:|---:|---|
+| CPU 使用率 | 92% | 80% | 异常 |
+| 内存使用率 | 88% | 80% | 偏高 |
+| 错误率 | 3.2% | 1% | 异常 |
+
+##### （3）异常指标列表
+
+- CPU 使用率异常升高（92%）
+- 内存使用率接近上限（88%）
+- 错误率明显上升（3.2%）
+
+---
+
+### 阶段 2：路径与证据探索（Exploration）
+
+#### 目标
+
+基于时间维度与多指标关系，分析异常发展路径。
+
+#### AI 行为
+
+- 分析指标趋势（时间序列）
+- 识别趋势模式（上升 / 波动 / 突变）
+- 关联指标关系（CPU ↔ 内存 ↔ 错误率）
+- 对比历史数据（昨日 / 基线）
+- 检查异常时间点（如发布 / 波动）
+
+#### 输出（图表 + 表格 + 描述）
+
+##### （1）指标趋势图（必须）
+
+**CPU Usage Trend (Last 30 min)**
+
+- x: [10:00, 10:05, 10:10, 10:15, 10:20, 10:25, 10:30]
+- y: [65, 70, 75, 82, 88, 90, 92]
+
+**Memory Usage Trend (Last 30 min)**
+
+- x: [10:00, 10:05, 10:10, 10:15, 10:20, 10:25, 10:30]
+- y: [60, 65, 70, 75, 80, 85, 88]
+
+##### （2）趋势摘要
+
+- CPU 使用率在过去 30 分钟持续上升
+- 内存使用率同步增长，未出现明显回落
+- 错误率存在波动上升趋势
+
+##### （3）历史对比表
+
+| 指标 | 当前值 | 昨日同时间 | 阈值 |
+|---|---:|---:|---:|
+| CPU 使用率 | 92% | 68% | 80% |
+| 内存使用率 | 88% | 64% | 80% |
+| 错误率 | 3.2% | 0.8% | 1% |
+
+##### （4）多指标关联分析
+
+| 指标 | 当前状态 | 趋势 | 关联关系 |
+|---|---|---|---|
+| CPU | 高 | 持续上升 | 与线程数相关 |
+| 内存 | 高 | 持续上升 | 无明显回收 |
+| 错误率 | 异常 | 波动上升 | 与流量无明显关联 |
+
+##### （5）异常时间点标记（可选）
+
+**CPU Usage with Event**
+
+- x: [10:00, 10:05, 10:10, 10:15, 10:20]
+- y: [60, 65, 70, 85, 92]
+- events:
+  - time: 10:15
+  - label: 异常开始
+
+---
+
+### 阶段 3：确认原因（Diagnosis）
+
+#### 目标
+
+基于证据收敛可能原因（不做绝对判断）。
+
+#### AI 行为
+
+- 综合多指标趋势与关系
+- 匹配常见异常模式（如资源压力 / 异常负载）
+- 排除明显不相关因素
+- 标识信息缺口（未验证数据）
+
+#### 输出（结构化推理）
+
+##### （1）可能原因（候选）
+
+| 可能原因 | 支撑证据 | 说明 |
+|---|---|---|
+| 资源压力 | CPU + 内存同步上升 | 资源占用持续增加 |
+| 异常请求 | 错误率上升 | 但未与流量直接关联 |
+
+##### （2）关键证据总结
+
+- CPU 与内存同步上升
+- 内存未观察到明显回收行为
+- 错误率存在异常波动
+
+##### （3）未确认信息（重要）
+
+- 未获取线程堆栈信息
+- 未分析 Heap 结构
+- 未确认请求类型变化
+
+---
+
+### 阶段 4：最终结论（Conclusion）
+
+#### 目标
+
+输出当前阶段分析结果（基于已有数据）。
+
+#### 输出（结构化结论）
+
+##### （1）问题概览
+
+| 维度 | 内容 |
+|---|---|
+| 问题类型 | 资源使用异常 |
+| 影响范围 | 当前服务实例 |
+| 状态 | 持续中 |
+
+##### （2）关键发现
+
+- CPU 使用率持续高位（92%）
+- 内存使用率持续上升（88%）
+- 错误率出现异常波动（3.2%）
+
+##### （3）指标关系总结
+
+- CPU 与内存同步增长
+- 未观察到明显资源释放行为
+- 错误率未与流量变化形成直接关联
+
+##### （4）当前判断
+
+- 存在资源压力风险
+- 可能影响服务稳定性与响应性能
+
+##### （5）不确定性说明（必须）
+
+- 当前分析基于指标数据
+- 未进行深度诊断（如线程 / Heap）
+- 结论存在一定不确定性
+
+##### （6）下一步建议（简化版）
+
+- 建议查看详细日志
+- 建议持续关注资源变化趋势
+- 建议确认近期是否存在发布或配置变更
+
+---
+
+## 11. 总体输出结构（统一规范）
+
+\`\`\`text
+指标快照
+↓
+趋势图（至少 1 个）
+↓
+对比表（至少 1 个）
+↓
+多指标关联表
+↓
+原因分析
+↓
+\`\`\`` },
+      { id: 'ins-new-flow', title: '巡检新建任务整体流程', content: `# AI SRE 平台 - AI巡检助手「新建巡检任务」重构版交互文档（可直接用于 AI 生成原型）
+
+## 一、需求背景
+
+当前「AI巡检助手」在新建巡检任务时，用户需要先选择巡检对象类型与具体对象，然后再自行输入巡检规则，或从快捷指令中手动选择规则。
+
+该方案存在以下问题：
+
+1. 用户仍需自己思考“应该配置哪些规则”，使用门槛较高。
+2. 不同巡检对象类型所关注的核心指标不同，当前规则推荐不够贴合对象特征。
+3. 规则创建路径偏手动，效率不高，无法体现 AI 在运维场景中的辅助价值。
+4. 用户更希望系统先给出一套“可直接使用”的规则草案，而不是从零开始写。
+
+因此，本次交互重构目标为：
+
+- 在用户确定巡检对象后，由 AI 根据对象类型、对象角色、常见风险自动生成一套推荐巡检规则草案。
+- 用户只需要对推荐规则进行确认、少量调整或新增，即可完成任务创建。
+- 整体交互从“用户手动写规则”升级为“系统先生成规则草案，用户再编辑确认”。
+
+---
+
+## 二、设计目标
+
+### 1. 降低任务创建门槛
+用户无需从零思考巡检规则，系统自动生成推荐内容。
+
+### 2. 提升推荐规则的场景贴合度
+推荐规则应结合巡检对象类型、角色特征、常见健康风险进行生成，而不是仅展示固定通用规则。
+
+### 3. 强化 AI 的辅助感
+AI 不只是提供几条快捷规则，而是输出一套可直接使用的“巡检规则草案”。
+
+### 4. 保留用户控制权
+用户可以对 AI 推荐的规则进行启用、禁用、编辑和新增，避免系统完全自动决定。
+
+---
+
+## 三、适用范围
+
+适用于 AI SRE 平台中「AI巡检助手」页面的「新建任务」流程，重点覆盖以下巡检对象类型（具体根据资源采集类型）：
+
+- 数据库
+- 应用服务
+- 云主机
+- Redis
+- MQ
+- 负载均衡
+- VPC
+- 网络类资源
+
+---
+
+## 四、核心交互思路
+
+在用户完成“巡检对象类型 + 巡检对象选择”后，系统不再要求用户立即手动输入巡检规则，而是进入：
+
+## 第二步：AI 自动生成推荐巡检规则草案
+
+系统根据已选对象，自动生成一套可编辑的规则草案，草案由三部分组成：
+
+### 1. 基础推荐规则
+基于对象类型自动装配的一组通用核心指标规则，默认勾选。
+
+### 2. 自定义补充规则
+用户可以在 AI 推荐基础上，自行新增自定义巡检规则。
+
+---
+
+## 五、整体流程
+
+### 流程步骤
+
+1. 用户进入「AI巡检助手」页面
+2. 点击「新建任务」
+3. 在 AI 对话流中选择巡检对象类型
+4. 选择具体巡检对象
+5. 点击「确认执行」
+6. 系统进入“AI 生成推荐巡检规则草案”阶段
+7. 用户查看规则草案
+8. 用户对规则进行编辑、删除、新增
+9. 用户确认规则后，进入“设置执行频率”
+10. 用户设置任务名称、执行频率、执行时间等信息
+11. 用户确认创建巡检任务
+12. 系统创建成功，返回任务详情或任务列表
+
+---
+
+## 六、页面交互结构
+
+## 1. 新建任务入口区
+
+页面底部保留原有快捷入口：
+
+- 新建任务
+- 今日报告
+- 诊断任务
+
+用户点击「新建任务」后，进入 AI 对话式任务创建流程。
+
+---
+
+## 2. 第一步：选择巡检对象
+（保留当前交互）
+
+## 七、第二步：AI 自动生成推荐巡检规则草案
+
+当用户确认巡检对象后，进入该阶段。
+
+### AI 对话提示文案
+
+**已为您选定的 3 个巡检对象生成推荐巡检规则草案。您可以直接使用，也可以按需调整。**
+
+次级说明：
+
+**系统会根据对象类型、对象角色和常见健康风险自动推荐指标规则，您也可以新增自定义规则。**
+
+---
+
+## 八、规则草案生成逻辑
+
+系统推荐逻辑采用“模板装配 + AI增强”的方式：
+
+### 1. 模板装配
+按巡检对象类型自动带出通用规则模板。
+
+### 2. AI增强
+结合以下信息进行规则补充、排序 and 差异化推荐：
+
+- 巡检对象类型
+- 对象名称特征
+- 所属集群
+- 主从角色
+- 服务角色
+- 常见风险类型
+- 历史高频巡检指标
+- 最近变更信息（若系统可获取）
+- 环境属性（生产 / 测试）
+
+---
+
+## 九、规则草案展示结构
+
+规则草案区分为两个层级：
+
+### 1. 基础推荐规则
+- 默认展开
+- 默认勾选
+- 面向绝大多数用户
+- 用于快速创建任务
+
+---
+
+## 十、规则草案区域布局
+
+### 区域标题
+**推荐巡检规则草案**
+
+### 区域摘要信息
+展示一行摘要：
+
+**已为 3 个数据库对象生成 6 条推荐规则，重点覆盖资源使用、主从健康与查询性能风险。**
+
+---
+
+## 十一、按类型分组展示规则
+
+若用户所选对象包含多种类型，则按对象类型分组展示。
+
+### 示例分组标题
+#### 数据库（3个对象）
+
+每组下展示对应推荐规则列表。
+
+---
+
+## 十二、单条规则卡片结构
+
+每条规则以可编辑卡片形式展示，而不是纯文本标签。
+
+### 单条规则卡片示例
+
+#### 规则名称
+CPU 使用率
+
+#### 适用对象
+mysql-order-primary、mysql-order-replica、pg-user-master
+
+#### 规则内容
+- 指标：CPU 使用率
+- 条件：>
+- 阈值：80%
+- 持续时间：5 分钟
+- 严重等级：高
+
+#### 推荐理由
+适用于数据库资源瓶颈的基础健康巡检，可用于识别高负载风险。
+
+#### 交互操作
+- 输入框内直接编辑
+- 按钮：[删除]
+
+---
+
+## 十三、基础推荐规则示例（数据库场景）
+
+当用户选择数据库类型对象时，系统可默认推荐以下基础规则：
+
+1. CPU 使用率 > 80% 持续 5 分钟
+2. 内存使用率 > 80% 持续 5 分钟
+3. 磁盘使用率 > 85% 持续 10 分钟
+4. 主从延迟 > 30 秒 持续 3 分钟
+5. 数据库连接数持续异常升高
+6. 慢查询数量异常升高
+
+---
+
+## 十五、不同对象类型的推荐规则策略
+
+## 1. 云主机类
+基础推荐：
+- CPU 使用率
+- 内存使用率
+- 磁盘使用率
+- 网络延迟
+- 网络丢包率
+
+## 2. 应用服务类
+基础推荐：
+- 服务错误率 > 5% 持续 3 分钟
+- 响应时间 P95 异常升高
+- 实例异常退出
+- CPU / 内存使用率持续升高
+
+## 3. Redis 类
+基础推荐：
+- 内存使用率过高
+- 连接数异常增长
+- 命中率下降
+- 主从同步异常
+
+## 4. MQ 类
+基础推荐：
+- 消息堆积异常
+- 消费延迟异常
+- 消费失败率升高
+
+---
+
+## 十六、规则编辑交互
+
+用户点击某条规则的【编辑】后，展开该规则的可编辑表单。
+
+### 可编辑字段
+
+- 指标名称
+- 条件符（> / < / = / >= / <= / 波动异常 / 持续异常）
+- 阈值
+- 单位（% / ms / s / count / MB / GB）
+- 持续时间
+- 严重等级（低 / 中 / 高）
+
+### 交互方式
+- 行内编辑
+
+---
+
+## 十七、规则新增交互
+
+在规则草案底部提供按钮：
+
+[新增规则]
+
+用户点击后，弹出新增规则面板。
+
+### 新增方式支持两种
+
+#### 方式一：结构化新增
+用户手动选择：
+- 指标
+- 阈值
+- 持续时间
+- 严重等级
+
+---
+
+## 二十、第三步：设置执行频率
+
+当用户确认规则草案后，进入执行频率设置阶段。
+
+### AI 对话提示文案
+
+**好的，巡检规则已确认。第三步，请设置该任务的执行频率。**
+
+次级提示：
+
+**您可以直接选择常用执行频率，也可以自定义调度时间。**
+
+---
+
+## 二十一、执行频率快捷选项
+
+由于巡检任务为定时巡检，不建议出现过短频率。
+
+### 推荐快捷选项
+- 每天一次
+- 每天两次
+- 每周一至周五 09:00
+
+### 自定义选项
+- 自定义 Cron 表达式
+- 自定义日期与时间
+- 自定义重复规则
+
+---
+
+## 二十二、执行频率设置表单字段
+
+- 执行频率
+- 首次执行时间
+- 是否启用通知
+- 通知方式（站内 / 邮件 / IM）
+- 任务名称
+- 任务描述（可选）
+
+---
+
+## 二十三、第四步：确认任务信息
+
+在用户正式创建任务前，展示任务确认摘要卡片。
+
+### 摘要信息包括
+
+- 任务名称
+- 巡检对象类型
+- 巡检对象数量
+- 已启用规则数
+- 执行频率策略
+- 首次执行时间
+
+### 底部按钮
+- [返回修改]
+- [确认创建任务]
+
+---
+
+## 二十四、创建成功反馈
+
+任务创建成功后，系统返回成功状态。
+
+### 成功提示文案
+**巡检任务已创建成功。系统将按设定频率自动执行，并生成巡检报告。**
+
+### 后续操作按钮
+- [查看任务]
+- [继续新建任务]
+
+---
+
+## 二十五、异常与边界情况
+
+## 1. 未选择任何对象时
+点击「确认执行」按钮后提示：
+置灰，不可点击
+
+---
+
+## 2. 系统无法生成推荐规则时
+提示：
+
+**当前未能基于所选对象生成推荐规则，您可以手动新增规则后继续创建任务。**
+
+并保留：
+- [新增规则]
+- [重新生成推荐]
+
+---
+
+## 4. 用户删除了所有推荐规则
+提示：
+
+**当前未启用任何巡检规则，请至少保留 1 条规则后再继续。**
+
+---
+
+## 6. 自然语言新增规则解析失败
+提示：
+
+**未能识别该规则内容，请尝试更明确地描述指标、阈值和持续时间。**
+
+---
+
+## 二十六、状态流转
+
+### 状态 1：初始选择对象
+用户尚未确认巡检对象。
+
+### 状态 2：已确认对象，AI 生成规则中
+系统展示 loading 状态。
+
+加载提示文案：
+
+**正在根据所选巡检对象生成推荐巡检规则…**
+
+### 状态 3：规则草案生成完成
+展示推荐规则草案与编辑能力。
+
+### 状态 4：用户修改规则中
+支持编辑、删除、新增。
+
+### 状态 5：规则确认完成，进入执行频率配置
+用户填写定时巡检信息。
+
+### 状态 6：任务确认中
+展示任务摘要与最终确认。
+
+### 状态 7：任务创建成功
+进入任务详情或任务列表。
+
+---
+
+## 二十七、推荐的页面文案
+
+## 对象确认后提示文案
+**已为您选定的巡检对象生成推荐巡检规则草案。您可以直接使用，也可以按需调整。**
+
+## 规则摘要文案
+**已生成 6 条推荐规则，重点覆盖资源使用、主从健康与查询性能风险。**
+
+
+## 规则区域标题
+**推荐巡检规则草案**
+
+
+## 新增规则按钮
+**新增规则**
+
+## 进入下一步按钮
+**下一步：设置执行频率**
+
+---
+
+## 二十八、原型重点表现建议
+
+AI 生成原型时，应重点表现以下内容：
+
+### 1. AI 对话式流程感
+整个新建任务流程应保持在 AI 对话流中推进，而不是切成传统表单页面。
+
+### 2. 规则草案的结构化展示
+规则不应只用标签按钮展示，应使用卡片化、可编辑的规则结构。
+
+### 3. 推荐与编辑并存
+页面重点不是“推荐完结束”，而是“推荐后允许轻编辑”。
+
+
+### 4. 专业运维感
+规则字段、指标命名、推荐理由、对象信息应体现 SRE / 运维专业语境。
+
+---
+
+## 二十九、最终交付要求
+
+请基于以上交互说明，生成「AI SRE 平台 - AI巡检助手 - 新建巡检任务」的高保真产品原型页面，要求包括：
+
+1. 对话式新建任务流程
+2. 巡检对象选择区域
+3. AI 自动生成推荐规则草案区域
+4. 基础推荐规则展示
+5. 规则卡片结构化编辑能力
+6. 新增规则入口
+7. 执行频率配置区域
+8. 最终任务确认区域
+9. 深色主题、专业运维平台视觉风格
+
+---
+
+## 三十、总结
+
+本方案将「新建巡检任务」从原本的“用户手动输入规则”升级为“AI 自动生成一套可编辑的巡检规则草案，用户再进行确认与微调”的模式。
+
+核心价值包括：
+
+- 降低用户输入成本
+- 提升规则推荐贴合度
+- 提升 AI 的实际辅助感
+- 强化专业运维场景体验
+- 保证用户对最终规则的可控性` },
+      { id: 'ins-base-rules', title: '巡检对象执行基础规则', content: `巡检对象推荐规则
+
+### 🖥️ 1. 云主机类 (Host)
+| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **CPU 使用率** | \`host.cpu.usage\` | \`> 80%\` | 5 min | High | 主机基础计算负载监控 |
+| **内存使用率** | \`host.mem.usage\` | \`> 85%\` | 5 min | High | 预防系统内存水位过高 |
+| **磁盘使用率** | \`host.disk.usage\` | \`> 85%\` | 10 min | High | 基础存储空间预警 |
+| **网络延迟** | \`host.net.latency\` | \`> 200ms\` | 3 min | Medium | 监控网络链路通畅度 |
+| **网络丢包率** | \`host.net.loss\` | \`> 5%\` | 2 min | Medium | 评估网络传输稳定性 |
+
+### 🗄️ 2. 数据库类 (DB)
+| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **CPU 使用率** | \`db.cpu.usage\` | \`> 80%\` | 5 min | Critical | 数据库核心负载监控 |
+| **内存使用率** | \`db.mem.usage\` | \`> 80%\` | 5 min | High | 数据库内存水位管理 |
+| **磁盘使用率** | \`db.disk.usage\` | \`> 85%\` | 10 min | High | 预防数据文件溢出 |
+| **主从延迟** | \`db.replication.delay\` | \`> 30s\` | 3 min | High | 同步健康度检查 |
+| **数据库连接数** | \`db.connection.count\` | 持续异常升高 | 5 min | High | 预防连接句柄耗尽 |
+| **慢查询数量** | \`db.slow_query.count\` | 异常升高 | 2 min | High | 识别异常性能劣化 |
+
+### ⚡ 3. Redis 类
+| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **内存使用率过高** | \`redis.mem.usage\` | \`> 85%\` | 5 min | Critical | Redis 容量健康巡检 |
+| **连接数异常增长** | \`redis.connection.count\` | 异常波动 | 2 min | High | 监控并发连接风险 |
+| **命中率下降** | \`redis.cache.hit_rate\` | \`< 70%\` | 5 min | Medium | 缓存有效性评估 |
+| **主从同步异常** | \`redis.replication.status\`| \`!= connected\`| 1 min | High | 集群同步健康度 |
+
+### 📦 4. 应用服务类 (Service/App)
+| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **服务错误率** | \`app.error.rate\` | \`> 5%\` | 3 min | Critical | 保障核心业务可用性 |
+| **响应时间 P95** | \`app.p95.latency\` | 异常升高 | 3 min | High | 用户侧性能体验感知 |
+| **实例异常退出** | \`app.instance.exit\` | \`count > 0\` | 1 min | Critical | 预防服务雪崩风险 |
+| **CPU/内存持续升高**| \`app.resource.usage\` | 趋势异常 | 10 min | Medium | 识别潜在资源泄漏 |
+
+---
+
+### 🛡️ 兜底规则 (Fallback)
+若系统未能识别资源类型，将自动推送以下基础环境指标，确保卡片永不为空：
+*   **CPU 负载巡检**: \`sys.cpu.logic\` > 90%
+*   **内存水位巡检**: \`sys.mem.usage\` > 90%
+
+这些逻辑现在已经固化在 \`App.tsx\` 的 \`handleAction\` 中，会随着您的对象选择动态实时加载。` },
+      { id: 'ins-btn-rules', title: '巡检列表按钮规则', content: `## 巡检卡片按钮状态规则
+
+### 状态 1：无报告、未分析
+#### 状态说明
+该任务从未产出过分析报告，且当前没有分析任务在执行。
+
+#### 按钮展示
+- 主按钮：\`开始分析\`
+
+#### 交互说明
+用户点击后，立即发起一次新的分析流程，并进入“分析中”状态。
+
+---
+
+### 状态 2：无报告、分析中
+#### 状态说明
+该任务正在进行首次分析，当前尚未生成任何可查看报告。
+
+#### 按钮展示
+- 主按钮：\`分析中…\`
+
+#### 交互说明
+此状态下不展示“查看报告”，因为尚无可查看结果。
+
+
+
+---
+
+### 状态 3：已有报告、已分析
+#### 状态说明
+该任务已生成过报告，当前没有新的分析在执行。
+
+#### 按钮展示
+- 主按钮：\`查看报告\`
+- 次按钮：\`开始分析\`
+
+#### 交互说明
+- 点击 \`查看报告\`：进入该任务的报告详情页
+- 点击 \`开始分析\`：基于当前数据重新发起一次新的分析任务
+
+#### 设计意图
+该状态是最常见的正常态：
+- 一个按钮负责查看已有结果
+- 一个按钮负责生成新的结果
+
+---
+
+### 状态 4：已有报告、分析中
+#### 状态说明
+该任务此前已经存在报告，但当前用户又发起了一轮新的分析，新的分析任务尚未完成。
+
+#### 按钮展示
+- 主按钮：\`查看报告\`
+- 次按钮：\`分析中…\`
+
+#### 交互说明
+- \`查看报告\` 仍然可点击，查看已有报告
+- \`分析中…\` 为状态反馈按钮，不可重复点击发起新分析
+
+#### 设计意图
+分析中的新任务不应覆盖已有报告入口，避免用户在等待过程中无法查看旧结果。
+
+---
+
+### 状态 5：已有报告、分析失败（可选状态）
+#### 状态说明
+该任务已有历史报告，但最近一次新发起的分析失败。
+
+#### 按钮展示
+- 主按钮：\`查看报告\`
+- 次按钮：\`开始分析\`
+
+#### 可选补充信息
+可在按钮附近或任务状态区域补充提示文案，例如：
+- \`本次分析失败，请重试\`
+- \`分析异常，请重新发起\`` },
+    ]
+  }
+];
+
+const InteractionGuideDrawer = ({ isOpen, onClose, expandedIds, setExpandedIds, activeSubId, setActiveSubId }: any) => {
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev: string[]) => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const currentSub = GUIDE_TABS.flatMap(t => t.children).find(c => c.id === activeSubId);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[1000] flex justify-end overflow-hidden">
+          {/* Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/40"
+            onClick={onClose}
+          />
+          {/* Drawer Body */}
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            className="relative w-2/3 h-full bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                  <HelpCircle size={18} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-100 tracking-tight">交互说明手册</h3>
+              </div>
+              <button 
+                onClick={onClose}
+                className="w-10 h-10 rounded-xl hover:bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all active:scale-95"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 flex min-h-0 overflow-hidden">
+              {/* Sidebar - Nested List */}
+              <div className="w-72 border-r border-slate-800 bg-slate-950 overflow-y-auto no-scrollbar py-4 px-2.5">
+                {GUIDE_TABS.map(tab => (
+                  <div key={tab.id} className="mb-2">
+                    <button 
+                      onClick={() => toggleExpand(tab.id)}
+                      className={`w-full p-3 rounded-xl flex items-center justify-between transition-all group ${expandedIds.includes(tab.id) ? 'bg-indigo-500/5 text-indigo-400' : 'hover:bg-slate-800/30 text-slate-400'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`${expandedIds.includes(tab.id) ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'} transition-colors`}>{tab.icon}</span>
+                        <span className="text-sm font-bold tracking-tight">{tab.title}</span>
+                      </div>
+                      {expandedIds.includes(tab.id) ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-40" />}
+                    </button>
+                    
+                    <AnimatePresence>
+                      {expandedIds.includes(tab.id) && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-8 py-1.5 space-y-1">
+                            {tab.children.map(child => (
+                              <button 
+                                key={child.id}
+                                onClick={() => setActiveSubId(child.id)}
+                                className={`w-full text-left p-2.5 rounded-lg text-xs font-semibold transition-all ${activeSubId === child.id ? 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/20' : 'text-slate-500 hover:bg-slate-900/20 hover:text-slate-300'}`}
+                              >
+                                {child.title}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+
+              {/* Content area - Pure text centric */}
+              <div className="flex-1 bg-slate-900 p-12 overflow-y-auto no-scrollbar scroll-smooth">
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={activeSubId}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="max-w-2xl"
+                  >
+                    <div className="mb-10">
+                       <div className="flex items-center gap-2 text-[10px] text-indigo-500/80 font-mono font-bold tracking-[0.2em] uppercase mb-3">
+                         <div className="w-8 h-px bg-indigo-500/30" />
+                         Documentation Manual
+                       </div>
+                       <h1 className="text-4xl font-extrabold text-slate-100 tracking-tight">
+                         {currentSub?.title}
+                       </h1>
+                    </div>
+                    <div className="text-[15px] text-slate-400 leading-[1.8] font-medium selection:bg-indigo-500/30 whitespace-pre-line">
+                      {currentSub?.content}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function App() {
 
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -6879,6 +10233,7 @@ export default function App() {
   const [inspectionRuleDraft, setInspectionRuleDraft] = useState<any>(null);
   const [inspectionFrequency, setInspectionFrequency] = useState<any>('每天一次');
   const [inspectionTaskName, setInspectionTaskName] = useState('');
+  const [inspectionCronValue, setInspectionCronValue] = useState('0 0 * * *');
   const [selectedInspectionTargets, setSelectedInspectionTargets] = useState<any[]>([]);
   
   // --- Home Notification Banner Scrolling State ---
@@ -7056,6 +10411,18 @@ export default function App() {
   const [showLogContextBanner, setShowLogContextBanner] = useState(false);
   const [selectedCapacityResource, setSelectedCapacityResource] = useState<any>(null);
   const [isAnalyzingCapacity, setIsAnalyzingCapacity] = useState(false);
+  
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [expandedGuideIds, setExpandedGuideIds] = useState<string[]>(['home', 'diagnostic', 'knowledge', 'inspection']);
+  const [activeGuideSubId, setActiveGuideSubId] = useState('home-rules');
+
+  // 知识专家相关状态 (Knowledge Expert States)
+  const [knowledgeTab, setKnowledgeTab] = useState<'qa' | 'manage'>('qa');
+  const [knowledgeViewMode, setKnowledgeViewMode] = useState<'grid' | 'list'>('grid');
+
+  // 开发者工具相关状态 (Developer Tools States)
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>(new Date().toLocaleString());
 
   const handleAlarmClick = (alarm: Alarm) => {
     setSelectedAlarm(alarm);
@@ -7071,6 +10438,8 @@ export default function App() {
         setActiveSessionId(null);
       }
     }
+    setShowContextBanner(false);
+    setShowLogContextBanner(false);
     // 进入 AI 助手模块时默认展开左侧面板
     if (id !== 'home') {
       setIsLeftPanelCollapsed(false);
@@ -7165,7 +10534,7 @@ export default function App() {
     };
 
     // 告警快照自动注入逻辑：当有吸附告警时，先发送快照
-    if (showContextBanner && selectedAlarm) {
+    if (showContextBanner && selectedAlarm && targetMenu !== 'knowledge' && targetMenu !== 'inspection') {
       addMessage({
         id: (Date.now() - 1).toString(),
         type: 'user',
@@ -7173,12 +10542,12 @@ export default function App() {
         content: `已关联告警快照: ${selectedAlarm.title}`,
         data: selectedAlarm,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      }, targetMenu, targetSessionId);
       setShowContextBanner(false);
     }
 
     // 日志聚类快照自动注入逻辑
-    if (showLogContextBanner && activeLogCluster) {
+    if (showLogContextBanner && activeLogCluster && targetMenu !== 'knowledge' && targetMenu !== 'inspection') {
       addMessage({
         id: (Date.now() - 1).toString(),
         type: 'user',
@@ -7186,7 +10555,7 @@ export default function App() {
         content: '',
         data: activeLogCluster,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      }, targetMenu, targetSessionId);
       setShowLogContextBanner(false);
     }
 
@@ -7680,6 +11049,19 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
   };
 
   const handleAction = (action: string, data?: any) => {
+    // --- Interaction Isolation Guard ---
+    const MUTATING_ACTIONS = [
+      'START_LOG_ANALYSIS', 
+      'START_INSPECTION_ANALYSIS', 
+      'ACT_SELF_HEAL', 
+      'AUTHORIZE_HEAL_EXECUTION', 
+      'EXECUTE_LOG_ACTION',
+      'SELECT_RESOURCE'
+    ];
+
+    // --- Interaction Isolation Guard Removed ---
+
+
     if (action === 'REQUEST_TRANSFER') {
       if (data && data.id) {
         const targetMenu = data.id;
@@ -8712,6 +12094,26 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         }, 600);
       }
 
+      if (action === 'STEP_CONFIRMATION_IMMEDIATE') {
+        setInspectionWizard('confirmation');
+        addMessage({
+          id: Date.now().toString(),
+          type: 'user',
+          contentType: 'text',
+          content: '规则已确认，请生成立即执行任务预览。',
+          timestamp: new Date().toLocaleTimeString()
+        });
+        setTimeout(() => {
+          addMessage({
+            id: (Date.now() + 1).toString(),
+            type: 'ai',
+            contentType: 'task_summary',
+            content: '已为您汇总本次手动巡检的核心配置，点击“确认执行”将立即开始：',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          });
+        }, 600);
+      }
+
       if (action === 'STEP_FINISH') {
         setInspectionTasks(prev => [
           {
@@ -9099,6 +12501,244 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             ))}
           </motion.div>
         </AnimatePresence>
+      </div>
+    );
+  };
+
+  const renderDeveloperWorkspace = () => {
+    const handleSync = () => {
+      setIsSyncing(true);
+      setTimeout(() => {
+        setIsSyncing(false);
+        setLastSyncTime(new Date().toLocaleString());
+      }, 3000);
+    };
+
+    return (
+      <div className="flex flex-col w-full gap-6 pb-20 px-2 lg:px-6 mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
+              <Terminal size={20} className="text-emerald-500" /> 开发者控制中心 (Local Only)
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">管理局域网部署同步及本地调试工具</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SRECard status="normal" title="环境状态 (Environment)" icon={Activity}>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-500">当前模式</span>
+                <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">本地开发 (Local)</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-500">本地地址</span>
+                <span className="text-xs font-mono text-slate-300">127.0.0.1:3001</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-500">局域网地址</span>
+                <span className="text-xs font-mono text-blue-400">10.5.165.76:3000</span>
+              </div>
+            </div>
+          </SRECard>
+
+          <SRECard 
+            status={isSyncing ? 'running' : 'normal'} 
+            title="局域网同步 (LAN Sync)" 
+            icon={RefreshCw}
+            pulse={isSyncing}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="text-[10px] text-slate-500 flex justify-between">
+                <span>上次同步时间</span>
+                <span className="font-mono">{lastSyncTime}</span>
+              </div>
+              <button 
+                onClick={handleSync}
+                disabled={isSyncing}
+                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border shadow-lg ${
+                  isSyncing 
+                  ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' 
+                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 hover:border-emerald-500/40 shadow-emerald-500/5'
+                }`}
+              >
+                {isSyncing ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" /> 正在同步项目资源...
+                  </>
+                ) : (
+                  <>
+                    <Zap size={14} /> 启动局域网增量同步
+                  </>
+                )}
+              </button>
+              <div className="text-[9px] text-slate-600 leading-relaxed bg-black/20 p-2 rounded-lg italic">
+                提示：手动同步将触发 `npm run sync` 指令。同步完成后，局域网内的 Read-Only 用户将看到您最新的文档改动与 UI 调整。
+              </div>
+            </div>
+          </SRECard>
+
+          <SRECard status="custom" statusColorHex="#6366f1" title="调试实用工具" icon={Settings}>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <button 
+                onClick={() => { setSessions([]); alert('本地会话缓存已清理'); }}
+                className="py-2 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg text-[10px] font-bold text-slate-300 transition-all"
+              >
+                清理会话缓存
+              </button>
+              <button 
+                onClick={() => { window.location.reload(); }}
+                className="py-2 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg text-[10px] font-bold text-slate-300 transition-all"
+              >
+                重载开发环境
+              </button>
+            </div>
+          </SRECard>
+
+          <SRECard status="normal" title="只读模式模拟" icon={Eye}>
+             <div className="flex items-center justify-between mt-2">
+                <span className="text-[10px] text-slate-500">模拟关闭本地权限</span>
+                <div className="w-8 h-4 bg-slate-800 rounded-full cursor-not-allowed opacity-50" />
+             </div>
+             <p className="text-[9px] text-slate-600 mt-2 leading-tight">
+               当前环境由 window.location.hostname 自动判定。如需测试 Read-Only 效果，请直接访问局域网 IP。
+             </p>
+          </SRECard>
+        </div>
+      </div>
+    );
+  };
+
+  const renderKnowledgeManagement = () => {
+    return (
+      <div className="flex flex-col gap-6 p-2">
+        {/* Header Section */}
+        <div className="flex flex-col gap-1 mb-2">
+          <h2 className="text-2xl font-bold text-slate-100 tracking-tight">知识库管理</h2>
+          <p className="text-xs text-slate-500 font-medium">管理企业知识库、文档和标签</p>
+        </div>
+
+        {/* Control Bar */}
+        <div className="flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="relative flex-1 max-w-md group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={16} />
+              <input 
+                type="text" 
+                placeholder="搜索知识库名称"
+                className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all shadow-inner"
+              />
+            </div>
+            <div className="relative group min-w-[140px]">
+              <div className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-2.5 px-4 text-sm text-slate-400 flex items-center justify-between cursor-pointer hover:bg-slate-800/50 transition-all">
+                全部状态
+                <ChevronDown size={14} className="text-slate-600" />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-slate-800/40">
+            <button 
+              onClick={() => setKnowledgeViewMode('grid')}
+              className={`p-2 rounded-lg transition-all ${knowledgeViewMode === 'grid' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button 
+              onClick={() => setKnowledgeViewMode('list')}
+              className={`p-2 rounded-lg transition-all ${knowledgeViewMode === 'list' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <List size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Knowledge Lib Grid */}
+        <div className={`grid gap-4 mt-2 ${
+          knowledgeViewMode === 'grid' 
+          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+          : 'grid-cols-1'
+        }`}>
+          {MOCK_KNOWLEDGE_LIBS.map(lib => (
+            <motion.div
+              layout
+              key={lib.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -4, borderColor: 'rgba(99, 102, 241, 0.4)' }}
+              className="bg-[var(--bg-card)] border border-slate-800/80 rounded-2xl p-5 shadow-sm transition-all group relative overflow-hidden"
+            >
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-110 transition-transform">
+                    <Folder size={22} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="text-base font-bold text-slate-100 truncate tracking-tight">{lib.name}</h3>
+                  </div>
+                </div>
+                <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                  lib.status === 'active' 
+                  ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' 
+                  : lib.status === 'draft'
+                  ? 'bg-slate-500/10 text-slate-500 border-slate-700'
+                  : 'bg-rose-500/5 text-rose-400 border-rose-500/20'
+                }`}>
+                  {lib.statusLabel}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-6 mb-5">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <FileText size={14} className="opacity-50" />
+                  <span className="text-xs font-medium">文档 <span className="text-slate-100 font-bold ml-1">{lib.docCount}</span></span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Tag size={14} className="opacity-50" />
+                  <span className="text-xs font-medium">标签 <span className="text-slate-100 font-bold ml-1">{lib.tagCount}</span></span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-600 font-medium">
+                <div className="flex items-center gap-1.5 uppercase tracking-tighter">
+                  更新于 {lib.updated}
+                </div>
+                <button className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded-md hover:bg-slate-800">
+                   <MoreHorizontal size={14} />
+                </button>
+              </div>
+
+              {/* Hover Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Pagination Section */}
+        <div className="mt-8 flex items-center justify-center gap-2 pb-10">
+          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700">
+            <ChevronLeft size={16} />
+          </button>
+          {[1, 2, 3].map(page => (
+            <button 
+              key={page}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                page === 1 
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
+                : 'text-slate-500 hover:bg-slate-800 border border-transparent hover:border-slate-700'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          <span className="text-slate-700 px-1">•••</span>
+          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-slate-500 hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all">
+            5
+          </button>
+          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700">
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
     );
   };
@@ -9517,18 +13157,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 </div>
               </div>
             </SRECard>
-            <SRECard status="normal" title="相似故障案例" icon={Clock}>
-              <div className="space-y-2">
-                <div className="text-xs">
-                  <div className="font-bold text-slate-300">SRE-1923: payment-svc OOM</div>
-                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5"><span>相似度 89%</span><span>1个月前</span></div>
-                </div>
-                <div className="text-xs pt-1 border-t border-slate-800">
-                  <div className="text-slate-300">SRE-1845: JVM 参数配置不当</div>
-                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5"><span>相似度 76%</span><span>2个月前</span></div>
-                </div>
-              </div>
-            </SRECard>
           </>
         );
       case 'inspection':
@@ -9590,6 +13218,8 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             </SRECard>
           </>
         );
+      case 'dev':
+        return renderDeveloperWorkspace();
       default:
         return null;
     }
@@ -9860,8 +13490,9 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       default:
         return (
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">SRE Copilot Ready</span>
+            <div className={`w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]`} />
+
+            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">SRE Copilot Ready ({ENV_LABEL})</span>
           </div>
         );
     }
@@ -9872,8 +13503,11 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     setTaskName: setInspectionTaskName,
     frequency: inspectionFrequency,
     setFrequency: setInspectionFrequency,
+    cronValue: inspectionCronValue,
+    setCronValue: setInspectionCronValue,
     ruleDraft: inspectionRuleDraft,
-    targets: selectedInspectionTargets
+    targets: selectedInspectionTargets,
+    mode: inspectionTaskMode
   };
 
   return (
@@ -9896,6 +13530,17 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           {renderGlobalHeaderContent()}
         </div>
         <div className="flex items-center gap-4 px-6">
+          {/* 交互说明按钮 (移至顶导) */}
+          <button 
+            onClick={() => setIsGuideOpen(true)}
+            className="px-3 py-1.5 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg transition-all flex items-center gap-2 group cursor-pointer"
+          >
+            <HelpCircle size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[11px] font-bold text-slate-300 tracking-tight">交互说明</span>
+          </button>
+
+          <div className="w-px h-4 bg-slate-800/60 mx-1" />
+
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="text-slate-500 hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-800/50"
@@ -9916,6 +13561,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           {/* Menu Items */}
           <div className="flex-1 pt-6 pb-2 w-[68px] flex flex-col items-center relative z-[100]">
             {MENU_ITEMS.map((item) => {
+
               const isActive = activeMenu === item.id && activeMenu !== 'logs';
               const Icon = item.icon;
 
@@ -10174,6 +13820,9 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                         onToggle={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
                         onAction={handleAction}
                         inspectionContext={inspectionContext}
+                        knowledgeTab={knowledgeTab}
+                        setKnowledgeTab={setKnowledgeTab}
+                        renderKnowledgeManagement={renderKnowledgeManagement}
                       />
                     </div>
                     <SourceTraceDrawer
@@ -10226,7 +13875,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               case 'home':
               default:
                 return (
-                  <div className="flex-1 overflow-y-auto w-full no-scrollbar scroll-smooth">
+                  <div className="flex-1 overflow-y-auto w-full no-scrollbar scroll-smooth relative">
                     <div className="flex flex-col min-h-full mx-auto px-4 md:px-8">
                       <div className="my-auto w-full flex flex-col items-center py-6">
                         <div className="max-w-4xl w-full mb-8">
@@ -10241,7 +13890,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                               <h2 className="text-2xl font-extrabold text-slate-100 tracking-tight">SRE 智能助手</h2>
                             </div>
                             <p className="text-slate-400 text-xs font-medium max-w-xl text-center leading-relaxed">
-                              今日 <span className="text-rose-500 font-bold mx-0.5">3 条活跃告警</span>待处理。直接描述问题，或从下方场景快速发起。
+                            我是您的 SRE 智能助手，协助您完成智能巡检、告警治理、异常发现与故障诊断
                             </p>
                           </div>
 
@@ -10334,6 +13983,15 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           isOpen={isReportDrawerOpen}
           onClose={() => setIsReportDrawerOpen(false)}
           data={activeReportData}
+        />
+
+        <InteractionGuideDrawer 
+          isOpen={isGuideOpen}
+          onClose={() => setIsGuideOpen(false)}
+          expandedIds={expandedGuideIds}
+          setExpandedIds={setExpandedGuideIds}
+          activeSubId={activeGuideSubId}
+          setActiveSubId={setActiveGuideSubId}
         />
       </div>
     </div>

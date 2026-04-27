@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3001 --host 127.0.0.1",
+    "deploy": "npm run build && node server.js",
     "lan": "node server.js",
     "sync": "npm run build",
     "build": "vite build",
