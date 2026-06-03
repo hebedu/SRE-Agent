@@ -2185,7 +2185,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-2xl bg-[#161622] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-4xl bg-[#161622] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-white/[0.02]">
               <h3 className="text-sm font-bold text-slate-200">编辑脚本</h3>
