@@ -1975,6 +1975,27 @@ const KnowledgeArchiveSection = ({ data }: { data: any }) => {
 const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   const [tasks, setTasks] = useState<any[]>(() => data?.tasks || []);
   const [activeTaskIndex, setActiveTaskIndex] = useState<number>(0);
+  const [isScriptModalOpen, setIsScriptModalOpen] = useState(false);
+  const [tempScriptData, setTempScriptData] = useState({ type: 'shell', content: '' });
+
+  const openScriptModal = () => {
+    const currentTask = tasks[activeTaskIndex];
+    if (currentTask) {
+      setTempScriptData({
+        type: currentTask.scriptType || 'shell',
+        content: currentTask.scriptContent || ''
+      });
+      setIsScriptModalOpen(true);
+    }
+  };
+
+  const saveScriptModal = () => {
+    const updated = [...tasks];
+    updated[activeTaskIndex].scriptType = tempScriptData.type;
+    updated[activeTaskIndex].scriptContent = tempScriptData.content;
+    setTasks(updated);
+    setIsScriptModalOpen(false);
+  };
 
   const handleFieldChange = (index: number, field: string, value: any) => {
     const updated = [...tasks];
@@ -1996,6 +2017,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   const targetList = currentTask?.target ? currentTask.target.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
 
   return (
+    <>
     <motion.div 
       initial={{ opacity: 0, scale: 0.98 }} 
       animate={{ opacity: 1, scale: 1 }} 
@@ -2095,37 +2117,23 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
             />
           </div>
 
-          {/* 脚本类型：平铺 Tab 标签 */}
+          {/* 脚本配置单行入口 */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
-            <div className="flex gap-2">
-              {(['shell', 'python'] as const).map((type) => {
-                const isActive = (currentTask.scriptType || 'shell') === type;
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleFieldChange(activeTaskIndex, 'scriptType', type)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
-                      isActive
-                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/5'
-                        : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                    }`}
-                  >
-                    {type === 'shell' ? 'Shell 脚本' : 'Python 脚本'}
-                  </button>
-                );
-              })}
+            <label className="text-[10px] font-bold text-slate-400 uppercase">脚本配置</label>
+            <div 
+              onClick={openScriptModal}
+              className="group/script cursor-pointer flex items-center gap-3 bg-slate-950/50 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-2.5 transition-all"
+            >
+              <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 uppercase">
+                {currentTask.scriptType === 'python' ? 'Python' : 'Shell'}
+              </span>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-mono text-slate-400 group-hover/script:text-slate-300 truncate block">
+                  {currentTask.scriptContent ? currentTask.scriptContent.split('\n')[0] : '点击配置脚本内容...'}
+                </span>
+              </div>
+              <Maximize2 size={14} className="text-slate-500 group-hover/script:text-indigo-400 transition-colors shrink-0 mx-1" />
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">脚本内容</label>
-            <textarea
-              value={currentTask.scriptContent || ''}
-              onChange={(e) => handleFieldChange(activeTaskIndex, 'scriptContent', e.target.value)}
-              className="bg-slate-950/90 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-300 font-mono rounded-lg py-2 px-3 text-[10px] min-h-[90px] transition-all leading-normal"
-            />
           </div>
 
           {/* Variables configuration */}
@@ -2167,6 +2175,69 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
         </button>
       </div>
     </motion.div>
+
+      {/* 脚本编辑弹窗 Modal */}
+      {isScriptModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-[#161622] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          >
+            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-white/[0.02]">
+              <h3 className="text-sm font-bold text-slate-200">编辑脚本</h3>
+              <button onClick={() => setIsScriptModalOpen(false)} className="text-slate-500 hover:text-slate-300">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="p-5 flex-1 overflow-y-auto space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
+                <div className="flex gap-2">
+                  {(['shell', 'python'] as const).map((type) => {
+                    const isActive = tempScriptData.type === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setTempScriptData(prev => ({ ...prev, type }))}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                          isActive
+                            ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/5'
+                            : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                        }`}
+                      >
+                        {type === 'shell' ? 'Shell 脚本' : 'Python 脚本'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">脚本内容</label>
+                <textarea
+                  value={tempScriptData.content}
+                  onChange={(e) => setTempScriptData(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="在此编写您的脚本逻辑..."
+                  className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[320px] focus:outline-none transition-colors leading-relaxed"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-800 bg-white/[0.02] flex justify-end gap-3">
+              <button onClick={() => setIsScriptModalOpen(false)} className="px-5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                取消
+              </button>
+              <button onClick={saveScriptModal} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-indigo-500/20">
+                确认配置
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 };
 
