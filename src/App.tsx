@@ -8645,7 +8645,21 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
   };
 
   const handleSavePlan = (updatedPlan: any) => {
-    const planWithTime = { ...updatedPlan, updatedAt: new Date().toLocaleString() };
+    let newStatus = updatedPlan.inspectionStatus;
+    
+    // 如果启停状态发生改变，联动卡片状态
+    if (updatedPlan.enabled === false) {
+      newStatus = '未开启';
+    } else if (updatedPlan.enabled === true && updatedPlan.inspectionStatus === '未开启') {
+      newStatus = '待巡检';
+    }
+
+    const planWithTime = { 
+      ...updatedPlan, 
+      inspectionStatus: newStatus,
+      updatedAt: new Date().toLocaleString() 
+    };
+    
     setInspectionTasks(prev => prev.map(p => p.id === updatedPlan.id ? planWithTime : p));
     setSelectedPlanForDetail(planWithTime);
   };
