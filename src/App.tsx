@@ -3281,7 +3281,7 @@ const InspectionPlanDetailDrawer = ({
             onClick={handleSave}
             className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 border border-blue-500/20"
           >
-            <Save size={14} /> 保存计划
+            保存计划
           </button>
         </div>
 
