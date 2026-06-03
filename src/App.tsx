@@ -6119,24 +6119,32 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
                   </span>
                 )}
                 {task.executionType === 'immediate' && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onAction?.('RUN_IMMEDIATE', { task }); }}
-                    className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-                    title="点击后将再次执行该计划"
-                  >
-                    <Play size={13} />
-                  </button>
+                  <div className="relative flex items-center group/btn-run">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onAction?.('RUN_IMMEDIATE', { task }); }}
+                      className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                      <Play size={13} />
+                    </button>
+                    <div className="absolute bottom-full mb-1.5 right-0 hidden group-hover/btn-run:block whitespace-nowrap bg-[#161622] border border-slate-700 px-2 py-1 rounded-md text-[10px] text-slate-300 shadow-xl z-20 pointer-events-none">
+                      点击后将再次执行该计划
+                    </div>
+                  </div>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAction?.('CONFIGURE_PLAN', task);
-                  }}
-                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-                  title="配置"
-                >
-                  <Settings size={13} />
-                </button>
+                <div className="relative flex items-center group/btn-cfg">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAction?.('CONFIGURE_PLAN', task);
+                    }}
+                    className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+                  >
+                    <Settings size={13} />
+                  </button>
+                  <div className="absolute bottom-full mb-1.5 right-0 hidden group-hover/btn-cfg:block whitespace-nowrap bg-[#161622] border border-slate-700 px-2 py-1 rounded-md text-[10px] text-slate-300 shadow-xl z-20 pointer-events-none">
+                    配置
+                  </div>
+                </div>
               </div>
             </div>
             
