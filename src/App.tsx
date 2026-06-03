@@ -3121,7 +3121,8 @@ const InspectionPlanDetailDrawer = ({
               <textarea
                 value={editedPlan.description || ''}
                 onChange={(e) => setEditedPlan({ ...editedPlan, description: e.target.value })}
-                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs min-h-[60px] transition-all"
+                placeholder="请输入巡检计划描述..."
+                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs min-h-[60px] transition-all placeholder:text-slate-600/50"
               />
             </div>
           </div>
