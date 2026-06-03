@@ -2897,21 +2897,28 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
                 {selectedTargets.length === 0 ? (
                   <span className="text-xs text-slate-500 px-1">点击选择资源对象…</span>
                 ) : (
-                  selectedTargets.map((obj: string) => (
-                    <span
-                      key={obj}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-600/20 border border-indigo-500/70 text-indigo-300"
-                    >
-                      {obj}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleToggleTarget(obj); }}
-                        className="ml-0.5 hover:text-white transition-colors leading-none"
+                  <>
+                    {selectedTargets.slice(0, 2).map((obj: string) => (
+                      <span
+                        key={obj}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-600/20 border border-indigo-500/70 text-indigo-300"
                       >
-                        <X size={10} />
-                      </button>
-                    </span>
-                  ))
+                        {obj}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleToggleTarget(obj); }}
+                          className="ml-0.5 hover:text-white transition-colors leading-none"
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                    {selectedTargets.length > 2 && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold border border-dashed border-slate-600 text-slate-400 bg-slate-900/50 cursor-default">
+                        +{selectedTargets.length - 2} 已选
+                      </span>
+                    )}
+                  </>
                 )}
                 <ChevronDown
                   size={12}
