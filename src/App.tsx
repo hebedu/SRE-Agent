@@ -1977,6 +1977,12 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   const [activeTaskIndex, setActiveTaskIndex] = useState<number>(0);
   const [isScriptModalOpen, setIsScriptModalOpen] = useState(false);
   const [tempScriptData, setTempScriptData] = useState({ type: 'shell', content: '' });
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   const BOILERPLATE = {
     shell: '#!/bin/bash\n\n# 在此编写您的 Shell 脚本逻辑\n',
@@ -2002,13 +2008,13 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   };
 
   const handleScriptTypeChange = (newType: string) => {
-    setTempScriptData(prev => {
-      let newContent = prev.content;
-      if (!newContent.trim() || Object.values(BOILERPLATE).some(bp => prev.content.trim() === bp.trim())) {
-        newContent = BOILERPLATE[newType as keyof typeof BOILERPLATE];
-      }
-      return { type: newType, content: newContent };
-    });
+    const isCustomContent = tempScriptData.content.trim() && !Object.values(BOILERPLATE).some(bp => tempScriptData.content.trim() === bp.trim());
+    if (isCustomContent) {
+      showToast(`已切换为 ${newType === 'python' ? 'Python' : 'Shell'} 环境，原有代码已保留，请自行确保语法兼容`);
+      setTempScriptData(prev => ({ ...prev, type: newType }));
+    } else {
+      setTempScriptData({ type: newType, content: BOILERPLATE[newType as keyof typeof BOILERPLATE] });
+    }
   };
 
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -2212,6 +2218,12 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
       {/* 脚本编辑弹窗 Modal */}
       {isScriptModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          {toastMessage && (
+            <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[110] bg-[#1a1500]/90 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-300">
+              <AlertCircle size={14} />
+              {toastMessage}
+            </div>
+          )}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
