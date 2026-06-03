@@ -2713,6 +2713,19 @@ interface InspectionTaskEditModalProps {
 const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: InspectionTaskEditModalProps) => {
   const [editedTask, setEditedTask] = React.useState<any>(() => task ? structuredClone(task) : null);
   const [localScript, setLocalScript] = React.useState<string>(() => (task && task.scriptContent) ? task.scriptContent : '');
+  const [showResourceDropdown, setShowResourceDropdown] = React.useState(false);
+  const resourceDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!showResourceDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (resourceDropdownRef.current && !resourceDropdownRef.current.contains(e.target as Node)) {
+        setShowResourceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showResourceDropdown]);
 
   if (!isOpen || !editedTask) return null;
 
@@ -2828,29 +2841,69 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
               />
             </div>
 
-            {/* 关联资源对象多选胶囊选择器 */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象</label>
-              <div className="relative flex flex-wrap gap-2 p-3 pr-7 bg-slate-950/40 border border-slate-800/80 rounded-xl">
-                {resourceObjects.map((obj: string) => {
-                  const isSelected = selectedTargets.includes(obj);
-                  return (
-                    <button
+            {/* 资源对象：方案C 下拉多选 */}
+            <div className="flex flex-col gap-2" ref={resourceDropdownRef}>
+              <label className="text-[10px] font-bold text-slate-400 uppercase">资源对象</label>
+              {/* 触发框：显示已选 tag + ⌄ */}
+              <div
+                onClick={() => setShowResourceDropdown(v => !v)}
+                className={`relative min-h-[40px] flex flex-wrap gap-1.5 items-center p-2 pr-8 bg-slate-950/40 border rounded-xl cursor-pointer transition-all ${
+                  showResourceDropdown ? 'border-indigo-500/70' : 'border-slate-800/80 hover:border-slate-700'
+                }`}
+              >
+                {selectedTargets.length === 0 ? (
+                  <span className="text-xs text-slate-500 px-1">点击选择资源对象…</span>
+                ) : (
+                  selectedTargets.map((obj: string) => (
+                    <span
                       key={obj}
-                      type="button"
-                      onClick={() => handleToggleTarget(obj)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all active:scale-95 cursor-pointer ${
-                        isSelected 
-                          ? 'bg-indigo-600/20 border-indigo-500/80 text-indigo-300 shadow-md shadow-indigo-500/5' 
-                          : 'bg-slate-900/40 border-slate-800/60 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                      }`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-600/20 border border-indigo-500/70 text-indigo-300"
                     >
                       {obj}
-                    </button>
-                  );
-                })}
-                <ChevronDown size={12} className="absolute right-2.5 top-3 text-slate-500 pointer-events-none" />
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleToggleTarget(obj); }}
+                        className="ml-0.5 hover:text-white transition-colors leading-none"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))
+                )}
+                <ChevronDown
+                  size={12}
+                  className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none transition-transform duration-200 ${
+                    showResourceDropdown ? 'rotate-180' : ''
+                  }`}
+                />
               </div>
+              {/* 下拉 checkbox 列表 */}
+              {showResourceDropdown && (
+                <div className="border border-slate-700/80 bg-[var(--bg-deep-alt)] rounded-xl overflow-hidden shadow-xl shadow-black/40 z-10">
+                  {resourceObjects.map((obj: string) => {
+                    const isSelected = selectedTargets.includes(obj);
+                    return (
+                      <label
+                        key={obj}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors text-xs ${
+                          isSelected
+                            ? 'bg-indigo-600/10 text-indigo-200'
+                            : 'text-slate-300 hover:bg-slate-800/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleTarget(obj)}
+                          className="accent-indigo-500 w-3.5 h-3.5 cursor-pointer"
+                        />
+                        <span>{obj}</span>
+                        {isSelected && <Check size={11} className="ml-auto text-indigo-400" />}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* 脚本类型：平铺 Tab 标签 */}
