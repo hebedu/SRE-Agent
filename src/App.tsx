@@ -6133,7 +6133,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
                     onAction?.('CONFIGURE_PLAN', task);
                   }}
                   className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-                  title="配置计划"
+                  title="配置"
                 >
                   <Settings size={13} />
                 </button>
