@@ -2033,7 +2033,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
 
       {/* Body Form */}
       {currentTask && (
-        <div className="p-5 space-y-4 max-h-[380px] overflow-y-auto no-scrollbar">
+        <div className="p-5 space-y-4 max-h-[550px] overflow-y-auto no-scrollbar">
           {/* 资源类型（只读） */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase">资源类型</label>
