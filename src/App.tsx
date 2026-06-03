@@ -2711,69 +2711,72 @@ interface InspectionTaskEditModalProps {
 }
 
 const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: InspectionTaskEditModalProps) => {
+  // ── ① 所有 Hook 必须在 early return 之前声明，保证 Hook 调用顺序固定 ──
   const [editedTask, setEditedTask] = React.useState<any>(() => task ? structuredClone(task) : null);
   const [localScript, setLocalScript] = React.useState<string>(() => (task && task.scriptContent) ? task.scriptContent : '');
+
+  // ② 已选资源独立 state，完全与 editedTask 大对象解耦
+  const [selectedTargets, setSelectedTargets] = React.useState<string[]>(() => {
+    if (!task) return [];
+    if (Array.isArray(task.targets)) return task.targets;
+    if (typeof task.target === 'string' && task.target) {
+      return task.target.split(',').map((t: string) => t.trim()).filter(Boolean);
+    }
+    return [];
+  });
+
   const [showResourceDropdown, setShowResourceDropdown] = React.useState(false);
   const resourceDropdownRef = React.useRef<HTMLDivElement>(null);
+  // 用 ref 追踪下拉开关状态，供 always-on 监听器读取，避免频繁重注册
+  const dropdownOpenRef = React.useRef(false);
+  dropdownOpenRef.current = showResourceDropdown;
 
+  // ③ useEffect 空依赖，只注册一次 mousedown 监听，不随状态变化重复注册
   React.useEffect(() => {
-    if (!showResourceDropdown) return;
     const handleClickOutside = (e: MouseEvent) => {
+      if (!dropdownOpenRef.current) return;
       if (resourceDropdownRef.current && !resourceDropdownRef.current.contains(e.target as Node)) {
         setShowResourceDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showResourceDropdown]);
+  }, []); // 空依赖：只注册/销毁一次
 
-  if (!isOpen || !editedTask) return null;
-
+  // ④ 可选资源列表，仅依赖资源类型
   const resourceObjects = React.useMemo(() => {
-    const type = editedTask.resourceType;
-    if (type === 'Kubernetes 集群') {
-      return ['集群 (K8s-Prod-Main)', '集群 (VPC-Prod-Main)', '集群 (Kubernetes-Core)'];
-    }
-    if (type === 'MySQL 实例') {
-      return ['MySQL-Order-Primary', 'MySQL-User-Backup', 'MySQL-Log-Static'];
-    }
+    const type = editedTask?.resourceType;
+    if (type === 'Kubernetes 集群') return ['集群 (K8s-Prod-Main)', '集群 (VPC-Prod-Main)', '集群 (Kubernetes-Core)'];
+    if (type === 'MySQL 实例') return ['MySQL-Order-Primary', 'MySQL-User-Backup', 'MySQL-Log-Static'];
     return ['默认服务器节点-01', '默认服务负载节点-02'];
-  }, [editedTask.resourceType]);
+  }, [editedTask?.resourceType]);
 
-  const selectedTargets = React.useMemo(() => {
-    if (Array.isArray(editedTask.targets)) return editedTask.targets;
-    if (typeof editedTask.target === 'string') {
-      return editedTask.target ? editedTask.target.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
-    }
-    return [];
-  }, [editedTask.target, editedTask.targets]);
-
-  const handleToggleTarget = (objName: string) => {
-    let newTargets: string[];
-    if (selectedTargets.includes(objName)) {
-      newTargets = selectedTargets.filter(t => t !== objName);
-    } else {
-      newTargets = [...selectedTargets, objName];
-    }
-    setEditedTask({
-      ...editedTask,
-      targets: newTargets,
-      target: newTargets.join(', ')
+  // ⑤ handleToggleTarget：只更新 selectedTargets 轻量数组，不碰 editedTask 大对象
+  const handleToggleTarget = React.useCallback((objName: string) => {
+    setSelectedTargets(prev => {
+      if (prev.includes(objName)) return prev.filter(t => t !== objName);
+      return [...prev, objName];
     });
-  };
+  }, []); // 空依赖，函数引用永远稳定
 
-  const handleSave = () => {
+  const handleSave = React.useCallback(() => {
     onSave({
       ...editedTask,
-      scriptContent: localScript
+      scriptContent: localScript,
+      targets: selectedTargets,
+      target: selectedTargets.join(', '),
     });
-  };
+  }, [editedTask, localScript, selectedTargets, onSave]);
 
-  const handleVariableChange = (index: number, val: string) => {
-    const updatedVars = [...editedTask.variables];
-    updatedVars[index].value = val;
-    setEditedTask({ ...editedTask, variables: updatedVars });
-  };
+  const handleVariableChange = React.useCallback((index: number, val: string) => {
+    setEditedTask((prev: any) => {
+      const updatedVars = [...prev.variables];
+      updatedVars[index] = { ...updatedVars[index], value: val };
+      return { ...prev, variables: updatedVars };
+    });
+  }, []);
+
+  if (!isOpen || !editedTask) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
