@@ -5998,7 +5998,36 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
 
 
 // --- 注入巡检任务按钮动态特效组件 ---
-const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner?: any, setSelectedTask?: any, analysisStatus?: any, selectedTask?: any }> = ({ tasks, onAction, setShowBanner, setSelectedTask, analysisStatus, selectedTask }) => (
+const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner?: any, setSelectedTask?: any, analysisStatus?: any, selectedTask?: any }> = ({ tasks, onAction, setShowBanner, setSelectedTask, analysisStatus, selectedTask }) => {
+  const [executingTasks, setExecutingTasks] = React.useState<Record<string, { status: 'running' | 'flashing', timestamp: string }>>({});
+
+  const handleRunImmediate = (e: React.MouseEvent, task: any) => {
+    e.stopPropagation();
+    // Simulate execution start
+    setExecutingTasks(prev => ({ ...prev, [task.name]: { status: 'running', timestamp: '' } }));
+    
+    // Simulate API call completion after 1.5 seconds
+    setTimeout(() => {
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const newTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      
+      setExecutingTasks(prev => ({ ...prev, [task.name]: { status: 'flashing', timestamp: newTimestamp } }));
+      
+      // End flash animation after 1.5 seconds
+      setTimeout(() => {
+        setExecutingTasks(prev => {
+          const next = { ...prev };
+          delete next[task.name];
+          return next;
+        });
+      }, 1500);
+    }, 1500);
+
+    onAction?.('RUN_IMMEDIATE', { task });
+  };
+
+  return (
   <div className="space-y-4">
     <style>{`
       @keyframes analytic-shimmer {
@@ -6024,6 +6053,16 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
       .state-analyzing {
         animation: pulse-glow 2s infinite ease-in-out;
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+      }
+      @keyframes bg-flash {
+        0% { background-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+        100% { background-color: transparent; color: #94a3b8; }
+      }
+      .animate-bg-flash {
+        animation: bg-flash 1.5s ease-out forwards;
+        border-radius: 4px;
+        padding: 0 4px;
+        margin-left: -4px;
       }
     `}</style>
     {/* ... 筛选区域保持不变 ... */}
@@ -6082,7 +6121,9 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
     </div>
 
     <div className="space-y-4">
-      {tasks.map((task, idx) => (
+      {tasks.map((task, idx) => {
+        const execState = executingTasks[task.name];
+        return (
         <div
           key={idx}
           onClick={(e) => { e.stopPropagation(); setSelectedTask(task); setShowBanner(true); }}
@@ -6121,10 +6162,10 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
                 {task.executionType === 'immediate' && (
                   <div className="relative flex items-center group/btn-run">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onAction?.('RUN_IMMEDIATE', { task }); }}
+                      onClick={(e) => handleRunImmediate(e, task)}
                       className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
                     >
-                      <Play size={13} />
+                      {execState?.status === 'running' ? <RefreshCw size={13} className="animate-spin text-blue-400" /> : <Play size={13} />}
                     </button>
                     <div className="absolute bottom-full mb-1.5 right-0 hidden group-hover/btn-run:block whitespace-nowrap bg-[#161622] border border-slate-700 px-2 py-1 rounded-md text-[10px] text-slate-300 shadow-xl z-20 pointer-events-none">
                       点击后将再次执行该计划
@@ -6161,13 +6202,13 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">当前状态</span>
               <span className={`text-[11px] font-black flex items-center gap-1 ${
-                task.inspectionStatus === '巡检中' ? 'text-orange-400' :
+                execState?.status === 'running' || task.inspectionStatus === '巡检中' ? 'text-orange-400' :
                 task.inspectionStatus === '已结束' ? 'text-emerald-400' :
                 task.inspectionStatus === '未开启' ? 'text-slate-600' :
                 'text-slate-400'
               }`}>
-                {task.inspectionStatus === '巡检中' && <RefreshCw size={9} className="animate-spin" />}
-                {task.inspectionStatus || '待巡检'}
+                {(execState?.status === 'running' || task.inspectionStatus === '巡检中') && <RefreshCw size={9} className="animate-spin" />}
+                {execState?.status === 'running' ? '巡检中' : (task.inspectionStatus || '待巡检')}
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -6202,7 +6243,9 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">最近执行</span>
-              <span className="text-[11px] text-slate-400 font-mono tracking-tight">{task.updatedAt || '无'}</span>
+              <span className={`text-[11px] text-slate-400 font-mono tracking-tight ${execState?.status === 'flashing' ? 'animate-bg-flash' : ''}`}>
+                {execState?.timestamp || task.updatedAt || '无'}
+              </span>
             </div>
             {task.executionType !== 'immediate' && (
               <div className="flex items-center gap-4">
@@ -6290,7 +6333,8 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             })()}
           </div>
         </div>
-      ))}
+      );
+      })}
     </div>
 
     <div className="flex items-center justify-between pt-6 border-t border-slate-800/80 text-[10px] text-slate-500">
@@ -6313,7 +6357,8 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
   <div className="space-y-6">
