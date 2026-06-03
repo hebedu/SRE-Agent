@@ -2163,7 +2163,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           onClick={handleSubmit}
           className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition-all shadow-lg shadow-blue-500/20 active:scale-95 border border-blue-500/20"
         >
-          确认子任务配置，保存编辑
+          确认任务配置
         </button>
       </div>
     </motion.div>
