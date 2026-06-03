@@ -6012,11 +6012,18 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-600 font-bold">按风险:</span>
+              <span className="text-[10px] text-slate-600 font-bold">结果:</span>
               <div className="flex gap-1.5">
-                {['全部', '健康', '异常'].map((tag, i) => (
-                  <button key={i} className={`px-2.5 py-0.5 rounded text-[9px] font-bold border transition-all ${i === 2 ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' : 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300'}`}>
-                    {tag}
+                {[
+                  { label: '全部', active: true },
+                  { label: '健康', cls: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' },
+                  { label: '异常', cls: 'bg-amber-500/15 border-amber-500/30 text-amber-400' },
+                  { label: '失败', cls: 'bg-rose-500/15 border-rose-500/30 text-rose-400' },
+                ].map(({ label, active, cls }) => (
+                  <button key={label} className={`px-2.5 py-0.5 rounded text-[9px] font-bold border transition-all ${
+                    active ? 'bg-blue-500/20 border-blue-500/40 text-blue-400' : cls ?? 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300'
+                  }`}>
+                    {label}
                   </button>
                 ))}
               </div>
@@ -6068,6 +6075,27 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               <div className={`w-1.5 h-1.5 rounded-full ${task.status === '健康' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
               <h4 className="text-sm font-bold text-slate-100 group-hover:text-blue-400 transition-colors uppercase tracking-tight font-mono">{task.name}</h4>
               <div className="flex items-center gap-1.5 ml-auto">
+                {/* 任务结果 badge */}
+                {task.status === '异常' && (
+                  <div className="relative group/tooltip">
+                    <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 cursor-help flex items-center gap-0.5">
+                      ⚠️ 异常
+                    </span>
+                    <div className="absolute bottom-full right-0 mb-2 w-56 hidden group-hover/tooltip:block bg-[#161622] border border-slate-700 p-2.5 rounded-lg text-[10px] text-slate-300 shadow-xl z-20 leading-relaxed">
+                      <div className="font-bold text-amber-400 mb-1 border-b border-slate-800 pb-1">异常预警：</div>
+                      {task.name.includes('支付')
+                        ? '支付网关 (payment-gw) 近 5 分钟 5xx 错误率突增至 15%，触发严重预警水位。'
+                        : task.name.includes('慢查询')
+                        ? '监测到 12 条超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。'
+                        : '检测到关键监控指标超出安全上限，系统已触发专家分析。'}
+                    </div>
+                  </div>
+                )}
+                {task.status === '失败' && (
+                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black text-rose-400 bg-rose-500/10 border border-rose-500/30 flex items-center gap-0.5">
+                    🔴 失败
+                  </span>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
