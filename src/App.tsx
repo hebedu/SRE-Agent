@@ -2221,7 +2221,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                   value={tempScriptData.content}
                   onChange={(e) => setTempScriptData(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="在此编写您的脚本逻辑..."
-                  className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[320px] focus:outline-none transition-colors leading-relaxed"
+                  className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[500px] focus:outline-none transition-colors leading-relaxed"
                 />
               </div>
             </div>
