@@ -3184,7 +3184,7 @@ const InspectionPlanDetailDrawer = ({
         <div className="p-6 border-b border-slate-800/60 flex justify-between items-center shrink-0">
           <div>
             <h2 className="text-base font-black text-slate-100 flex items-center gap-2">
-              配置巡检计划
+              编辑巡检计划
             </h2>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
