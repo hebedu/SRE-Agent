@@ -2132,7 +2132,10 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                   {currentTask.scriptContent ? currentTask.scriptContent.split('\n')[0] : '点击配置脚本内容...'}
                 </span>
               </div>
-              <Maximize2 size={14} className="text-slate-500 group-hover/script:text-indigo-400 transition-colors shrink-0 mx-1" />
+              <div className="flex items-center gap-1.5 shrink-0 mx-1">
+                <span className="text-[10px] font-bold text-slate-500 group-hover/script:text-indigo-400 transition-colors">展开编辑</span>
+                <Maximize2 size={14} className="text-slate-500 group-hover/script:text-indigo-400 transition-colors" />
+              </div>
             </div>
           </div>
 
