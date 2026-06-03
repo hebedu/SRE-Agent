@@ -2112,7 +2112,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           {/* Variables configuration */}
           {Array.isArray(currentTask.variables) && currentTask.variables.length > 0 && (
             <div className="border-t border-slate-800/40 pt-4 space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">子任务变量微调</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase">变量配置</label>
               <div className="grid grid-cols-1 gap-2">
                 {currentTask.variables.map((v: any, varIdx: number) => (
                   <div key={varIdx} className="flex items-center gap-3 bg-slate-950/30 border border-slate-800/50 rounded-xl p-3">
