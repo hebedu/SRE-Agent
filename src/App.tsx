@@ -6196,7 +6196,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             )}
           </div>
 
-          <div className="flex justify-end items-center gap-2">
+          <div className={`flex items-center gap-2 ${task.executionType === 'immediate' ? 'justify-between' : 'justify-end'}`}>
             {(() => {
               const currentStatus = analysisStatus?.[task.name];
               const isAnalyzing = currentStatus === 'analyzing';
@@ -6219,35 +6219,37 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               if (hasReport) {
                 return (
                   <>
-                    {isFailed && (
-                      <span className="text-[10px] text-rose-500 font-bold mr-2 animate-pulse flex items-center gap-1">
-                        <AlertCircle size={10} /> 本次分析失败，请重试
-                      </span>
-                    )}
                     {rerunBtn}
-                    {/* 开始分析 / 分析中 */}
-                    {isAnalyzing ? (
-                      <button disabled className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/40 text-slate-500 border border-slate-700/30 cursor-wait">
-                        <RefreshCw size={11} className="animate-spin text-slate-600" />
-                        <span className="text-[10px] font-bold tracking-tight">分析中…</span>
-                      </button>
-                    ) : (
+                    <div className="flex items-center gap-2">
+                      {isFailed && (
+                        <span className="text-[10px] text-rose-500 font-bold mr-2 animate-pulse flex items-center gap-1">
+                          <AlertCircle size={10} /> 本次分析失败，请重试
+                        </span>
+                      )}
+                      {/* 开始分析 / 分析中 */}
+                      {isAnalyzing ? (
+                        <button disabled className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/40 text-slate-500 border border-slate-700/30 cursor-wait">
+                          <RefreshCw size={11} className="animate-spin text-slate-600" />
+                          <span className="text-[10px] font-bold tracking-tight">分析中…</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onAction?.('START_INSPECTION_ANALYSIS', { task }); }}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 text-blue-400/80 hover:text-blue-300 transition-all border border-blue-500/30 hover:border-blue-500/50 group/retry"
+                          title="重新发起 AI 深度分析"
+                        >
+                          <RefreshCw size={11} className="group-hover/retry:rotate-180 transition-transform duration-500" />
+                          <span className="text-[10px] font-bold tracking-tight">开始分析</span>
+                        </button>
+                      )}
+                      {/* 查看报告 */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); onAction?.('START_INSPECTION_ANALYSIS', { task }); }}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 text-blue-400/80 hover:text-blue-300 transition-all border border-blue-500/30 hover:border-blue-500/50 group/retry"
-                        title="重新发起 AI 深度分析"
+                        onClick={(e) => { e.stopPropagation(); onAction?.('VIEW_REPORT', { format: '0412_phased', ...task }); }}
+                        className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition-all shadow-lg shadow-emerald-500/20 active:scale-95 border border-emerald-500/20"
                       >
-                        <RefreshCw size={11} className="group-hover/retry:rotate-180 transition-transform duration-500" />
-                        <span className="text-[10px] font-bold tracking-tight">开始分析</span>
+                        <FileText size={14} /> 查看报告
                       </button>
-                    )}
-                    {/* 查看报告 */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onAction?.('VIEW_REPORT', { format: '0412_phased', ...task }); }}
-                      className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition-all shadow-lg shadow-emerald-500/20 active:scale-95 border border-emerald-500/20"
-                    >
-                      <FileText size={14} /> 查看报告
-                    </button>
+                    </div>
                   </>
                 );
               }
