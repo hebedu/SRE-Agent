@@ -4,18 +4,17 @@ import {
   Bot, User, CheckCircle2, Clock, Zap, MoreHorizontal, Terminal, Activity,
   ShieldAlert, Settings, ClipboardList, BarChart2, BookOpen, HeartPulse,
   FileText, Download, Play, Check, ChevronDown, ChevronRight, Home,
-  Plus, Bell, Network, CheckSquare, Database, Shield, ChevronLeft, ChevronUp, Paperclip, X,
+  Plus, Bell, Network, CheckSquare, Database, Shield, ChevronLeft, ChevronUp, Paperclip, X, Save, Lock, Edit,
   AlertTriangle, Box, Filter, SlidersHorizontal, ArrowUpDown, Cpu, Server, Layers, HardDrive, Brain, Flame, Sparkles, Minus, Maximize,
   PlusCircle, BarChart3, LayoutDashboard, ListTodo, FilePieChart, ArrowUpRight, ArrowDownRight, RefreshCw, History, Maximize2, Folder, PanelLeft, PanelLeftClose, ShieldCheck,
-  Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2,
-  Sun, Moon, HelpCircle, LayoutGrid, List, Tag
-
+  Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { createPortal } from 'react-dom';
 
 // --- Types ---
 type MessageType = 'user' | 'ai' | 'system';
-type ContentType = 'text' | 'voice' | 'image' | 'confirm' | 'analysis' | 'sop' | 'report' | 'target_select' | 'rule_draft' | 'frequency_select' | 'task_summary' | 'rule_review' | 'schedule_review' | 'task_success' | 'incident_report' | 'change_list' | 'recovery_action' | 'inspection_type' | 'inspection_cron_confirm' | 'inspection_progress' | 'inspection_result_table' | 'action_confirm' | 'action_execution' | 'alarm_context' | 'inspection_task_select' | 'log_cluster_selection' | 'inspection_diagnostic_report' | 'inspection_conclusion' | 'inspection_deep_dive' | 'inspection_closure' | 'log_analysis_init' | 'log_analysis_retrieval' | 'log_analysis_correlation' | 'log_analysis_evidence' | 'log_analysis_diagnosis' | 'log_analysis_action';
+type ContentType = 'text' | 'voice' | 'image' | 'confirm' | 'analysis' | 'sop' | 'report' | 'target_select' | 'rule_draft' | 'frequency_select' | 'task_summary' | 'rule_review' | 'schedule_review' | 'task_success' | 'incident_report' | 'change_list' | 'recovery_action' | 'inspection_type' | 'inspection_cron_confirm' | 'inspection_progress' | 'inspection_result_table' | 'action_confirm' | 'action_execution' | 'alarm_context' | 'inspection_task_select' | 'log_cluster_selection' | 'inspection_diagnostic_report' | 'inspection_conclusion' | 'inspection_deep_dive' | 'inspection_closure' | 'log_analysis_init' | 'log_analysis_retrieval' | 'log_analysis_correlation' | 'log_analysis_evidence' | 'log_analysis_diagnosis' | 'log_analysis_action' | 'mysql_task_edit_list';
 type MenuKey = 'home' | 'diagnostic' | 'logs' | 'capacity' | 'knowledge' | 'inspection' | 'report' | 'alerts' | 'network' | 'settings' | 'tasks' | 'assistant';
 
 interface InspectionTarget {
@@ -27,17 +26,38 @@ interface InspectionTarget {
   status: 'online' | 'warning' | 'offline';
 }
 
-
-const MOCK_KNOWLEDGE_DOCS = [
-  { id: 'doc-1', name: 'SRE 操作手册 - 核心组件故障排查.pdf', size: '2.4 MB', type: 'PDF', updated: '2024-04-10', status: 'indexed' },
-  { id: 'doc-2', name: 'payment-svc 内存漏排查 SOP.md', size: '45 KB', type: 'Markdown', updated: '2024-04-15', status: 'indexed' },
-  { id: 'doc-3', name: '集群扩缩容最佳实践指南.docx', size: '1.2 MB', type: 'DOCX', updated: '2024-04-18', status: 'processing' },
-  { id: 'doc-4', name: 'JVM 优化及故障隔离规范.pdf', size: '3.1 MB', type: 'PDF', updated: '2024-04-20', status: 'indexed' },
-  { id: 'doc-5', name: '告警收敛逻辑说明文档.md', size: '12 KB', type: 'Markdown', updated: '2024-04-21', status: 'indexed' },
-];
-
-
 const MOCK_TARGETS: InspectionTarget[] = [
+  // 数据库实例 (DB)
+  { id: 'db-1', name: 'mysql-order-primary', type: 'DB', environment: 'prod', cluster: 'db-cluster-01', status: 'online' },
+  { id: 'db-2', name: 'mysql-order-replica', type: 'DB', environment: 'prod', cluster: 'db-cluster-01', status: 'online' },
+  { id: 'db-3', name: 'pg-user-master', type: 'DB', environment: 'prod', cluster: 'db-cluster-02', status: 'warning' },
+  // Redis
+  { id: 'redis-1', name: 'redis-cache-main', type: 'Redis', environment: 'prod', cluster: 'redis-cluster-01', status: 'online' },
+  { id: 'redis-2', name: 'redis-session-store', type: 'Redis', environment: 'prod', cluster: 'redis-cluster-02', status: 'online' },
+  // MQ
+  { id: 'mq-1', name: 'kafka-broker-node-1', type: 'MQ', environment: 'prod', cluster: 'kafka-prod-01', status: 'online' },
+  { id: 'mq-2', name: 'rocketmq-namesrv-A', type: 'MQ', environment: 'prod', cluster: 'rocketmq-core', status: 'online' },
+  { id: 'mq-3', name: 'rabbitmq-vhost-main', type: 'MQ', environment: 'staging', cluster: 'rabbitmq-test', status: 'warning' },
+  // 应用服务 (Service)
+  { id: 'svc-1', name: 'order-api-service', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  { id: 'svc-2', name: 'payment-processor', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  { id: 'svc-3', name: 'auth-gateway', type: 'Service', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  // 负载均衡 (LB)
+  { id: 'lb-1', name: 'clb-external-ingress', type: 'LB', environment: 'prod', cluster: 'clb-sh-main', status: 'online' },
+  { id: 'lb-2', name: 'slb-internal-grpc', type: 'LB', environment: 'prod', cluster: 'slb-sh-core', status: 'online' },
+  // 云主机 (Host)
+  { id: 'h-1', name: 'cvm-jumpbox-01', type: 'Host', environment: 'prod', cluster: 'cvm-manage', status: 'online' },
+  { id: 'h-2', name: 'cvm-worker-node-102', type: 'Host', environment: 'prod', cluster: 'cvm-worker-pool', status: 'warning' },
+  { id: 'h-3', name: 'cvm-db-backup-svr', type: 'Host', environment: 'prod', cluster: 'cvm-storage', status: 'online' },
+  // VPC
+  { id: 'vpc-1', name: 'vpc-prod-main-sh', type: 'VPC', environment: 'prod', cluster: 'network-region-1', status: 'online' },
+  { id: 'vpc-2', name: 'vpc-test-sandbox', type: 'VPC', environment: 'staging', cluster: 'network-region-1', status: 'online' },
+  // Pod
+  { id: 'pod-1', name: 'nginx-ingress-controller-p9x', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  { id: 'pod-2', name: 'redis-sentinel-pod-a21', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  { id: 'pod-3', name: 'app-error-logger-v2', type: 'Pod', environment: 'staging', cluster: 'k8s-test-1', status: 'offline' },
+  { id: 'pod-4', name: 'worker-pod-res-01', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
+  { id: 'pod-5', name: 'worker-pod-res-02', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
   { id: 'pod-6', name: 'worker-pod-res-03', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-1', status: 'online' },
   { id: 'pod-7', name: 'batch-job-pod-77', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-2', status: 'online' },
   { id: 'pod-8', name: 'batch-job-pod-78', type: 'Pod', environment: 'prod', cluster: 'k8s-prod-2', status: 'online' },
@@ -127,10 +147,6 @@ const QUICK_RULES = [
   '检测 服务错误率 > 5% 持续 3 分钟'
 ];
 
-// --- Environment Detection ---
-const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const ENV_LABEL = IS_LOCAL ? '本地开发' : '局域网';
-
 // --- Menu Configuration ---
 const MENU_ITEMS = [
   { id: 'home', label: '新会话', icon: Plus },
@@ -142,7 +158,6 @@ const MENU_ITEMS = [
   { id: 'capacity', label: '采控集成', icon: Cpu },
   { id: 'settings', label: '集成设置', icon: Settings },
   { id: 'tasks', label: '模型接入', icon: Brain },
-  { id: 'dev', label: '开发者', icon: Terminal },
 ];
 
 // --- Components ---
@@ -187,7 +202,7 @@ const SRECard = ({
       onClick={onClick}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`bg-[var(--bg-alarm)] ${hideStatusBorder ? '' : `border-l-4 ${statusColors[status]}`} ${useStandardRounded ? 'rounded-2xl' : 'rounded-r-lg'} p-4 mb-4 shadow-sm relative overflow-hidden group hover:bg-[var(--bg-alarm-hover)] transition-all ${onClick ? 'cursor-pointer hover:ring-1 hover:ring-indigo-500/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]' : ''}`}
+      className={`bg-[#161a29] ${hideStatusBorder ? '' : `border-l-4 ${statusColors[status]}`} ${useStandardRounded ? 'rounded-2xl' : 'rounded-r-lg'} p-4 mb-4 shadow-sm relative overflow-hidden group hover:bg-[#1a1f33] transition-all ${onClick ? 'cursor-pointer hover:ring-1 hover:ring-indigo-500/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]' : ''}`}
       style={style}
     >
       {pulse && (
@@ -226,7 +241,7 @@ const SRECard = ({
               />
             </div>
           )}
-          <h3 className="font-bold text-sm text-slate-100 group-hover:text-slate-100 transition-colors">{title}</h3>
+          <h3 className="font-bold text-sm text-slate-100 group-hover:text-white transition-colors">{title}</h3>
         </div>
         {badge && (
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${status === 'critical' ? 'bg-rose-500/20 text-rose-500' : 'bg-slate-800 text-slate-400'}`}>
@@ -272,7 +287,7 @@ const AlarmTableRow: React.FC<{ alarm: Alarm, onDiagnose: (a: Alarm) => void }> 
     <>
       <tr
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`group cursor-pointer transition-colors border-b border-slate-800/50 hover:bg-slate-900/20 ${isExpanded ? 'bg-slate-900/30' : ''}`}
+        className={`group cursor-pointer transition-colors border-b border-slate-800/50 hover:bg-white/[0.02] ${isExpanded ? 'bg-white/[0.03]' : ''}`}
       >
         <td className="py-4 pl-4 whitespace-nowrap">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${st.color.replace('text-', 'bg-')}/10 ${st.color} ${st.color.replace('text-', 'border-')}/20`}>
@@ -420,17 +435,20 @@ const TargetSelectionCard: React.FC<{ data: any, onAction: any }> = ({ data, onA
 
   const status = getSelectionStatus(selectedIds.length);
 
-  const displayedTargets = MOCK_TARGETS.filter(t => t.type === activeType && (t.name.includes(search) || t.cluster.includes(search)));
+  let displayedTargets = MOCK_TARGETS.filter(t => t.type === activeType && (t.name.toLowerCase().includes(search.toLowerCase()) || t.cluster.toLowerCase().includes(search.toLowerCase())));
+  if (data?.isMysql && activeType === 'DB') {
+    displayedTargets = displayedTargets.filter(t => t.name.toLowerCase().includes('mysql'));
+  }
 
   return (
-    <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[480px]">
+    <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[480px]">
       <div className={`p-2 border-b border-slate-800 flex items-center justify-center transition-all min-h-[32px] ${status.bg}`}>
         <span className={`text-[10px] font-bold ${status.color}`}>
           {status.hasIcon && <span className="mr-1">⚠️</span>}
           {status.text}
         </span>
       </div>
-      <div className="p-3 border-b border-slate-800 bg-slate-900/20 flex items-center gap-2">
+      <div className="p-3 border-b border-slate-800 bg-white/[0.02] flex items-center gap-2">
         <span className="text-xs font-bold text-slate-300">🛠️ 请选择本次巡检的目标对象</span>
       </div>
       <div className="flex h-64">
@@ -442,7 +460,7 @@ const TargetSelectionCard: React.FC<{ data: any, onAction: any }> = ({ data, onA
               <button
                 key={type.key}
                 onClick={() => setActiveType(type.key)}
-                className={`flex items-center justify-between px-3 py-2.5 text-[11px] font-bold transition-all ${activeType === type.key ? 'bg-blue-600/10 text-blue-400 border-r-2 border-blue-500' : 'text-slate-400 hover:bg-slate-900/20'}`}
+                className={`flex items-center justify-between px-3 py-2.5 text-[11px] font-bold transition-all ${activeType === type.key ? 'bg-blue-600/10 text-blue-400 border-r-2 border-blue-500' : 'text-slate-400 hover:bg-white/[0.02]'}`}
               >
                 <span>{type.label}({typeTargetsCount})</span>
               </button>
@@ -467,7 +485,7 @@ const TargetSelectionCard: React.FC<{ data: any, onAction: any }> = ({ data, onA
           {displayedTargets.length > 0 && (
             <div 
               onClick={toggleAll}
-              className="px-4 py-2 bg-slate-900/30 border-b border-slate-800 flex items-center gap-3 cursor-pointer hover:bg-white/[0.05] transition-all"
+              className="px-4 py-2 bg-white/[0.03] border-b border-slate-800 flex items-center gap-3 cursor-pointer hover:bg-white/[0.05] transition-all"
             >
               <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${displayedTargets.map(t => t.id).every(id => selectedIds.includes(id)) ? 'bg-blue-600 border-blue-500' : 'border-slate-600'}`}>
                 {displayedTargets.map(t => t.id).every(id => selectedIds.includes(id)) && <Check size={10} className="text-white" />}
@@ -498,7 +516,7 @@ const TargetSelectionCard: React.FC<{ data: any, onAction: any }> = ({ data, onA
           </div>
         </div>
       </div>
-      <div className="p-3 bg-[var(--bg-elevated-alt)] border-t border-slate-800 flex items-center justify-between">
+      <div className="p-3 bg-[#1a1a20] border-t border-slate-800 flex items-center justify-between">
         <span className="text-[11px] font-bold text-slate-300">共选中: <span className={selectedIds.length > 30 ? 'text-rose-500' : 'text-blue-400'}>{selectedIds.length}</span> 项</span>
         <button
           disabled={!status.canExecute}
@@ -513,8 +531,8 @@ const TargetSelectionCard: React.FC<{ data: any, onAction: any }> = ({ data, onA
 };
 
 const RuleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
-    <div className="p-3 border-b border-slate-800 bg-slate-900/20 flex items-center justify-between">
+  <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
+    <div className="p-3 border-b border-slate-800 bg-white/[0.02] flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Zap size={14} className="text-blue-400" />
         <span className="text-xs font-bold text-slate-300">巡检规则转译确认</span>
@@ -522,7 +540,7 @@ const RuleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction
       <div className="text-[10px] text-slate-600 font-mono tracking-tighter">NLP to Structured v2</div>
     </div>
     <div className="p-4 space-y-4">
-      <div className="p-2.5 rounded bg-slate-900/30 border border-slate-800 italic text-[10px] text-slate-500 mb-2">
+      <div className="p-2.5 rounded bg-white/[0.03] border border-slate-800 italic text-[10px] text-slate-500 mb-2">
         " {data.input} "
       </div>
       <div className="space-y-1.5">
@@ -557,7 +575,7 @@ const RuleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction
         </div>
       </div>
     </div>
-    <div className="p-3 bg-slate-900/20 border-t border-slate-800 flex gap-2">
+    <div className="p-3 bg-white/[0.02] border-t border-slate-800 flex gap-2">
       <button onClick={() => onAction('RETRY_RULE')} className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded border border-slate-700/50 transition-all">修改</button>
       <button onClick={() => onAction('STEP_SCHEDULE')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow-lg shadow-blue-500/20 transition-all">确认规则</button>
     </div>
@@ -565,8 +583,8 @@ const RuleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction
 );
 
 const ScheduleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
-    <div className="p-3 border-b border-slate-800 bg-slate-900/20 flex items-center gap-2">
+  <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
+    <div className="p-3 border-b border-slate-800 bg-white/[0.02] flex items-center gap-2">
       <Clock size={14} className="text-purple-400" />
       <span className="text-xs font-bold text-slate-300">定时设定确认</span>
     </div>
@@ -594,7 +612,7 @@ const ScheduleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAc
         </div>
       </div>
     </div>
-    <div className="p-3 bg-slate-900/20 border-t border-slate-800 flex gap-2">
+    <div className="p-3 bg-white/[0.02] border-t border-slate-800 flex gap-2">
       <button 
         onClick={() => onAction('STEP_SCHEDULE_BACK')} 
         className="flex items-center justify-center px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-300 text-[10px] font-bold rounded border border-slate-700/50 transition-all active:scale-95"
@@ -607,7 +625,7 @@ const ScheduleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAc
 );
 
 const TaskSuccessCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-emerald-500/30 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-[340px]">
+  <div className="bg-[#141418] border border-emerald-500/30 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-[340px]">
     <div className="p-6 flex flex-col items-center text-center">
       <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 border border-emerald-500/20">
         <motion.div
@@ -621,7 +639,7 @@ const TaskSuccessCard: React.FC<{ data: any, onAction: any }> = ({ data, onActio
       <h3 className="text-lg font-bold text-slate-200 mb-1">巡检任务创建成功</h3>
       <p className="text-xs text-slate-500 leading-relaxed mb-6">任务已进入自动编排队列，将于设定的周期内自动触发脚本并生成报告。</p>
 
-      <div className="w-full bg-slate-900/40 rounded-xl border border-slate-800 p-3 mb-6 flex flex-col gap-2">
+      <div className="w-full bg-black/40 rounded-xl border border-slate-800 p-3 mb-6 flex flex-col gap-2">
         <div className="flex justify-between items-center text-[10px]">
           <span className="text-slate-500">任务 ID</span>
           <span className="text-slate-300 font-mono">INS-7729-X</span>
@@ -684,7 +702,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
   return (
     <div className="w-full space-y-4 flex flex-col">
       {/* Unified Intelligent Control Header - Dropdown Refactor */}
-      <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl px-5 py-4 flex items-center shadow-2xl relative overflow-visible group/header">
+      <div className="bg-[#141418] border border-slate-800 rounded-xl px-5 py-4 flex items-center shadow-2xl relative overflow-visible group/header">
         <div className="absolute top-0 right-0 w-64 h-full bg-blue-500/[0.02] -skew-x-12 translate-x-32 pointer-events-none" />
 
         <div className="flex items-center gap-5 z-20 w-full">
@@ -694,7 +712,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
               <button
                 onClick={() => setIsLevelOpen(!isLevelOpen)}
                 onBlur={() => setTimeout(() => setIsLevelOpen(false), 200)}
-                className="flex items-center justify-between gap-3 px-3 py-1.5 bg-slate-900/40 border border-slate-700/50 rounded-lg min-w-[100px] hover:border-slate-500 transition-all text-xs group/btn"
+                className="flex items-center justify-between gap-3 px-3 py-1.5 bg-black/40 border border-slate-700/50 rounded-lg min-w-[100px] hover:border-slate-500 transition-all text-xs group/btn"
               >
                 <div className="flex items-center gap-2">
                   {selectedLevelObj.dot && <span className={`w-1.5 h-1.5 rounded-full ${selectedLevelObj.dot}`} />}
@@ -703,7 +721,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
                 <ChevronDown size={12} className={`text-slate-500 transition-transform ${isLevelOpen ? 'rotate-180' : ''}`} />
               </button>
               {isLevelOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-[var(--bg-dropdown)] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-full bg-[#1c1c22] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
                   {levelOptions.map(l => (
                     <button
                       key={l.key}
@@ -727,13 +745,13 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
               <button
                 onClick={() => setIsTypeOpen(!isTypeOpen)}
                 onBlur={() => setTimeout(() => setIsTypeOpen(false), 200)}
-                className="flex items-center justify-between gap-3 px-3 py-1.5 bg-slate-900/40 border border-slate-700/50 rounded-lg min-w-[100px] hover:border-slate-500 transition-all text-xs group/btn"
+                className="flex items-center justify-between gap-3 px-3 py-1.5 bg-black/40 border border-slate-700/50 rounded-lg min-w-[100px] hover:border-slate-500 transition-all text-xs group/btn"
               >
                 <span className={`font-bold ${filterType === '全部' ? 'text-slate-400' : 'text-blue-400'}`}>{filterType}</span>
                 <ChevronDown size={12} className={`text-slate-500 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
               </button>
               {isTypeOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-[var(--bg-dropdown)] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-full bg-[#1c1c22] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
                   {typeOptions.map(t => (
                     <button
                       key={t}
@@ -757,9 +775,9 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="检索报错关键字、故障 ID、关联服务..."
-              className="bg-slate-900/40 border border-slate-800 text-[11px] pl-9 pr-4 py-1.5 rounded-lg w-full focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-600 font-medium"
+              className="bg-black/40 border border-slate-800 text-[11px] pl-9 pr-4 py-1.5 rounded-lg w-full focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-600 font-medium"
             />
-            {searchQuery && <X size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 cursor-pointer hover:text-slate-100" onClick={() => setSearchQuery('')} />}
+            {searchQuery && <X size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 cursor-pointer hover:text-white" onClick={() => setSearchQuery('')} />}
           </div>
 
           <div className="w-px h-4 bg-slate-800" />
@@ -787,7 +805,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
       </div>
 
       {/* 3. Alarm Table */}
-      <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative">
+      <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative">
         {filteredAlarms.length === 0 ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-600 gap-3 bg-black/20">
             <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
@@ -799,7 +817,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900/30 border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+              <tr className="bg-white/[0.03] border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
                 <th className="py-3 pl-4 w-12 text-center">状态</th>
                 <th className="py-3 w-20">级别</th>
                 <th className="py-3">告警标题</th>
@@ -822,13 +840,13 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
       {/* 4. Pagination (Simplified) */}
       <div className="flex items-center justify-between px-2 pt-2">
         <div className="flex items-center gap-2">
-          <button className="text-[11px] text-slate-500 hover:text-slate-100 flex items-center gap-1 transition-colors"><ChevronLeft size={14} /> 上一页</button>
+          <button className="text-[11px] text-slate-500 hover:text-white flex items-center gap-1 transition-colors"><ChevronLeft size={14} /> 上一页</button>
           <div className="flex items-center gap-1 px-4">
             {[1, 2, 3, 4, 5].map(p => (
               <button key={p} className={`w-6 h-6 rounded flex items-center justify-center text-[11px] transition-all ${p === 1 ? 'bg-blue-600 text-white font-bold' : 'text-slate-500 hover:bg-slate-800'}`}>{p}</button>
             ))}
           </div>
-          <button className="text-[11px] text-slate-300 hover:text-slate-100 flex items-center gap-1 transition-colors">下一页 <ChevronRight size={14} /></button>
+          <button className="text-[11px] text-slate-300 hover:text-white flex items-center gap-1 transition-colors">下一页 <ChevronRight size={14} /></button>
         </div>
         <span className="text-[11px] text-slate-500">显示第 1-{filteredAlarms.length} 条 / 共 {filteredAlarms.length} 条 (已过滤)</span>
       </div>
@@ -836,7 +854,7 @@ const AlarmMonitoringSection: React.FC<{ onDiagnose: (a: Alarm) => void }> = ({ 
   );
 };
 const IncidentReportCard = ({ data, onAction }: any) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
     <div className="bg-rose-500/10 p-4 border-b border-slate-800 flex justify-between items-center">
       <div className="flex items-center gap-3">
         <div className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Critical P0</div>
@@ -873,7 +891,7 @@ const IncidentReportCard = ({ data, onAction }: any) => (
 );
 
 const ChangeListCard = ({ data, onAction }: any) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
     <div className="bg-blue-500/10 p-4 border-b border-slate-800">
       <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
         <ClipboardList size={16} className="text-blue-400" /> {data.service} 近 {data.time_window_minutes} 分钟变更记录
@@ -881,7 +899,7 @@ const ChangeListCard = ({ data, onAction }: any) => (
     </div>
     <div className="divide-y divide-slate-800">
       {data.changes.map((chg: any) => (
-        <div key={chg.id} className="p-4 hover:bg-slate-900/20 transition-colors">
+        <div key={chg.id} className="p-4 hover:bg-white/[0.02] transition-colors">
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2">
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${chg.type === 'config' ? 'bg-orange-500/20 text-orange-400' : 'bg-purple-500/20 text-purple-400'}`}>
@@ -905,7 +923,7 @@ const ChangeListCard = ({ data, onAction }: any) => (
 );
 
 const RecoveryRecommendationCard = ({ data, onAction }: any) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
     <div className="bg-purple-500/10 p-4 border-b border-slate-800">
       <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
         <Zap size={16} className="text-purple-400" /> 智能止损方案建议
@@ -956,8 +974,8 @@ const InspectionTaskSelectCard: React.FC<{ onAction: any }> = ({ onAction }) => 
   ];
 
   return (
-    <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[360px] animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <div className="p-3 border-b border-slate-800 bg-slate-900/20 flex items-center gap-2">
+    <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[360px] animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="p-3 border-b border-slate-800 bg-white/[0.02] flex items-center gap-2">
         <Search size={14} className="text-slate-500" />
         <input type="text" placeholder="搜索或选择任务..." className="bg-transparent border-none text-[11px] text-slate-300 focus:outline-none w-full" />
       </div>
@@ -1001,7 +1019,7 @@ const InspectionTaskSelectCard: React.FC<{ onAction: any }> = ({ onAction }) => 
           ))}
         </div>
       </div>
-      <div className="p-3 bg-slate-900/20 border-t border-slate-800 text-[10px] text-slate-500 italic">
+      <div className="p-3 bg-white/[0.02] border-t border-slate-800 text-[10px] text-slate-500 italic">
         也可以直接告诉我任务名称，比如：“诊断一下 Nginx日志巡检”
       </div>
     </div>
@@ -1018,7 +1036,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
   ];
 
   return (
-    <div className="bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[420px] animate-in fade-in duration-500">
+    <div className="bg-[#141418] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[420px] animate-in fade-in duration-500">
       <div className="p-4 border-b border-slate-800 bg-blue-500/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity size={16} className="text-blue-400 animate-pulse" />
@@ -1049,7 +1067,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
                 </div>
                 {currentStep > 1 ? <Check size={12} className="text-emerald-500" /> : <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />}
               </div>
-              <div className="flex items-center gap-2 px-2 py-1.5 bg-slate-900/40 rounded-lg border border-slate-800/50 overflow-hidden">
+              <div className="flex items-center gap-2 px-2 py-1.5 bg-black/40 rounded-lg border border-slate-800/50 overflow-hidden">
                 {(topology || ['接入网关', 'beehive', 'vserver']).map((node: string, i: number, arr: any[]) => (
                   <React.Fragment key={i}>
                     <span className={`text-[10px] font-bold ${i === arr.length - 1 ? 'text-rose-400' : 'text-slate-400'}`}>{node}</span>
@@ -1079,7 +1097,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
                   { name: 'Analyzer-01 (链路解析)', status: 'success', detail: '调用链响应正常' },
                   { name: 'Analyzer-02 (指标采集)', status: 'warning', detail: '发现节点监控数据缺失', error: true }
                 ]).map((agent: any, i: number) => (
-                  <div key={i} className="bg-slate-900/40 p-2 rounded-lg border border-slate-800/50 flex items-start justify-between">
+                  <div key={i} className="bg-black/40 p-2 rounded-lg border border-slate-800/50 flex items-start justify-between">
                     <div className="space-y-0.5">
                       <div className="text-[10px] font-bold text-slate-300">{agent.name}</div>
                       <div className={`text-[9px] ${agent.error ? 'text-rose-400' : 'text-slate-500'}`}>{agent.detail}</div>
@@ -1121,7 +1139,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
       </div>
 
       {currentStep === 3 && (
-        <div className="p-3 bg-slate-900/20 border-t border-slate-800 text-center">
+        <div className="p-3 bg-white/[0.02] border-t border-slate-800 text-center">
           <span className="text-[9px] text-slate-600 italic font-medium tracking-tight">已完成告警事件根因分析 · 状态已归档</span>
         </div>
       )}
@@ -1130,8 +1148,8 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
 };
 
 const InspectionConclusionCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-blue-500/30 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)] w-full max-w-[400px] animate-in zoom-in-95 duration-500">
-    <div className="p-4 border-b border-slate-800 bg-slate-900/20 flex items-center gap-2">
+  <div className="bg-[#141418] border border-blue-500/30 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)] w-full max-w-[400px] animate-in zoom-in-95 duration-500">
+    <div className="p-4 border-b border-slate-800 bg-white/[0.02] flex items-center gap-2">
       <HeartPulse size={16} className="text-blue-500" />
       <span className="text-sm font-bold text-slate-200">🏥 诊断结论</span>
     </div>
@@ -1192,7 +1210,7 @@ const InspectionConclusionCard: React.FC<{ data: any, onAction: any }> = ({ data
         </div>
       </div>
     </div>
-    <div className="p-4 bg-slate-900/20 border-t border-slate-800 flex flex-wrap gap-2">
+    <div className="p-4 bg-white/[0.02] border-t border-slate-800 flex flex-wrap gap-2">
       <button onClick={() => onAction('DEEP_DIVE')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow-lg shadow-blue-600/20 transition-all active:scale-95">🔬 深入分析</button>
       <button className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-bold rounded border border-slate-700 transition-all">📋 复制报告</button>
       <button onClick={() => onAction('MARK_SOLVED')} className="flex-1 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-500 text-[10px] font-bold rounded border border-emerald-500/30 transition-all">✅ 已解决</button>
@@ -1201,13 +1219,13 @@ const InspectionConclusionCard: React.FC<{ data: any, onAction: any }> = ({ data
 );
 
 const InspectionDeepDiveCard: React.FC<{ data: any, onAction: any }> = ({ data, onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-purple-500/30 rounded-xl overflow-hidden shadow-2xl w-full max-w-[400px] animate-in slide-in-from-left-4 duration-500">
+  <div className="bg-[#141418] border border-purple-500/30 rounded-xl overflow-hidden shadow-2xl w-full max-w-[400px] animate-in slide-in-from-left-4 duration-500">
     <div className="p-3 border-b border-slate-800 bg-purple-500/5 flex items-center gap-2">
       <Brain size={16} className="text-purple-400" />
       <span className="text-sm font-bold text-slate-200">🔬 深度探测报告 (备用通道)</span>
     </div>
     <div className="p-4 space-y-4">
-      <div className="p-3 bg-slate-900/40 rounded-lg border border-slate-800 space-y-3">
+      <div className="p-3 bg-black/40 rounded-lg border border-slate-800 space-y-3">
         <div className="text-[11px] font-bold text-slate-400 uppercase border-b border-slate-800 pb-2">探测结果综述:</div>
         <div className="space-y-3">
           {['10.0.1.23', '10.0.1.24', '10.0.1.25'].map(ip => (
@@ -1231,7 +1249,7 @@ const InspectionDeepDiveCard: React.FC<{ data: any, onAction: any }> = ({ data, 
         </div>
       </div>
     </div>
-    <div className="p-3 bg-slate-900/20 border-t border-slate-800 flex gap-2">
+    <div className="p-3 bg-white/[0.02] border-t border-slate-800 flex gap-2">
       <button className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded">👤 查看操作审计</button>
       <button className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded transition-all shadow-lg shadow-blue-600/30">📞 通知运维处理</button>
     </div>
@@ -1239,7 +1257,7 @@ const InspectionDeepDiveCard: React.FC<{ data: any, onAction: any }> = ({ data, 
 );
 
 const InspectionClosureCard: React.FC<{ onAction: any }> = ({ onAction }) => (
-  <div className="bg-[var(--bg-card)] border border-emerald-500/30 rounded-xl overflow-hidden shadow-2xl w-full max-w-[360px] animate-in fade-in zoom-in-95 duration-500">
+  <div className="bg-[#141418] border border-emerald-500/30 rounded-xl overflow-hidden shadow-2xl w-full max-w-[360px] animate-in fade-in zoom-in-95 duration-500">
     <div className="p-4 border-b border-slate-800 bg-emerald-500/5 flex items-center gap-2">
       <CheckSquare size={16} className="text-emerald-500" />
       <span className="text-sm font-bold text-slate-200">✅ 诊断已闭环</span>
@@ -1281,7 +1299,7 @@ const InspectionTypeCard = ({ onAction }: any) => (
   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 grid grid-cols-2 gap-4 w-full max-w-[500px]">
     <div
       onClick={() => onAction?.('SET_INSPECTION_MODE', { mode: 'scheduled' })}
-      className="bg-[var(--bg-elevated-alt)] border border-slate-800 hover:border-blue-500/50 hover:bg-blue-500/[0.02] p-6 rounded-2xl cursor-pointer transition-all group shadow-xl relative overflow-hidden"
+      className="bg-[#1a1a20] border border-slate-800 hover:border-blue-500/50 hover:bg-blue-500/[0.02] p-6 rounded-2xl cursor-pointer transition-all group shadow-xl relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
         <Calendar size={64} className="text-blue-500" />
@@ -1295,7 +1313,7 @@ const InspectionTypeCard = ({ onAction }: any) => (
     </div>
     <div
       onClick={() => onAction?.('SET_INSPECTION_MODE', { mode: 'immediate' })}
-      className="bg-[var(--bg-elevated-alt)] border border-slate-800 hover:border-orange-500/50 hover:bg-orange-500/[0.02] p-6 rounded-2xl cursor-pointer transition-all group shadow-xl relative overflow-hidden"
+      className="bg-[#1a1a20] border border-slate-800 hover:border-orange-500/50 hover:bg-orange-500/[0.02] p-6 rounded-2xl cursor-pointer transition-all group shadow-xl relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
         <Zap size={64} className="text-orange-500" />
@@ -1311,7 +1329,7 @@ const InspectionTypeCard = ({ onAction }: any) => (
 );
 
 const CronConfirmCard = ({ data, onAction }: any) => (
-  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-elevated-alt)] border border-blue-500/30 rounded-xl p-5 shadow-2xl w-full max-w-[340px]">
+  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[#1a1a20] border border-blue-500/30 rounded-xl p-5 shadow-2xl w-full max-w-[340px]">
     <div className="flex items-center gap-2 mb-4">
       <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
         <Calendar size={18} className="text-blue-400" />
@@ -1321,7 +1339,7 @@ const CronConfirmCard = ({ data, onAction }: any) => (
         <p className="text-xs font-bold text-slate-200">AI 已解析调度计划</p>
       </div>
     </div>
-    <div className="bg-slate-900/30 rounded-lg p-3 mb-5 border border-slate-800 space-y-3">
+    <div className="bg-black/30 rounded-lg p-3 mb-5 border border-slate-800 space-y-3">
       <div className="flex justify-between items-center">
         <span className="text-[10px] text-slate-500 font-bold uppercase">Cron Expr</span>
         <code className="text-blue-400 text-[10px] font-mono bg-blue-400/10 px-2 py-0.5 rounded">{data.cron || '0 3 * * *'}</code>
@@ -1339,7 +1357,7 @@ const CronConfirmCard = ({ data, onAction }: any) => (
 );
 
 // --- 巡检规则极简版：全行内可编辑卡片 ---
-const RuleDraftCard = ({ data, onAction, mode }: any) => {
+const RuleDraftCard = ({ data, onAction }: any) => {
   const [internalRules, setInternalRules] = useState<any[]>(data.rules || []);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -1369,7 +1387,7 @@ const RuleDraftCard = ({ data, onAction, mode }: any) => {
   }, [internalRules.length]);
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[800px]">
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[800px]">
       <div className="bg-blue-600/10 p-4 border-b border-slate-800/60 relative">
         <div className="absolute top-0 right-0 p-4 opacity-5">
           <Sparkles size={48} className="text-blue-400" />
@@ -1393,7 +1411,7 @@ const RuleDraftCard = ({ data, onAction, mode }: any) => {
           </div>
         )}
         {internalRules.map((rule: any) => (
-          <div key={rule.id} className="bg-slate-900/40 border border-slate-800/80 rounded-xl px-4 py-2 group hover:border-slate-700 transition-all">
+          <div key={rule.id} className="bg-black/40 border border-slate-800/80 rounded-xl px-4 py-2 group hover:border-slate-700 transition-all">
             <div className="flex justify-between items-center mb-1.5">
               <input 
                 type="text" 
@@ -1472,16 +1490,10 @@ const RuleDraftCard = ({ data, onAction, mode }: any) => {
           <span>新增自定义规则项</span>
         </button>
         <button 
-          onClick={() => {
-            if (mode === 'immediate') {
-              onAction('STEP_CONFIRMATION_IMMEDIATE');
-            } else {
-              onAction('STEP_FREQUENCY');
-            }
-          }} 
+          onClick={() => onAction('STEP_FREQUENCY')} 
           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[12px] font-black rounded-xl hover:opacity-90 shadow-xl shadow-blue-500/10 active:scale-[0.98] transition-all flex items-center gap-2 group"
         >
-          {mode === 'immediate' ? '确认规则并开始执行' : '确认并设置执行频率'} <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          确认并设置执行规则 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
@@ -1490,28 +1502,9 @@ const RuleDraftCard = ({ data, onAction, mode }: any) => {
 };
 
 // --- 新巡检流程：频率设定卡片 ---
-const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setFrequency, cronValue, setCronValue }: any) => {
-  const [customMode, setCustomMode] = useState<'day' | 'week'>('day');
-  const [customWeeks, setCustomWeeks] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [customHours, setCustomHours] = useState<number[]>([9, 12]);
-  const [showHourPicker, setShowHourPicker] = useState(false);
-
-  const weekLabels = ['一', '二', '三', '四', '五', '六', '日'];
-
-  // Sync natural UI to Cron
-  useEffect(() => {
-    if (frequency === '自定义周期') {
-      const hoursStr = customHours.length > 0 ? customHours.sort((a,b) => a-b).join(',') : '0';
-      if (customMode === 'day') {
-        setCronValue(`0 ${hoursStr} * * *`);
-      } else if (customMode === 'week') {
-        setCronValue(`0 ${hoursStr} * * ${customWeeks.sort().join(',')}`);
-      }
-    }
-  }, [frequency, customMode, customWeeks, customHours, setCronValue]);
-
+const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setFrequency }: any) => {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[400px]">
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[400px]">
       <div className="p-5 border-b border-slate-800/60 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
           <Clock size={20} className="text-indigo-400" />
@@ -1526,127 +1519,20 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
         <div>
           <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-3">常选项</label>
           <div className="grid grid-cols-2 gap-2">
-            {['每天一次', '每天早晚二次', '每周一至周五', '自定义周期'].map(opt => (
+            {['每天一次', '每天早晚二次', '每周一至周五', '自定义 Cron'].map(opt => (
               <button 
                 key={opt}
                 onClick={() => setFrequency(opt)}
                 className={`px-4 py-2.5 rounded-xl border text-[11px] font-black transition-all ${
                   frequency === opt 
                   ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner shadow-indigo-500/10' 
-                  : 'bg-slate-900/40 border-slate-800 text-slate-500 hover:border-slate-700'
+                  : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-700'
                 }`}
               >
                 {opt}
               </button>
             ))}
           </div>
-
-          {/* Simplified Natural Frequency Sentence Row */}
-          <AnimatePresence>
-            {frequency === '自定义周期' && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                className="mt-3 z-10 relative"
-              >
-                <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 space-y-3">
-                   {/* Row 1: Frequency Type */}
-                   <div className="flex flex-col gap-2 bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-slate-500 font-bold w-14 shrink-0 pl-1">巡检周期</span>
-                        <select 
-                          value={customMode} 
-                          onChange={(e) => setCustomMode(e.target.value as any)}
-                          className="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-[11px] text-slate-300 font-bold outline-none cursor-pointer hover:border-indigo-500/50 transition-colors flex-1"
-                        >
-                          <option value="day">每天执行</option>
-                          <option value="week">每周执行</option>
-                        </select>
-                      </div>
-
-                      {/* Weekday Selection */}
-                      {customMode === 'week' && (
-                        <div className="flex gap-1.5 pl-[64px] pr-1">
-                          {[1, 2, 3, 4, 5, 6, 0].map((w, idx) => (
-                            <button
-                              key={w}
-                              onClick={() => {
-                                setCustomWeeks(prev => prev.includes(w) ? prev.filter(x => x !== w) : [...prev, w]);
-                              }}
-                              className={`flex-1 h-7 rounded-md flex items-center justify-center text-[11px] font-bold transition-all ${
-                                customWeeks.includes(w) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-800 text-slate-500 hover:text-slate-300 hover:bg-slate-700 border border-slate-700/50'
-                              }`}
-                            >
-                              {weekLabels[idx]}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                   </div>
-
-                   {/* Row 2: Time Points */}
-                   <div className="flex items-center gap-2 bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
-                      <span className="text-[11px] text-slate-500 font-bold w-14 shrink-0 pl-1">触发时间</span>
-                      <div className="relative flex-1">
-                        <button 
-                          onClick={() => setShowHourPicker(!showHourPicker)}
-                          className="flex items-center px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-[11px] font-bold text-slate-300 hover:border-indigo-500/50 transition-all w-full justify-between cursor-pointer"
-                        >
-                          <div className="flex items-center gap-1.5 overflow-hidden">
-                            <Clock size={12} className="text-indigo-400/70 shrink-0" />
-                            <span className="truncate max-w-[200px]">
-                              {customHours.length === 0 ? '请选择时间' : customHours.sort((a,b)=>a-b).map(h => String(h).padStart(2,'0')+':00').join(', ')}
-                            </span>
-                          </div>
-                          <ChevronDown size={12} className={`text-slate-500 transition-transform shrink-0 ${showHourPicker ? 'rotate-180' : ''}`} />
-                        </button>
-
-                          {/* Hour Picker Popover */}
-                          <AnimatePresence>
-                            {showHourPicker && (
-                              <motion.div 
-                                initial={{ opacity: 0, scale: 0.95, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 5 }}
-                                className="absolute left-0 top-full mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[100] p-2"
-                              >
-                                <div className="grid grid-cols-4 gap-1.5">
-                                  {Array.from({ length: 24 }).map((_, h) => (
-                                    <button
-                                      key={h}
-                                      onClick={() => {
-                                        setCustomHours(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
-                                      }}
-                                      className={`h-7 rounded-md text-[10px] font-mono font-bold transition-all ${customHours.includes(h) ? 'bg-indigo-600 text-white shadow-inner shadow-indigo-400/20' : 'bg-slate-900 text-slate-400 hover:bg-slate-700'}`}
-                                    >
-                                      {String(h).padStart(2, '0')}:00
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="mt-2 pt-2 border-t border-slate-700/50 flex justify-end">
-                                  <button 
-                                    onClick={() => setShowHourPicker(false)}
-                                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-colors shadow-sm"
-                                  >
-                                    确定
-                                  </button>
-                                </div>
-                              </motion.div>
-                            )}
-                        </AnimatePresence>
-                      </div>
-                   </div>
-
-                   <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between px-1">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">预览计划</span>
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-[11px] text-indigo-400 font-black text-right">
-                          {`${customMode === 'day' ? '每天' : `每周${customWeeks.sort().map(w => weekLabels[w === 0 ? 6 : w-1]).join(',')}`} 的 ${customHours.sort((a,b)=>a-b).map(h=>h+':00').join(', ')}`}
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-600 opacity-50">{cronValue}</span>
-                      </div>
-                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         <div className="space-y-4">
@@ -1657,19 +1543,19 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
               placeholder="例如: 订单库生产环境日巡检" 
-              className="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 focus:bg-black/80 transition-all font-bold"
+              className="w-full bg-black/50 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 focus:bg-black/80 transition-all font-bold"
             />
           </div>
           <div>
              <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-2">首次运行时间</label>
-             <div className="text-xs text-slate-400 font-mono bg-slate-900/40 p-3 rounded-xl border border-slate-800 inline-block w-full">
+             <div className="text-xs text-slate-400 font-mono bg-black/40 p-3 rounded-xl border border-slate-800 inline-block w-full">
                 2026-04-12 03:00:00 (UTC+8)
              </div>
           </div>
         </div>
       </div>
 
-      <div className="p-5 bg-slate-900/40 border-t border-slate-800/60 flex gap-3">
+      <div className="p-5 bg-black/40 border-t border-slate-800/60 flex gap-3">
         <button onClick={() => onAction?.('STEP_RULE_BACK')} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-all">上一步</button>
         <button onClick={() => onAction?.('STEP_CONFIRMATION')} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black rounded-lg transition-all shadow-lg shadow-indigo-500/20 active:scale-95">生成任务预览</button>
       </div>
@@ -1684,9 +1570,9 @@ const TaskConfirmationCard = ({ onAction, data }: any) => {
   const targetTypes = Array.from(new Set(data?.targets?.map((t: any) => t.type) || [])).join(', ');
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-card)] border border-blue-500/30 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[360px] relative">
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[#141418] border border-blue-500/30 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[360px] relative">
       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-blue-400"><ClipboardCheck size={80} /></div>
-      <div className="p-5 flex items-center justify-between border-b border-slate-800/30">
+      <div className="p-5 flex items-center justify-between border-b border-white/[0.03]">
          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">任务确认摘要</h4>
          <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]" />
       </div>
@@ -1719,25 +1605,23 @@ const TaskConfirmationCard = ({ onAction, data }: any) => {
             </div>
          </div>
   
-         <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-800/80 space-y-1">
+         <div className="p-3 bg-black/40 rounded-xl border border-slate-800/80 space-y-1">
             <div className="text-[9px] text-slate-600 font-black uppercase tracking-widest">预计生效时间</div>
             <div className="text-xs text-slate-400 font-mono tracking-tighter">立即生效 (2026-04-15)</div>
          </div>
       </div>
   
-      <div className="p-5 bg-slate-900/20 border-t border-slate-800/50 flex gap-3">
+      <div className="p-5 bg-white/[0.02] border-t border-white/[0.05] flex gap-3">
          <button onClick={() => onAction?.('STEP_SCHEDULE_BACK')} className="flex-1 py-1.5 bg-slate-800/50 hover:bg-slate-800 text-slate-500 hover:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-all uppercase tracking-widest">返回修改</button>
-         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">
-           {data.frequency === '立即执行' ? '确认并立即执行' : '确认创建计划'}
-         </button>
+         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">确认创建任务</button>
       </div>
     </motion.div>
   );
 };
 
 const InspectionProgressCard = ({ data }: any) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
-    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/20">
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[340px]">
+    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-white/[0.02]">
       <div className="flex items-center gap-2">
         <RefreshCw size={14} className="text-orange-400 animate-spin" />
         <h4 className="text-xs font-bold text-slate-200 uppercase tracking-tight">临时巡检执行中</h4>
@@ -1775,22 +1659,22 @@ const InspectionProgressCard = ({ data }: any) => (
 );
 
 const InspectionResultGrid = ({ data, onAction }: any) => (
-  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[400px]">
+  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[400px]">
     <div className="bg-emerald-500/10 p-4 border-b border-slate-800 flex justify-between items-center relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-full bg-emerald-500/5 -skew-x-12 translate-x-16 pointer-events-none" />
       <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 z-10">
         <CheckCircle2 size={16} className="text-emerald-500" /> 巡检任务执行报告
       </h4>
-      <span className="text-[9px] text-slate-500 font-mono z-10 px-2 py-0.5 bg-slate-900/40 rounded border border-slate-800 uppercase tracking-widest">Done</span>
+      <span className="text-[9px] text-slate-500 font-mono z-10 px-2 py-0.5 bg-black/40 rounded border border-slate-800 uppercase tracking-widest">Done</span>
     </div>
     <div className="p-5">
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative group">
+        <div className="bg-black/40 p-3.5 rounded-xl border border-slate-800/50 relative group">
           <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1.5">检查通过率</div>
           <div className="text-2xl font-bold text-slate-200">100<span className="text-xs text-slate-500 ml-1.5 font-normal tracking-normal">% Success</span></div>
           <div className="absolute bottom-0 left-0 h-1 w-full bg-emerald-500/20 group-hover:bg-emerald-500/40 transition-colors" />
         </div>
-        <div className="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative group">
+        <div className="bg-black/40 p-3.5 rounded-xl border border-slate-800/50 relative group">
           <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1.5">风险评级</div>
           <div className="text-2xl font-bold text-emerald-500">LOW</div>
           <div className="absolute bottom-0 left-0 h-1 w-full bg-emerald-500/20 group-hover:bg-emerald-500/40 transition-colors" />
@@ -1799,22 +1683,22 @@ const InspectionResultGrid = ({ data, onAction }: any) => (
 
       <div className="border border-slate-800/80 rounded-xl overflow-hidden mb-6 bg-black/20 shadow-inner">
         <table className="w-full text-left text-[11px]">
-          <thead className="bg-slate-900/30 text-slate-500 border-b border-slate-800/80 uppercase">
+          <thead className="bg-white/[0.03] text-slate-500 border-b border-slate-800/80 uppercase">
             <tr>
               <th className="px-4 py-2.5 font-bold tracking-widest">审计项 / Checklist</th>
               <th className="px-4 py-2.5 font-bold tracking-widest text-right">结果 / Result</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/80">
-            <tr className="hover:bg-slate-900/10 transition-colors">
+            <tr className="hover:bg-white/[0.01] transition-colors">
               <td className="px-4 py-2.5 text-slate-400">证书生命周期合规检测</td>
               <td className="px-4 py-2.5 text-emerald-500 font-bold text-right">PASS</td>
             </tr>
-            <tr className="hover:bg-slate-900/10 transition-colors">
+            <tr className="hover:bg-white/[0.01] transition-colors">
               <td className="px-4 py-2.5 text-slate-400">外部暴露面安全审计</td>
               <td className="px-4 py-2.5 text-emerald-500 font-bold text-right">PASS</td>
             </tr>
-            <tr className="hover:bg-slate-900/10 transition-colors">
+            <tr className="hover:bg-white/[0.01] transition-colors">
               <td className="px-4 py-2.5 text-slate-400">Kubernetes 资源配额校验</td>
               <td className="px-4 py-2.5 text-orange-400 font-bold text-right">WARN</td>
             </tr>
@@ -1841,7 +1725,7 @@ const ActionConfirmCard = ({ data, onAction }: any) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-[var(--bg-elevated)] border border-rose-500/30 rounded-2xl overflow-hidden shadow-2xl max-w-sm"
+      className="bg-[#1a1a24] border border-rose-500/30 rounded-2xl overflow-hidden shadow-2xl max-w-sm"
     >
       <div className="p-4 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-500">
@@ -1915,8 +1799,8 @@ const ActionExecutionCard = ({ data }: any) => {
   const { status, progress, logs } = data;
 
   return (
-    <div className={`bg-[var(--bg-muted)] border ${status === 'success' ? 'border-emerald-500/40' : 'border-blue-500/20'} rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full font-mono`}>
-      <div className={`p-4 ${status === 'success' ? 'bg-emerald-500/5' : 'bg-blue-500/5'} border-b border-slate-800/50 flex items-center justify-between`}>
+    <div className={`bg-[#0d0d12] border ${status === 'success' ? 'border-emerald-500/40' : 'border-blue-500/20'} rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full font-mono`}>
+      <div className={`p-4 ${status === 'success' ? 'bg-emerald-500/5' : 'bg-blue-500/5'} border-b border-white/[0.05] flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-lg ${status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'} flex items-center justify-center`}>
             {status === 'success' ? <CheckCircle2 size={18} /> : <Terminal size={18} className="animate-pulse" />}
@@ -1934,7 +1818,7 @@ const ActionExecutionCard = ({ data }: any) => {
       </div>
 
       <div className="p-4 space-y-3">
-        <div className="bg-slate-900/40 rounded-xl border border-slate-800/30 p-3 font-mono text-[9px] space-y-1.5 h-44 overflow-y-auto no-scrollbar scroll-smooth">
+        <div className="bg-black/40 rounded-xl border border-white/[0.03] p-3 font-mono text-[9px] space-y-1.5 h-44 overflow-y-auto no-scrollbar scroll-smooth">
           {logs?.map((log: string, i: number) => (
             <div key={i} className="flex gap-2">
               <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
@@ -2021,7 +1905,7 @@ const KnowledgeArchiveSection = ({ data }: { data: any }) => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full mt-4 p-4 bg-slate-900/40 border border-slate-800/50 rounded-xl space-y-4 shadow-inner"
+          className="w-full mt-4 p-4 bg-slate-900/40 border border-white/[0.05] rounded-xl space-y-4 shadow-inner"
         >
           <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
             <Library size={12} /> 归档到知识库
@@ -2088,6 +1972,164 @@ const KnowledgeArchiveSection = ({ data }: { data: any }) => {
   );
 };
 
+const MySQLTaskEditListCard = ({ onAction, data }: any) => {
+  const [tasks, setTasks] = useState<any[]>(() => data?.tasks || []);
+  const [activeTaskIndex, setActiveTaskIndex] = useState<number>(0);
+
+  const handleFieldChange = (index: number, field: string, value: any) => {
+    const updated = [...tasks];
+    updated[index][field] = value;
+    setTasks(updated);
+  };
+
+  const handleVariableChange = (taskIndex: number, varIndex: number, val: string) => {
+    const updated = [...tasks];
+    updated[taskIndex].variables[varIndex].value = val;
+    setTasks(updated);
+  };
+
+  const handleSubmit = () => {
+    onAction('MYSQL_TASK_EDIT_DONE', { tasks });
+  };
+
+  const currentTask = tasks[activeTaskIndex];
+  const targetList = currentTask?.target ? currentTask.target.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[620px]"
+    >
+      {/* Header */}
+      <div className="p-5 border-b border-slate-800/60 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+            <ClipboardList size={20} className="text-blue-400" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-slate-100 uppercase tracking-tight">自定义巡检子任务</h4>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">MySQL 巡检向导 - 步骤 3 (共 {tasks.length} 个任务)</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-slate-800 px-3 bg-slate-900/30 overflow-x-auto no-scrollbar">
+        {tasks.map((t, idx) => (
+          <button
+            key={t.taskId || idx}
+            onClick={() => setActiveTaskIndex(idx)}
+            className={`px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap ${
+              activeTaskIndex === idx 
+                ? 'border-blue-500 text-blue-400 bg-blue-500/5' 
+                : 'border-transparent text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            {t.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Body Form */}
+      {currentTask && (
+        <div className="p-5 space-y-4 max-h-[380px] overflow-y-auto no-scrollbar">
+          {/* Target instances list */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">关联资源实例 ({targetList.length})</span>
+            <div className="flex flex-wrap gap-1.5">
+              {targetList.map((inst: string, idx: number) => (
+                <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono">
+                  {inst}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase">任务名称</label>
+            <input
+              type="text"
+              value={currentTask.name || ''}
+              onChange={(e) => handleFieldChange(activeTaskIndex, 'name', e.target.value)}
+              className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase">任务描述</label>
+            <textarea
+              value={currentTask.description || ''}
+              onChange={(e) => handleFieldChange(activeTaskIndex, 'description', e.target.value)}
+              className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs min-h-[50px] transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
+              <select
+                value={currentTask.scriptType || 'shell'}
+                onChange={(e) => handleFieldChange(activeTaskIndex, 'scriptType', e.target.value)}
+                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+              >
+                <option value="shell">Shell 脚本</option>
+                <option value="python">Python 脚本</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase">脚本内容</label>
+            <textarea
+              value={currentTask.scriptContent || ''}
+              onChange={(e) => handleFieldChange(activeTaskIndex, 'scriptContent', e.target.value)}
+              className="bg-slate-950/90 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-300 font-mono rounded-lg py-2 px-3 text-[10px] min-h-[90px] transition-all leading-normal"
+            />
+          </div>
+
+          {/* Variables configuration */}
+          {Array.isArray(currentTask.variables) && currentTask.variables.length > 0 && (
+            <div className="border-t border-slate-800/40 pt-4 space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">子任务变量微调</label>
+              <div className="grid grid-cols-1 gap-2">
+                {currentTask.variables.map((v: any, varIdx: number) => (
+                  <div key={varIdx} className="flex items-center gap-3 bg-slate-950/30 border border-slate-800/50 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 w-1/3">
+                      {!v.editable && <Lock size={10} className="text-slate-500 shrink-0" />}
+                      <span className="text-[10.5px] font-mono font-bold text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap" title={v.name}>{v.name}</span>
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        disabled={!v.editable}
+                        value={v.value || ''}
+                        onChange={(e) => handleVariableChange(activeTaskIndex, varIdx, e.target.value)}
+                        className={`w-full bg-slate-950/60 border rounded-lg py-1.5 px-3 text-xs transition-all focus:outline-none ${v.editable ? 'border-slate-800 focus:border-indigo-500/85 text-slate-200' : 'border-slate-800/20 text-slate-500 cursor-not-allowed'}`}
+                        placeholder="暂无值"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <div className="p-4 border-t border-slate-800/60 bg-slate-900/20 shrink-0 flex justify-end">
+        <button
+          onClick={handleSubmit}
+          className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition-all shadow-lg shadow-blue-500/20 active:scale-95 border border-blue-500/20"
+        >
+          确认子任务配置，保存编辑
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   const currentStep = data.currentStep || 0;
   const isPhased = data.format === '0412_phased';
@@ -2095,8 +2137,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   // 如果是0412分阶段可视化模式
   if (isPhased) {
     return (
-      <div className="bg-[var(--bg-surface)] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
-        <div className="p-4 border-b border-slate-800/50 bg-[var(--bg-panel-alt)] flex items-center justify-between">
+      <div className="bg-[#111118] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
+        <div className="p-4 border-b border-white/[0.05] bg-[#16161d] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
               <Brain size={18} />
@@ -2175,7 +2217,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   {data.stage3?.candidateTable && (
                     <AnalysisTable title="（1）可能原因（候选）" columns={['可能原因', '支撑证据', '说明']} data={data.stage3.candidateTable} />
                   )}
-                  <div className="bg-slate-900/50 border border-slate-800/30 rounded-xl p-4">
+                  <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
                     <div className="text-[10px] font-black text-slate-500 uppercase mb-2">（2）关键证据总结</div>
                     <ul className="space-y-1.5">{data.stage3?.evidenceList?.map((e: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2">
@@ -2208,7 +2250,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                     <div className="text-[10px] font-black text-emerald-500 uppercase mb-2">最终判断 (Final Report)</div>
-                    <p className="text-[12px] text-emerald-800 font-bold leading-relaxed">{data.stage4?.judgment}</p>
+                    <p className="text-[12px] text-emerald-50/80 font-bold leading-relaxed">{data.stage4?.judgment}</p>
                   </div>
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
@@ -2234,8 +2276,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   const { topology, agents, conclusion } = data;
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
-      <div className="p-4 border-b border-slate-800/50 bg-[var(--bg-panel-alt)] flex items-center justify-between">
+    <div className="bg-[#111118] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
+      <div className="p-4 border-b border-white/[0.05] bg-[#16161d] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
             <Brain size={18} />
@@ -2259,7 +2301,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
           <div className="flex-1 pb-4">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">环节一：拓扑路径自动发现</div>
             {currentStep >= 1 && (
-              <div className="bg-slate-900/50 border border-slate-800/30 rounded-xl p-4">
+              <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
                 <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap scroll-hidden py-1">
                   {(topology || ['服务A', '服务B', '服务C']).map((node: string, i: number) => (
                     <React.Fragment key={i}>
@@ -2305,7 +2347,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                     <p className="text-[10px] text-slate-500 leading-relaxed font-medium line-clamp-2">{agent.detail}</p>
 
-                    <div className="mt-2 pt-2 border-t border-slate-800/50 flex justify-between items-center">
+                    <div className="mt-2 pt-2 border-t border-white/[0.05] flex justify-between items-center">
                       <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">置信度: 98%</span>
                       <div className="flex gap-1">
                         <div className="w-1 h-1 rounded-full bg-blue-500" />
@@ -2340,7 +2382,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   <h4 className="text-xs font-black text-emerald-400 mb-2 uppercase tracking-tight flex items-center gap-2">
                     故障确认 (已确认根因)
                   </h4>
-                  <p className="text-[12px] text-slate-300 font-bold leading-relaxed">
+                  <p className="text-[12px] text-emerald-50/80 font-bold leading-relaxed">
                     {conclusion}
                   </p>
                 </div>
@@ -2352,7 +2394,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                     <div className="grid grid-cols-1 gap-2">
                       {data.recommendations.map((rec: any, i: number) => (
-                        <div key={i} className="bg-[var(--bg-elevated)] border border-slate-800/50 rounded-xl p-3 flex justify-between items-center group/item hover:border-purple-500/30 transition-all shadow-sm">
+                        <div key={i} className="bg-[#1a1a24] border border-white/5 rounded-xl p-3 flex justify-between items-center group/item hover:border-purple-500/30 transition-all shadow-sm">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-[11px] font-bold text-slate-200">{rec.title}</span>
@@ -2411,7 +2453,7 @@ const LogAnalysisChatCard = ({ data, onAction }: any) => {
   if (!cluster.title) return null;
 
   return (
-    <div className="bg-[var(--bg-navy-alt)]/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-2xl font-sans mb-2 text-left">
+    <div className="bg-[#141b2d]/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-2xl font-sans mb-2 text-left">
       {/* Header Summary */}
       <div className="p-4 bg-indigo-500/5 border-b border-slate-800/50 flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0 border border-indigo-500/20">
@@ -2475,7 +2517,7 @@ const LogAnalysisChatCard = ({ data, onAction }: any) => {
                   <span className="text-xs font-mono font-bold text-emerald-400">92%</span>
                 </div>
               </div>
-              <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-3 font-mono text-[10px] text-slate-400 space-y-1 text-left">
+              <div className="bg-black/40 rounded-lg border border-slate-800 p-3 font-mono text-[10px] text-slate-400 space-y-1 text-left">
                 <div className="flex gap-2">
                   <span className="text-rose-500 font-bold">[ERROR]</span>
                   <span>Connection refused to database pool</span>
@@ -2603,8 +2645,8 @@ const LogAnalysisChatCard = ({ data, onAction }: any) => {
 
 const ReportHistorySidebar = ({ history, selectedId, onSelect }: { history: any[], selectedId: string, onSelect: (id: string) => void }) => {
   return (
-    <div className="w-72 border-r border-slate-800/50 bg-[var(--bg-deepest)] flex flex-col shrink-0">
-      <div className="p-6 border-b border-slate-800/50">
+    <div className="w-72 border-r border-white/5 bg-[#08080c] flex flex-col shrink-0">
+      <div className="p-6 border-b border-white/5">
         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">报告历史</h3>
       </div>
       <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2">
@@ -2615,7 +2657,7 @@ const ReportHistorySidebar = ({ history, selectedId, onSelect }: { history: any[
             className={`w-full p-4 rounded-xl border text-left transition-all relative group ${
               selectedId === item.id 
                 ? 'bg-indigo-600/10 border-indigo-500/40 shadow-[0_4px_20px_rgba(99,102,241,0.1)]' 
-                : 'bg-transparent border-transparent hover:bg-slate-900/30 hover:border-slate-700'
+                : 'bg-transparent border-transparent hover:bg-white/[0.03] hover:border-white/10'
             }`}
           >
             <div className="flex justify-between items-start mb-2">
@@ -2637,6 +2679,508 @@ const ReportHistorySidebar = ({ history, selectedId, onSelect }: { history: any[
         ))}
       </div>
     </div>
+  );
+};
+
+// 安全克隆辅助函数，防止循环引用或 React 元素等非 JSON 数据导致崩溃
+const safeClonePlan = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(safeClonePlan);
+  }
+  const clone: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const val = obj[key];
+      if (typeof val === 'function') continue;
+      if (val && typeof val === 'object' && (val.$$typeof || val instanceof Event)) continue;
+      clone[key] = safeClonePlan(val);
+    }
+  }
+  return clone;
+};
+
+// ==========================================
+// 巡检子任务编辑二级弹窗 (InspectionTaskEditModal)
+// ==========================================
+interface InspectionTaskEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  task: any;
+  onSave: (updatedTask: any) => void;
+}
+
+const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: InspectionTaskEditModalProps) => {
+  const [editedTask, setEditedTask] = React.useState<any>(() => task ? structuredClone(task) : null);
+  const [localScript, setLocalScript] = React.useState<string>(() => (task && task.scriptContent) ? task.scriptContent : '');
+
+  if (!isOpen || !editedTask) return null;
+
+  const resourceObjects = React.useMemo(() => {
+    const type = editedTask.resourceType;
+    if (type === 'Kubernetes 集群') {
+      return ['集群 (K8s-Prod-Main)', '集群 (VPC-Prod-Main)', '集群 (Kubernetes-Core)'];
+    }
+    if (type === 'MySQL 实例') {
+      return ['MySQL-Order-Primary', 'MySQL-User-Backup', 'MySQL-Log-Static'];
+    }
+    return ['默认服务器节点-01', '默认服务负载节点-02'];
+  }, [editedTask.resourceType]);
+
+  const selectedTargets = React.useMemo(() => {
+    if (Array.isArray(editedTask.targets)) return editedTask.targets;
+    if (typeof editedTask.target === 'string') {
+      return editedTask.target ? editedTask.target.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+    }
+    return [];
+  }, [editedTask.target, editedTask.targets]);
+
+  const handleToggleTarget = (objName: string) => {
+    let newTargets: string[];
+    if (selectedTargets.includes(objName)) {
+      newTargets = selectedTargets.filter(t => t !== objName);
+    } else {
+      newTargets = [...selectedTargets, objName];
+    }
+    setEditedTask({
+      ...editedTask,
+      targets: newTargets,
+      target: newTargets.join(', ')
+    });
+  };
+
+  const handleSave = () => {
+    onSave({
+      ...editedTask,
+      scriptContent: localScript
+    });
+  };
+
+  const handleVariableChange = (index: number, val: string) => {
+    const updatedVars = [...editedTask.variables];
+    updatedVars[index].value = val;
+    setEditedTask({ ...editedTask, variables: updatedVars });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center">
+      {/* 背景遮罩：使用标准原生 CSS 动画 */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 transition-opacity duration-200 animate-fade-in"
+      />
+      {/* 弹窗主体：使用标准原生 CSS 动画 */}
+      <div
+        className="relative w-full max-w-[620px] bg-[var(--bg-deep-alt)] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl p-6 text-slate-200 z-10 transform transition-all duration-200 ease-out animate-scale-up"
+      >
+          {/* Header */}
+          <div className="flex justify-between items-center pb-4 border-b border-slate-800/80 mb-5">
+            <div>
+              <h3 className="text-sm font-bold text-slate-100">
+                编辑巡检子任务
+              </h3>
+            </div>
+            <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-md text-slate-400 hover:text-slate-200 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Form Content */}
+          <div className="space-y-4 max-h-[580px] overflow-y-auto pr-1 no-scrollbar">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">子任务名称</label>
+              <input
+                type="text"
+                value={editedTask.name || ''}
+                onChange={(e) => setEditedTask({ ...editedTask, name: e.target.value })}
+                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+              />
+            </div>
+
+            {/* 子任务 ID */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">子任务 ID</label>
+              <input
+                type="text"
+                value={editedTask.taskId || ''}
+                disabled
+                className="w-full bg-slate-950/20 border border-slate-800/40 text-slate-500 rounded-lg py-2 px-3 text-xs font-mono cursor-not-allowed"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">任务描述</label>
+              <textarea
+                value={editedTask.description || ''}
+                onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                className="bg-slate-950/60 border border-slate-800/80 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs min-h-[60px] transition-all"
+              />
+            </div>
+
+            {/* 资源类型 (只读) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">资源类型</label>
+              <input
+                type="text"
+                disabled
+                value={editedTask.resourceType || ''}
+                className="bg-slate-950/30 border border-slate-800/50 text-slate-500 rounded-lg py-2 px-3 text-xs cursor-not-allowed"
+              />
+            </div>
+
+            {/* 关联资源对象多选胶囊选择器 */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象（支持多选）</label>
+              <div className="flex flex-wrap gap-2 p-3 bg-slate-950/40 border border-slate-800/80 rounded-xl">
+                {resourceObjects.map((obj: string) => {
+                  const isSelected = selectedTargets.includes(obj);
+                  return (
+                    <button
+                      key={obj}
+                      type="button"
+                      onClick={() => handleToggleTarget(obj)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all active:scale-95 cursor-pointer ${
+                        isSelected 
+                          ? 'bg-indigo-600/20 border-indigo-500/80 text-indigo-300 shadow-md shadow-indigo-500/5' 
+                          : 'bg-slate-900/40 border-slate-800/60 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      }`}
+                    >
+                      {obj}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
+                <select
+                  value={editedTask.scriptType || 'shell'}
+                  onChange={(e) => setEditedTask({ ...editedTask, scriptType: e.target.value })}
+                  className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+                >
+                  <option value="shell">Shell 脚本</option>
+                  <option value="python">Python 脚本</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">脚本内容</label>
+              <textarea
+                value={localScript}
+                onChange={(e) => setLocalScript(e.target.value)}
+                onBlur={() => setEditedTask({ ...editedTask, scriptContent: localScript })}
+                className="bg-slate-950/90 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-300 font-mono rounded-lg py-2 px-3 text-[10px] min-h-[100px] transition-all leading-normal"
+              />
+            </div>
+
+            {/* Variables Panel */}
+            {Array.isArray(editedTask.variables) && editedTask.variables.length > 0 && (
+              <div className="border-t border-slate-800/40 pt-4 space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">运行变量配置</label>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {editedTask.variables.map((v: any, index: number) => (
+                    <div key={index} className="flex items-center gap-3 bg-slate-950/30 border border-slate-800/50 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5 w-1/3">
+                        {!v.editable && <Lock size={10} className="text-slate-500 shrink-0" />}
+                        <span className="text-[10.5px] font-mono font-bold text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap" title={v.name}>{v.name}</span>
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          disabled={!v.editable}
+                          value={v.value || ''}
+                          onChange={(e) => handleVariableChange(index, e.target.value)}
+                          className={`w-full bg-slate-950/60 border rounded-lg py-1.5 px-3 text-xs transition-all focus:outline-none ${v.editable ? 'border-slate-800 focus:border-indigo-500/85 text-slate-200' : 'border-slate-800/20 text-slate-500 cursor-not-allowed'}`}
+                          placeholder="暂未设置值"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer Controls */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/80 mt-5 bg-slate-900/20 shrink-0">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-bold transition-all"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 border border-blue-500/20"
+            >
+              保存修改
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }, (prevProps, nextProps) => {
+    return prevProps.isOpen === nextProps.isOpen && prevProps.task?.taskId === nextProps.task?.taskId;
+  });
+
+// ==========================================
+// 巡检计划配置一阶抽屉 (InspectionPlanDetailDrawer)
+// ==========================================
+interface InspectionPlanDetailDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  plan: any;
+  onSave: (updatedPlan: any) => void;
+}
+
+const InspectionPlanDetailDrawer = ({
+  isOpen,
+  onClose,
+  plan,
+  onSave
+}: InspectionPlanDetailDrawerProps) => {
+  const [editedPlan, setEditedPlan] = useState<any>(() => plan ? structuredClone(plan) : null);
+  const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<any>(null);
+
+  if (!isOpen || !editedPlan) return null;
+
+  const handleSave = () => {
+    onSave(editedPlan);
+    onClose();
+  };
+
+  const handleToggleEnable = () => {
+    if (editedPlan.executionType === 'immediate') return;
+    setEditedPlan({ ...editedPlan, enabled: !editedPlan.enabled });
+  };
+
+  const handleCloseSubTask = React.useCallback(() => {
+    setSelectedTaskForEdit(null);
+  }, []);
+
+  const handleSaveSubTask = React.useCallback((updatedTask: any) => {
+    setEditedPlan(prev => {
+      if (!prev) return prev;
+      const updatedTasksList = prev.tasks.map((t: any) => 
+        t.taskId === updatedTask.taskId ? updatedTask : t
+      );
+      const updatedRules = updatedTasksList.map((t: any) => t.name.replace('监测', '').replace('检测', ''));
+      return {
+        ...prev,
+        tasks: updatedTasksList,
+        rules: updatedRules
+      };
+    });
+    setSelectedTaskForEdit(null);
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {/* 蒙层 */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 z-[101]"
+      />
+      {/* 抽屉 */}
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
+        className="fixed top-0 right-0 h-full w-[45%] min-w-[500px] max-w-[900px] bg-[var(--bg-deep-alt)] border-l border-slate-700/80 z-[102] flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.5)] text-slate-200"
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-slate-800/60 flex justify-between items-center shrink-0">
+          <div>
+            <h2 className="text-base font-black text-slate-100 flex items-center gap-2">
+              编辑巡检计划
+            </h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Content Panel */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+          {/* 1. Basic Fields */}
+          <div className="space-y-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">计划名称</label>
+              <input
+                type="text"
+                value={editedPlan.name || ''}
+                onChange={(e) => setEditedPlan({ ...editedPlan, name: e.target.value })}
+                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">计划ID</label>
+              <div className="bg-slate-950/30 border border-slate-800/50 text-slate-500 rounded-lg py-2 px-3 text-xs cursor-not-allowed select-all font-mono">
+                {editedPlan.id} (计划ID: {editedPlan.planId})
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">计划描述</label>
+              <textarea
+                value={editedPlan.description || ''}
+                onChange={(e) => setEditedPlan({ ...editedPlan, description: e.target.value })}
+                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs min-h-[60px] transition-all"
+              />
+            </div>
+          </div>
+
+          {/* 2. Run Control */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-400">运行状态</label>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                onClick={handleToggleEnable}
+                disabled={editedPlan.executionType === 'immediate'}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editedPlan.enabled ? 'bg-indigo-600' : 'bg-slate-800'} ${editedPlan.executionType === 'immediate' ? 'opacity-30 cursor-not-allowed' : ''}`}
+              >
+                <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editedPlan.enabled ? 'translate-x-4' : 'translate-x-0'}`} />
+              </button>
+              <span className={`text-xs font-bold ${editedPlan.enabled ? 'text-indigo-400' : 'text-slate-500'}`}>
+                {editedPlan.enabled ? '已开启' : '已关闭'}
+              </span>
+            </div>
+          </div>
+
+          {/* 3. Exec Type Badge */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-400">巡检类型</label>
+            <div className="pt-1">
+              {editedPlan.executionType === 'scheduled' ? (
+                <span className="px-2.5 py-1 rounded-[6px] text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 inline-flex items-center gap-1.5 cursor-not-allowed">
+                  <Clock size={12} />
+                  定时巡检
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 rounded-[6px] text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 inline-flex items-center gap-1.5 cursor-not-allowed">
+                  <Zap size={12} />
+                  立即执行
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 4. Scheduling Config */}
+          {editedPlan.executionType === 'scheduled' && (
+            <div className="grid grid-cols-2 gap-4 pt-1.5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-400">Cron 表达式</label>
+                <input
+                  type="text"
+                  value={editedPlan.cronExpression || ''}
+                  onChange={(e) => setEditedPlan({ ...editedPlan, cronExpression: e.target.value })}
+                  className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all font-mono"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-400">频率描述</label>
+                <input
+                  type="text"
+                  value={editedPlan.cronDescription || ''}
+                  onChange={(e) => setEditedPlan({ ...editedPlan, cronDescription: e.target.value })}
+                  className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 5. Subtasks Table */}
+          <div className="border-t border-slate-800/40 pt-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+                子任务列表
+                <span className="text-xs text-slate-500 font-medium font-mono">
+                  ({Array.isArray(editedPlan.tasks) ? editedPlan.tasks.length : 0})
+                </span>
+              </h3>
+            </div>
+            
+            <div className="border border-slate-800/80 bg-slate-950/20 rounded-xl overflow-hidden">
+              <table className="w-full text-[11px] text-slate-300">
+                <thead>
+                  <tr className="bg-slate-950/55 border-b border-slate-800 text-left text-slate-500 font-bold uppercase tracking-wider">
+                    <th className="px-4 py-2">任务 ID & 名称</th>
+                    <th className="px-4 py-2">资源类型</th>
+                    <th className="px-4 py-2 text-center">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {Array.isArray(editedPlan.tasks) && editedPlan.tasks.length > 0 ? (
+                    editedPlan.tasks.map((taskItem: any) => (
+                      <tr key={taskItem.taskId} className="hover:bg-slate-900/35 transition-colors">
+                        <td className="px-4 py-2.5">
+                          <div className="font-bold text-slate-200">{taskItem.name}</div>
+                          <div className="text-[9px] text-slate-500 font-mono mt-0.5">{taskItem.taskId}</div>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-[9px] border border-slate-800">
+                            {taskItem.resourceType}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <button
+                            onClick={() => setSelectedTaskForEdit(taskItem)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white text-[10px] font-black transition-all border border-indigo-500/20 active:scale-95 cursor-pointer"
+                          >
+                            <Edit size={10} /> 编辑
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-6 text-center text-slate-500 italic">
+                        暂无子任务项
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer controls */}
+        <div className="p-6 border-t border-slate-800/60 bg-slate-900/20 shrink-0 flex justify-end items-center gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-bold transition-all"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 border border-blue-500/20"
+          >
+            <Save size={14} /> 保存计划
+          </button>
+        </div>
+
+        {selectedTaskForEdit !== null && createPortal(
+          <InspectionTaskEditModal
+            isOpen={true}
+            onClose={handleCloseSubTask}
+            task={selectedTaskForEdit}
+            onSave={handleSaveSubTask}
+          />,
+          document.body
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
@@ -2668,14 +3212,14 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[100]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
           />
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
-            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[92%]' : 'w-[85%]'} max-w-7xl bg-[var(--bg-deep-alt)] border-l border-slate-700 z-[101] flex shadow-[-20px_0_60px_rgba(0,0,0,0.5)]`}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[92%]' : 'w-[85%]'} max-w-7xl bg-[#0a0a0f] border-l border-white/10 z-[101] flex shadow-[0_0_100px_rgba(0,0,0,0.8)]`}
           >
             {/* Sidebar for History (Only for Phase-style Inspection Reports) */}
             {isPhased && (
@@ -2687,14 +3231,14 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
             )}
 
             <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-              <div className="sticky top-0 bg-[var(--bg-deep-alt)] border-b border-slate-800/50 p-6 flex justify-between items-center z-10 shrink-0">
+              <div className="sticky top-0 bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5 p-6 flex justify-between items-center z-10 shrink-0">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-100 tracking-tighter flex items-center gap-3">
+                  <h2 className="text-2xl font-black text-white tracking-tighter flex items-center gap-3">
                     <div className={`p-2 ${isPhased ? 'bg-indigo-600/20 text-indigo-400' : 'bg-blue-600/20 text-blue-400'} rounded-xl`}>
                       {isPhased ? <ClipboardCheck size={24} /> : <FileText size={24} />}
                     </div>
                     {isPhased ? 'AI 巡检深度报告' : '根因分析深度报告'}
-                    {selectedReportId !== 'current' && <span className="text-xs px-2 py-0.5 bg-slate-800 text-slate-500 rounded border border-slate-800/50 ml-2">存档历史报告</span>}
+                    {selectedReportId !== 'current' && <span className="text-xs px-2 py-0.5 bg-slate-800 text-slate-500 rounded border border-white/5 ml-2">存档历史报告</span>}
                   </h2>
                   <div className="flex items-center gap-4 mt-2 text-[10px] uppercase font-bold tracking-widest text-slate-500">
                     <span>ID: {data.id || (isPhased ? 'INSP-' : 'INC-') + Date.now().toString().slice(-8)}</span>
@@ -2721,7 +3265,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                         <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">1. 巡检执行概览 (Executive Summary)</h3>
                       </div>
-                      <div className="bg-[var(--bg-deep-alt)] border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden group mb-6 shadow-inner">
+                      <div className="bg-[#0a0a0f] border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden group mb-6 shadow-inner">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><ClipboardCheck size={100} /></div>
                         
                         <div className="relative z-10 flex flex-col gap-6">
@@ -2784,7 +3328,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                       <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-6">
                           {data.stage2?.charts?.map((chart: any, i: number) => (
-                            <div key={i} className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4">
+                            <div key={i} className="bg-black/30 border border-white/5 rounded-2xl p-4">
                               <AnalysisTrendChart {...chart} />
                             </div>
                           ))}
@@ -2802,7 +3346,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                       </div>
                       <div className="space-y-4">
                         {data.stage3?.candidateTable && <AnalysisTable title="分析候选原因与权重" columns={['可能原因', '证据强度', '推演结论']} data={data.stage3.candidateTable} />}
-                        <div className="bg-slate-900/50 border border-slate-800/30 rounded-2xl p-8 relative overflow-hidden">
+                        <div className="bg-slate-900/50 border border-white/[0.03] rounded-2xl p-8 relative overflow-hidden">
                           <div className="absolute top-0 right-0 p-4 opacity-5"><Brain size={48} /></div>
                           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">关键异常链路证据汇总</div>
                           <ul className="space-y-4">
@@ -2977,7 +3521,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
 const AnalysisTable = ({ title, columns, data }: { title?: string, columns: string[], data: any[][] }) => (
   <div className="bg-black/20 border border-slate-800 rounded-xl overflow-hidden my-3">
     {title && (
-      <div className="px-3 py-1.5 bg-slate-900/30 border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+      <div className="px-3 py-1.5 bg-white/[0.03] border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
         {title}
       </div>
     )}
@@ -2992,7 +3536,7 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i} className="border-b border-slate-800/20 last:border-0 hover:bg-slate-900/10">
+            <tr key={i} className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.01]">
               {row.map((cell, j) => (
                 <td key={j} className={`px-3 py-2 text-[11px] font-medium whitespace-nowrap ${cell === '异常' ? 'text-rose-500' :
                     cell === '偏高' ? 'text-orange-500' :
@@ -3020,7 +3564,7 @@ const AnalysisTrendChart = ({ title, labels, data, events }: { title: string, la
   }).join(' ');
 
   return (
-    <div className="bg-[var(--bg-deep)] border border-slate-800 rounded-xl p-4 my-3 overflow-visible">
+    <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 overflow-visible">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
           <Activity size={12} className="text-blue-500" /> {title}
@@ -3092,7 +3636,7 @@ const AnalysisTrendChart = ({ title, labels, data, events }: { title: string, la
 
 const InspectionTaskSnapshotCard = ({ data }: { data: any }) => {
   return (
-    <div className="bg-[var(--bg-elevated)] border border-slate-800/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl">
+    <div className="bg-[#1a1a24] border border-slate-800/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl">
       <div className="relative p-6 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent">
         <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
 
@@ -3132,7 +3676,7 @@ const InspectionTaskSnapshotCard = ({ data }: { data: any }) => {
                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                   <History size={12} className="text-emerald-400" /> 异常摘要
                 </div>
-                <div className="text-xs text-slate-400 leading-relaxed bg-slate-900/30 p-2 rounded-lg border border-slate-800/50">
+                <div className="text-xs text-slate-400 leading-relaxed bg-black/30 p-2 rounded-lg border border-white/5">
                   {data.summary}
                 </div>
               </div>
@@ -3148,7 +3692,7 @@ const AlarmContextChatCard = ({ data, isEmbedded }: { data: Alarm; isEmbedded?: 
   return (
     <div className={`overflow-hidden shadow-2xl transition-all ${isEmbedded
         ? 'bg-white/10 backdrop-blur-md border border-white/20 rounded-xl w-full'
-        : 'bg-[var(--bg-elevated)] border border-slate-800/80 rounded-3xl w-full'
+        : 'bg-[#1a1a24] border border-slate-800/80 rounded-3xl w-full'
       } max-w-4xl`}>
       <div className={`relative p-6 ${isEmbedded ? '' : 'bg-gradient-to-br from-slate-800/20 via-transparent to-transparent'}`}>
         {!isEmbedded && <div className={`absolute top-0 left-0 w-1.5 h-full ${data.level === 'P0' ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]'}`} />}
@@ -3293,7 +3837,7 @@ const RetrievalSummaryCard: React.FC<{ data: any }> = ({ data }) => {
   if (!data) return null;
 
   return (
-    <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden mb-4 shadow-xl w-full max-w-[700px]">
+    <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden mb-4 shadow-xl w-full max-w-[700px]">
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="p-3.5 bg-indigo-500/[0.04] hover:bg-indigo-500/[0.08] cursor-pointer flex items-center justify-between transition-colors border-b border-transparent"
@@ -3310,7 +3854,7 @@ const RetrievalSummaryCard: React.FC<{ data: any }> = ({ data }) => {
             </div>
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-slate-100 uppercase tracking-widest font-black transition-colors">
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-white uppercase tracking-widest font-black transition-colors">
           {isExpanded ? 'Hide Trace' : 'Show Trace'} <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
@@ -3333,7 +3877,7 @@ const RetrievalSummaryCard: React.FC<{ data: any }> = ({ data }) => {
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-1 flex flex-col items-center">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${visibleStep > idx + 1 ? 'bg-emerald-500 text-white' : 'bg-slate-800 border-2 border-slate-700 animate-pulse'}`}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${visibleStep > idx + 1 ? 'bg-emerald-500 text-black' : 'bg-slate-800 border-2 border-slate-700 animate-pulse'}`}>
                         {visibleStep > idx + 1 ? <CheckCircle2 size={12} strokeWidth={3} /> : step.icon}
                       </div>
                       {idx < steps.length - 1 && (
@@ -3345,7 +3889,7 @@ const RetrievalSummaryCard: React.FC<{ data: any }> = ({ data }) => {
                         {step.title}
                         {visibleStep === idx + 1 && <span className="text-[9px] text-indigo-400 animate-pulse">检索中...</span>}
                       </div>
-                      <div className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-900/20 px-3 py-1.5 rounded-lg border border-slate-800/50">
+                      <div className="text-[11px] text-slate-500 font-medium leading-relaxed bg-white/[0.02] px-3 py-1.5 rounded-lg border border-slate-800/50">
                         {step.content}
                       </div>
                     </div>
@@ -3400,7 +3944,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
         animate={{ opacity: 1, x: 0 }} 
         className="space-y-6"
       >
-        <div className="bg-[var(--bg-card)] border border-slate-800 p-6 rounded-2xl shadow-inner relative overflow-hidden">
+        <div className="bg-[#141418] border border-slate-800 p-6 rounded-2xl shadow-inner relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-5">
             <BookOpen size={120} />
           </div>
@@ -3413,7 +3957,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
             </h4>
 
             {doc.libId === 'sop' ? (
-              <div className="rounded-xl border border-slate-800/50 overflow-hidden bg-[var(--bg-deep)] h-[650px] mb-6 relative group ring-1 ring-white/5 shadow-2xl">
+              <div className="rounded-xl border border-slate-800/50 overflow-hidden bg-[#0d0d11] h-[650px] mb-6 relative group ring-1 ring-white/5 shadow-2xl">
                 <CustomPDFViewer 
                   url="/assets/docs/sop_detail.pdf" 
                   title={doc.title} 
@@ -3429,7 +3973,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
           </div>
         </div>
 
-        <div className="bg-slate-800/20 border border-slate-800/50 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-slate-800/20 border border-white/5 p-4 rounded-xl flex items-center justify-between">
           <div className="flex gap-4">
             <div className="text-center">
               <div className="text-[10px] text-slate-500 font-bold uppercase">相关系数</div>
@@ -3447,13 +3991,13 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
   };
 
   return (
-    <div className="w-1/2 h-full bg-[var(--bg-deep)] border-l border-slate-800 flex flex-col shrink-0 relative shadow-2xl z-20">
-      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[var(--bg-panel-deep)]">
+    <div className="w-1/2 h-full bg-[#0d0d11] border-l border-slate-800 flex flex-col shrink-0 relative shadow-2xl z-20">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[#111115]">
         <div className="flex items-center gap-3">
           {viewingDoc && (
             <button 
               onClick={() => setViewingDoc(null)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-100 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={16} />
             </button>
@@ -3463,7 +4007,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
             {viewingDoc ? '文档详情' : '溯源详情'}
           </h3>
         </div>
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-100 transition-colors">
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
           <X size={16} />
         </button>
       </div>
@@ -3477,7 +4021,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
               当前回答由 <span className="text-indigo-400">{sources.length}</span> 篇核心文档支撑
             </div>
             {sources.map((src: any, idx: number) => (
-              <div key={idx} className="bg-[var(--bg-card)] border border-slate-800 p-4 rounded-xl space-y-3 hover:border-slate-700 transition-all group">
+              <div key={idx} className="bg-[#141418] border border-slate-800 p-4 rounded-xl space-y-3 hover:border-slate-700 transition-all group">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center gap-2 mb-1">
@@ -3507,7 +4051,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
                     <Book size={10} className="text-indigo-400" />
                     <span>命中章节: <span className="text-slate-200">{src.chapter || '正文内容'}</span></span>
                   </div>
-                  <div className="p-3 bg-slate-900/40 rounded-lg border border-slate-800 text-[11px] text-slate-400 leading-relaxed relative overflow-hidden group-hover:bg-black/60 transition-colors">
+                  <div className="p-3 bg-black/40 rounded-lg border border-slate-800 text-[11px] text-slate-400 leading-relaxed relative overflow-hidden group-hover:bg-black/60 transition-colors">
                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/20" />
                     <div dangerouslySetInnerHTML={{ __html: src.fragment || "" }} className="italic" />
                   </div>
@@ -3535,7 +4079,7 @@ const LogAnalysisInitCard: React.FC<{ data: any }> = ({ data }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-[var(--bg-elevated)] border border-indigo-500/30 rounded-2xl p-5 shadow-xl w-full max-w-[540px] relative overflow-hidden group"
+    className="bg-[#1a1a24] border border-indigo-500/30 rounded-2xl p-5 shadow-xl w-full max-w-[540px] relative overflow-hidden group"
   >
     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50" />
     <div className="flex items-start gap-4">
@@ -3571,7 +4115,7 @@ const LogAnalysisRetrievalCard: React.FC<{ data: any }> = ({ data }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--bg-card)] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[600px]"
+      className="bg-[#141418] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[600px]"
     >
       <div className="p-4 bg-indigo-500/[0.03] border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -3592,11 +4136,11 @@ const LogAnalysisRetrievalCard: React.FC<{ data: any }> = ({ data }) => {
       </div>
       <div className="p-5 space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-slate-900/30 p-2 rounded-lg border border-slate-800/50">
+          <div className="bg-black/30 p-2 rounded-lg border border-slate-800/50">
             <div className="text-[9px] text-slate-500 mb-1 uppercase tracking-tight">时间范围</div>
             <div className="text-[11px] text-slate-300 font-bold">{data.metrics?.timeRange}</div>
           </div>
-          <div className="bg-slate-900/30 p-2 rounded-lg border border-slate-800/50">
+          <div className="bg-black/30 p-2 rounded-lg border border-slate-800/50">
             <div className="text-[9px] text-slate-500 mb-1 uppercase tracking-tight">覆盖服务</div>
             <div className="text-[11px] text-slate-300 font-bold">{data.metrics?.serviceCount} 个应用</div>
           </div>
@@ -3611,7 +4155,7 @@ const LogAnalysisRetrievalCard: React.FC<{ data: any }> = ({ data }) => {
               {isExpanded ? '收起' : '展开完整堆栈'}
             </button>
           </div>
-          <div className={`bg-slate-900/40 border border-slate-800 rounded-xl p-4 font-mono text-[11px] leading-relaxed relative transition-all duration-300 ${isExpanded ? 'max-h-[400px]' : 'max-h-[120px] overflow-hidden'}`}>
+          <div className={`bg-black/40 border border-slate-800 rounded-xl p-4 font-mono text-[11px] leading-relaxed relative transition-all duration-300 ${isExpanded ? 'max-h-[400px]' : 'max-h-[120px] overflow-hidden'}`}>
             {!isExpanded && <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />}
             <pre className="text-slate-400 whitespace-pre-wrap">
               {data.snippet.split('\n').map((line: string, i: number) => (
@@ -3632,7 +4176,7 @@ const LogAnalysisCorrelationCard: React.FC<{ data: any }> = ({ data }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-[var(--bg-card)] border border-slate-800 rounded-2xl p-5 shadow-2xl w-full max-w-[540px]"
+    className="bg-[#141418] border border-slate-800 rounded-2xl p-5 shadow-2xl w-full max-w-[540px]"
   >
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-2">
@@ -3644,7 +4188,7 @@ const LogAnalysisCorrelationCard: React.FC<{ data: any }> = ({ data }) => (
       </div>
     </div>
     
-    <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 p-6 mb-4">
+    <div className="bg-black/30 rounded-2xl border border-slate-800/50 p-6 mb-4">
       <div className="flex items-center justify-around relative pt-4 pb-2">
         {/* Horizontal Arrows Background */}
         <div className="absolute top-1/2 left-12 right-12 h-px bg-slate-800 -translate-y-1/2" />
@@ -3688,7 +4232,7 @@ const LogAnalysisEvidenceCard: React.FC<{ data: any }> = ({ data }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.98 }}
     animate={{ opacity: 1, scale: 1 }}
-    className="bg-[var(--bg-elevated)] border border-blue-500/20 rounded-2xl p-5 shadow-xl w-full max-w-[500px] relative overflow-hidden"
+    className="bg-[#1a1a24] border border-blue-500/20 rounded-2xl p-5 shadow-xl w-full max-w-[500px] relative overflow-hidden"
   >
     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/[0.03] blur-3xl pointer-events-none" />
     <div className="flex items-center gap-2 mb-4">
@@ -3764,9 +4308,9 @@ const LogAnalysisActionCard: React.FC<{ data: any, onAction: any }> = ({ data, o
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
-    className="bg-[var(--bg-card)] border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[600px]"
+    className="bg-[#141418] border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl w-full max-w-[600px]"
   >
-    <div className="px-5 py-4 bg-slate-900/20 border-b border-slate-800 flex items-center gap-2">
+    <div className="px-5 py-4 bg-white/[0.02] border-b border-slate-800 flex items-center gap-2">
       <Zap size={16} className="text-amber-400" />
       <span className="text-xs font-bold text-slate-200 uppercase tracking-widest">阶段 6: 响应决策建议 (Action Group)</span>
     </div>
@@ -3789,7 +4333,7 @@ const LogAnalysisActionCard: React.FC<{ data: any, onAction: any }> = ({ data, o
           
           <div className="grid grid-cols-1 gap-3">
             {group.actions.map((action: any, aIdx: number) => (
-              <div key={aIdx} className="group/item flex items-center justify-between p-3 bg-slate-900/40 border border-slate-800 hover:border-slate-600 rounded-xl transition-all">
+              <div key={aIdx} className="group/item flex items-center justify-between p-3 bg-black/40 border border-slate-800 hover:border-slate-600 rounded-xl transition-all">
                 <div className="flex flex-col gap-1">
                   <span className="text-xs font-bold text-slate-200 group-hover/item:text-white transition-colors">{action.label}</span>
                   <span className="text-[10px] text-slate-500 font-medium">{action.desc}</span>
@@ -3819,7 +4363,7 @@ const LogAnalysisActionCard: React.FC<{ data: any, onAction: any }> = ({ data, o
 );
 
 const LogClusterChatCard: React.FC<{ data: any }> = ({ data }) => (
-  <div className="bg-[var(--bg-elevated)] border border-slate-800 rounded-2xl p-4 shadow-xl w-full max-w-[320px]">
+  <div className="bg-[#1a1b26] border border-slate-800 rounded-2xl p-4 shadow-xl w-full max-w-[320px]">
     <div className="flex justify-between items-start mb-2">
       <div className="flex flex-col gap-1">
         <span className="text-sm font-bold text-slate-200">{data.title}</span>
@@ -3845,8 +4389,7 @@ const ChatBubble: React.FC<{
     frequency: string,
     setFrequency: (val: string) => void,
     ruleDraft: any,
-    targets: any[],
-    mode?: string
+    targets: any[]
   }
 }> = ({ message, onAction, inspectionContext }) => {
   const isAI = message.type === 'ai';
@@ -3910,7 +4453,7 @@ const ChatBubble: React.FC<{
 
         <div className="space-y-2 w-full">
           <div className={`p-4 rounded-2xl ${isAI
-            ? 'bg-[var(--bg-elevated-alt)] border border-slate-800/50 text-slate-200'
+            ? 'bg-[#1a1a20] border border-slate-800/50 text-slate-200'
             : 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
             }`}>
             {isAI ? (
@@ -3941,7 +4484,7 @@ const ChatBubble: React.FC<{
             )}
 
             {message.contentType === 'sop' && message.data?.steps && (
-              <div className="mt-4 bg-[var(--bg-card)] border border-slate-800 rounded-lg p-3">
+              <div className="mt-4 bg-[#141418] border border-slate-800 rounded-lg p-3">
                 <h4 className="text-base font-bold text-slate-200 mb-2 border-b border-slate-800 pb-2">{message.data.title}</h4>
                 <div className="space-y-3 mt-2">
                   {message.data.steps.map((step: any, idx: number) => (
@@ -3959,20 +4502,6 @@ const ChatBubble: React.FC<{
                 </div>
               </div>
             )}
-            {message.data?.transferOptions && (
-              <div className="mt-4 pt-4 border-t border-slate-800/50 flex flex-col items-start gap-2">
-                {message.data.transferOptions.map((opt: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => onAction?.('REQUEST_TRANSFER', opt)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 text-indigo-400 rounded-lg text-xs font-medium transition-all"
-                  >
-                    {opt.label}
-                    <ChevronRight size={12} className="opacity-70" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {message.contentType === 'rule_shortcuts' && (
@@ -3987,13 +4516,13 @@ const ChatBubble: React.FC<{
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[var(--bg-item)] border border-rose-500/30 rounded-xl p-4 shadow-xl"
+              className="bg-[#1f1f27] border border-rose-500/30 rounded-xl p-4 shadow-xl"
             >
               <div className="flex items-center gap-2 mb-3">
                 <ShieldAlert size={16} className="text-rose-500" />
                 <h4 className="text-xs font-bold text-rose-500 uppercase tracking-wider">紧急操作建议</h4>
               </div>
-              <p className="text-xs text-slate-300 mb-4">重启 Pod <code className="bg-slate-900/30 px-1 rounded text-blue-400">payment-svc-7d4f8b9c</code> (影响 3% 流量)</p>
+              <p className="text-xs text-slate-300 mb-4">重启 Pod <code className="bg-black/30 px-1 rounded text-blue-400">payment-svc-7d4f8b9c</code> (影响 3% 流量)</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onAction?.('restart')}
@@ -4012,7 +4541,8 @@ const ChatBubble: React.FC<{
           {message.contentType === 'change_list' && <ChangeListCard data={message.data} onAction={onAction} />}
           {message.contentType === 'recovery_action' && <RecoveryRecommendationCard data={message.data} onAction={onAction} />}
           {message.contentType === 'target_select' && <TargetSelectionCard data={message.data} onAction={onAction} />}
-          {message.contentType === 'rule_draft' && <RuleDraftCard data={message.data} onAction={onAction} mode={inspectionContext?.mode} />}
+          {message.contentType === 'rule_draft' && <RuleDraftCard data={message.data} onAction={onAction} />}
+          {message.contentType === 'mysql_task_edit_list' && <MySQLTaskEditListCard data={message.data} onAction={onAction} />}
           {message.contentType === 'frequency_select' && (
             <FrequencySettingCard 
               onAction={onAction} 
@@ -4020,8 +4550,6 @@ const ChatBubble: React.FC<{
               setTaskName={inspectionContext?.setTaskName || (() => {})} 
               frequency={inspectionContext?.frequency || '每天一次'} 
               setFrequency={inspectionContext?.setFrequency || (() => {})} 
-              cronValue={inspectionContext?.cronValue || '0 0 * * *'} 
-              setCronValue={inspectionContext?.setCronValue || (() => {})} 
             />
           )}
           {message.contentType === 'task_summary' && (
@@ -4031,7 +4559,7 @@ const ChatBubble: React.FC<{
                 taskName: inspectionContext?.taskName || '',
                 targets: inspectionContext?.targets || [],
                 ruleDraft: inspectionContext?.ruleDraft || null,
-                frequency: inspectionContext?.mode === 'immediate' ? '立即执行' : (inspectionContext?.frequency || '每天一次')
+                frequency: inspectionContext?.frequency || '每天一次'
               }} 
             />
           )}
@@ -4261,7 +4789,7 @@ const TypewriterText: React.FC<{ text: string, speed?: number, onCitationClick?:
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             onClick={() => onCitationClick?.(index)}
-            className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-black bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-slate-100 rounded-sm mx-0.5 cursor-pointer transition-all border border-indigo-500/30 vertical-top align-top -mt-1 group/cite shadow-lg shadow-indigo-500/10"
+            className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-black bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-sm mx-0.5 cursor-pointer transition-all border border-indigo-500/30 vertical-top align-top -mt-1 group/cite shadow-lg shadow-indigo-500/10"
             title={`查看参考来源 [${index}]`}
           >
             {index}
@@ -4291,25 +4819,25 @@ const CustomPDFViewer = ({ url, title, mockHighlight }: { url: string; title: st
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
   return (
-    <div className="rounded-2xl border border-slate-800/50 overflow-hidden bg-[var(--bg-deep)] shadow-2xl h-full w-full flex flex-col relative group">
+    <div className="rounded-2xl border border-white/5 overflow-hidden bg-[#0d0d11] shadow-2xl h-full w-full flex flex-col relative group">
       {/* 极简自定义工具栏 */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 px-4 py-1.5 bg-[var(--bg-panel-alt)]/90 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0 ring-1 ring-white/5">
-        <div className="flex items-center gap-3 border-r border-slate-800/50 pr-4">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 px-4 py-1.5 bg-[#16161d]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0 ring-1 ring-white/5">
+        <div className="flex items-center gap-3 border-r border-white/5 pr-4">
           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Page</span>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-white/5 border border-slate-700 rounded-md text-[10px] text-white font-black">{page}</span>
+            <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-[10px] text-white font-black">{page}</span>
             <span className="text-[9px] text-slate-500 font-bold">/ {totalPages}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 border-r border-slate-800/50 pr-4">
-          <button onClick={handleZoomOut} className="p-1.5 hover:bg-slate-800/50 rounded-lg text-slate-400 hover:text-slate-100 transition-all active:scale-90">
+        <div className="flex items-center gap-1 border-r border-white/5 pr-4">
+          <button onClick={handleZoomOut} className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-all active:scale-90">
             <Minus size={14} />
           </button>
           <div className="w-12 text-center">
              <span className="text-[10px] font-black text-slate-200 font-mono">{Math.round(zoom * 100)}%</span>
           </div>
-          <button onClick={handleZoomIn} className="p-1.5 hover:bg-slate-800/50 rounded-xl text-slate-400 hover:text-slate-100 transition-all active:scale-90">
+          <button onClick={handleZoomIn} className="p-1.5 hover:bg-white/5 rounded-xl text-slate-400 hover:text-white transition-all active:scale-90">
             <Plus size={14} />
           </button>
         </div>
@@ -4328,7 +4856,7 @@ const CustomPDFViewer = ({ url, title, mockHighlight }: { url: string; title: st
       </div>
 
       {/* PDF 内容区 - 通过 CSS Scale 模拟缩放 */}
-      <div className="flex-1 overflow-auto bg-[var(--bg-deepest)] no-scrollbar overflow-x-hidden">
+      <div className="flex-1 overflow-auto bg-[#0a0a0e] no-scrollbar overflow-x-hidden">
         <div 
           className="transition-transform duration-300 ease-out origin-top py-10 relative"
           style={{ transform: `scale(${zoom})` }}
@@ -4353,19 +4881,19 @@ const CustomPDFViewer = ({ url, title, mockHighlight }: { url: string; title: st
       </div>
       
       {/* 渐变遮罩增强专注感 */}
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--bg-deep)] to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0d0d11] to-transparent pointer-events-none z-10" />
     </div>
   );
 };
 
 const CapacityHeader = () => (
-  <div className="h-16 border-b border-slate-800/80 flex items-center justify-between px-6 bg-[var(--bg-card)] shrink-0 z-20">
+  <div className="h-16 border-b border-slate-800/80 flex items-center justify-between px-6 bg-[#141418] shrink-0 z-20">
     <div className="flex-1 max-w-2xl relative group">
       <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
       <input
         type="text"
         placeholder="全局搜索：请输入服务名、主机名或集群名称..."
-        className="w-full bg-slate-900/40 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all"
+        className="w-full bg-black/40 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all"
       />
     </div>
     <div className="flex items-center gap-4 ml-6">
@@ -4377,7 +4905,7 @@ const CapacityHeader = () => (
   </div>
 );
 const CapacityFooter = () => (
-  <div className="h-10 shrink-0 bg-[var(--bg-deepest)] border-t border-slate-800/80 flex items-center px-6 justify-between text-[11px] text-slate-500 z-30">
+  <div className="h-10 shrink-0 bg-[#0a0a0c] border-t border-slate-800/80 flex items-center px-6 justify-between text-[11px] text-slate-500 z-30">
     <div className="flex items-center gap-8">
       <span className="font-bold text-slate-400 uppercase tracking-widest">库存全量总览</span>
       <div className="flex items-center gap-4">
@@ -4412,11 +4940,11 @@ const CapacityResourceScanner: React.FC<{ selectedId?: string, onSelect: (resour
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-card)]">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0d0d11]">
       <div className="p-4 border-b border-slate-800/50 space-y-4">
         <div className="relative group">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400" />
-          <input type="text" placeholder="搜索资源、主机、服务..." className="w-full bg-slate-900/40 border border-slate-700/50 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-300 focus:border-indigo-500/50 outline-none" />
+          <input type="text" placeholder="搜索资源、主机、服务..." className="w-full bg-black/40 border border-slate-700/50 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-300 focus:border-indigo-500/50 outline-none" />
         </div>
         
         <div className="grid grid-cols-2 gap-2">
@@ -4480,7 +5008,7 @@ const CapacityAnalysisCenter: React.FC<{ selectedResource: any }> = ({ selectedR
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-overlay)] p-6 gap-8 overflow-y-auto no-scrollbar">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#050508] p-6 gap-8 overflow-y-auto no-scrollbar">
       {/* Top Status HUD */}
       <div className="flex items-center gap-6 pb-2 border-b border-slate-800/40">
         <div className="flex items-center gap-3">
@@ -4522,7 +5050,7 @@ const CapacityAnalysisCenter: React.FC<{ selectedResource: any }> = ({ selectedR
         <motion.div 
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--bg-deep)] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group shadow-2xl"
+          className="bg-gradient-to-br from-[#1a1c2e] to-[#0d0e1a] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group shadow-2xl"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] -mr-32 -mt-32" />
           <div className="relative z-10">
@@ -4558,14 +5086,14 @@ const CapacityAnalysisCenter: React.FC<{ selectedResource: any }> = ({ selectedR
         
         <div className="flex flex-col items-center gap-8 relative">
           {/* L1: Services */}
-          <div className="w-full flex justify-between bg-[var(--bg-deep-alt)] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
+          <div className="w-full flex justify-between bg-[#0a0a0f] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[40px] -mr-16 -mt-16 pointer-events-none" />
             <div className="absolute -top-3 left-8 px-3 py-0.5 bg-blue-600 text-white text-[9px] font-bold rounded-full shadow-lg shadow-blue-600/30 uppercase tracking-wider">Logic Services Layer</div>
             <div className="flex gap-4 w-full justify-around flex-wrap">
               {fullStats.services.map(s => (
                 <div 
                   key={s.id} 
-                  className={`w-40 p-3 rounded-2xl border transition-all duration-300 ${selectedResource?.id === s.id ? 'bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.2)] scale-105' : 'bg-slate-900/40 border-slate-800/80'}`}
+                  className={`w-40 p-3 rounded-2xl border transition-all duration-300 ${selectedResource?.id === s.id ? 'bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.2)] scale-105' : 'bg-black/40 border-slate-800/80'}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[11px] font-bold text-slate-300 tracking-tight">{s.name}</span>
@@ -4588,14 +5116,14 @@ const CapacityAnalysisCenter: React.FC<{ selectedResource: any }> = ({ selectedR
           </div>
 
           {/* L2: Host / Nodes */}
-          <div className="w-full flex justify-between bg-[var(--bg-deep-alt)] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
+          <div className="w-full flex justify-between bg-[#0a0a0f] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[40px] -mr-16 -mt-16 pointer-events-none" />
             <div className="absolute -top-3 left-8 px-3 py-0.5 bg-orange-600 text-white text-[9px] font-bold rounded-full shadow-lg shadow-orange-600/30 uppercase tracking-wider">Host & OS Layer (Compute Pool)</div>
             <div className="flex gap-4 w-full justify-around flex-wrap">
               {fullStats.nodes.map(n => (
                 <div 
                   key={n.id} 
-                  className={`w-40 p-3 rounded-2xl border transition-all duration-300 ${selectedResource?.name.includes('Node-03') || (selectedResource?.id === 'r1' && n.id === 'n3') ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.2)] scale-105' : 'bg-slate-900/40 border-slate-800/80'}`}
+                  className={`w-40 p-3 rounded-2xl border transition-all duration-300 ${selectedResource?.name.includes('Node-03') || (selectedResource?.id === 'r1' && n.id === 'n3') ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.2)] scale-105' : 'bg-black/40 border-slate-800/80'}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[11px] font-bold text-slate-300 tracking-tight">{n.name}</span>
@@ -4617,14 +5145,14 @@ const CapacityAnalysisCenter: React.FC<{ selectedResource: any }> = ({ selectedR
           </div>
 
           {/* L3: Storage */}
-          <div className="w-full flex justify-between bg-[var(--bg-deep-alt)] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
+          <div className="w-full flex justify-between bg-[#0a0a0f] border border-slate-800/80 rounded-3xl p-6 relative group overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[40px] -mr-16 -mt-16 pointer-events-none" />
             <div className="absolute -top-3 left-8 px-3 py-0.5 bg-emerald-600 text-white text-[9px] font-bold rounded-full shadow-lg shadow-emerald-600/30 uppercase tracking-wider">Infrastructure & Storage Layer</div>
             <div className="flex gap-4 w-full justify-around flex-wrap">
               {fullStats.infra.map(i => (
                 <div 
                   key={i.id} 
-                  className={`w-52 p-3 rounded-2xl bg-slate-900/40 border border-slate-800/80 transition-all duration-300 ${selectedResource?.name.includes('mysql') || (selectedResource?.id === 'r3' && i.id === 'i1') ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'hover:border-slate-700'}`}
+                  className={`w-52 p-3 rounded-2xl bg-black/40 border border-slate-800/80 transition-all duration-300 ${selectedResource?.name.includes('mysql') || (selectedResource?.id === 'r3' && i.id === 'i1') ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'hover:border-slate-700'}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-slate-600 border border-slate-800">
@@ -4655,8 +5183,8 @@ const CapacityAISidebar: React.FC<{ messages: Message[], onAction: (action: stri
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-deepest)] relative">
-      <div className="h-12 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[var(--bg-surface-alt)] shrink-0">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0e] relative">
+      <div className="h-12 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[#111116] shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] animate-pulse">AI 容量助手</span>
@@ -4692,13 +5220,13 @@ const CapacityAISidebar: React.FC<{ messages: Message[], onAction: (action: stri
                  <button 
                   key={tag}
                   onClick={() => onAction('SEND_PROMPT', tag)}
-                  className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-slate-100 hover:border-indigo-500/50 transition-all font-bold"
+                  className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-white hover:border-indigo-500/50 transition-all font-bold"
                  >
                    {tag}
                  </button>
                ))}
              </div>
-             <div className="bg-[var(--bg-surface-alt)] border border-slate-800/80 rounded-2xl p-3 shadow-xl focus-within:border-indigo-500/40 transition-all">
+             <div className="bg-[#111116] border border-slate-800/80 rounded-2xl p-3 shadow-xl focus-within:border-indigo-500/40 transition-all">
                 {renderInput()}
              </div>
           </div>
@@ -4720,7 +5248,7 @@ const CapacityAssistantView = ({
   inspectionContext
 }: any) => {
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-input)] overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0a0b14] overflow-hidden">
       <div className="flex-1 flex min-h-0">
         {!isCollapsed && (
           <div className="w-[320px] shrink-0 flex flex-col border-r border-slate-800/50">
@@ -4731,7 +5259,7 @@ const CapacityAssistantView = ({
           </div>
         )}
         
-        <div className="flex-1 min-w-[500px] flex flex-col bg-[var(--bg-overlay)] relative">
+        <div className="flex-1 min-w-[500px] flex flex-col bg-[#050508] relative">
           <CapacityAnalysisCenter selectedResource={selectedResource} />
         </div>
 
@@ -4739,7 +5267,7 @@ const CapacityAssistantView = ({
           <div className="absolute top-1/2 -left-3 transform -translate-y-1/2 z-10 px-0.5">
              <button
                onClick={onToggle}
-               className="w-6 h-12 bg-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all shadow-xl active:scale-90"
+               className="w-6 h-12 bg-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl active:scale-90"
              >
                {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
              </button>
@@ -4759,10 +5287,10 @@ const InspectionTaskContextBanner = ({ task, onClose, isAnalyzing }: { task: any
       initial={{ opacity: 0, scale: 0.95, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`mb-4 bg-[var(--bg-elevated)]/90 backdrop-blur-xl border rounded-2xl p-4 shadow-2xl relative overflow-hidden group/banner transition-all ${
+      className={`mb-4 bg-[#1a1a24]/90 backdrop-blur-xl border rounded-2xl p-4 shadow-2xl relative overflow-hidden group/banner transition-all ${
         isAnalyzing 
         ? 'border-indigo-500/50 state-analyzing animate-shimmer' 
-        : 'border-slate-700 hover:border-white/20'
+        : 'border-white/10 hover:border-white/20'
       }`}
     >
       <div className={`absolute top-0 left-0 w-1 h-full ${task.riskLevel === '高' ? 'bg-rose-500/60' : 'bg-blue-500/60'}`} />
@@ -4799,7 +5327,7 @@ const LogAnalysisSummaryCard: React.FC<{ summary: any, isAnalyzing: boolean }> =
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--bg-navy-alt)]/80 backdrop-blur-xl border border-indigo-500/30 rounded-2xl p-6 mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group"
+      className="bg-[#141b2d]/80 backdrop-blur-xl border border-indigo-500/30 rounded-2xl p-6 mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group"
     >
       {/* Background patterns */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[80px] -mr-32 -mt-32 pointer-events-none" />
@@ -4885,7 +5413,7 @@ const LogContextBanner: React.FC<{ cluster: any, onRemove: () => void }> = ({ cl
     exit={{ opacity: 0, scale: 0.95 }}
     className="mb-4"
   >
-    <div className="bg-[var(--bg-elevated)]/90 backdrop-blur-xl border border-indigo-500/30 rounded-2xl p-4 shadow-2xl relative overflow-hidden group/banner transition-all hover:border-indigo-500/50">
+    <div className="bg-[#1a1a24]/90 backdrop-blur-xl border border-indigo-500/30 rounded-2xl p-4 shadow-2xl relative overflow-hidden group/banner transition-all hover:border-indigo-500/50">
       <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
       
       <div className="flex items-center justify-between">
@@ -4953,10 +5481,10 @@ const LogsAssistantView = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-navy)] overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0b1220] overflow-hidden">
       <div className="flex-1 flex min-h-0">
         {!isCollapsed && (
-          <div className="w-1/3 min-w-[360px] border-r border-slate-800/60 bg-[var(--bg-muted-alt)] flex flex-col overflow-y-auto no-scrollbar">
+          <div className="w-1/3 min-w-[360px] border-r border-slate-800/60 bg-[#0d1425] flex flex-col overflow-y-auto no-scrollbar">
             <div className="p-6 space-y-8">
               <div>
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -4991,7 +5519,7 @@ const LogsAssistantView = ({
                     <motion.div
                       key={c.id}
                       onClick={() => onAction('SELECT_LOG_CLUSTER', c)}
-                      className={`p-4 rounded-xl border border-slate-800 cursor-pointer transition-all ${activeLogCluster?.id === c.id ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-[var(--bg-navy-alt)]'}`}
+                      className={`p-4 rounded-xl border border-slate-800 cursor-pointer transition-all ${activeLogCluster?.id === c.id ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-[#141b2d]'}`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col gap-1">
@@ -5021,12 +5549,12 @@ const LogsAssistantView = ({
         )}
 
         {/* 右侧：AI 分析助手 (2/3) */}
-        <div className="flex-1 flex flex-col bg-[var(--bg-navy)] relative min-w-0 border-l border-slate-800/20 shadow-[-20px_0_30px_-15px_rgba(0,0,0,0.5)]">
-          <div className="h-12 border-b border-slate-800/60 flex items-center px-6 justify-between bg-[var(--bg-muted-alt)]/80 backdrop-blur-md sticky top-0 z-20">
+        <div className="flex-1 flex flex-col bg-[#0b1220] relative min-w-0 border-l border-slate-800/20 shadow-[-20px_0_30px_-15px_rgba(0,0,0,0.5)]">
+          <div className="h-12 border-b border-slate-800/60 flex items-center px-6 justify-between bg-[#0d1425]/80 backdrop-blur-md sticky top-0 z-20">
             <div className="flex items-center gap-2">
               <button
                 onClick={onToggle}
-                className="p-1 px-2 hover:bg-slate-800/50 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
+                className="p-1 px-2 hover:bg-white/5 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
               >
                 {isCollapsed ? <PanelLeftClose size={14} className="text-indigo-500" /> : <PanelLeft size={14} />}
                 <span className="text-[10px] font-bold uppercase tracking-tight">{isCollapsed ? '展开面板' : '收起面板'}</span>
@@ -5055,7 +5583,7 @@ const LogsAssistantView = ({
                 >
                   <Terminal size={48} className="text-indigo-400" />
                 </motion.div>
-                <motion.h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-500 mb-4 tracking-tight">AI 日志助手</motion.h2>
+                <motion.h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 mb-4 tracking-tight">AI 日志助手</motion.h2>
                 <motion.p className="text-slate-400 text-base max-w-[420px] leading-relaxed font-medium mb-10">
                   智能日志聚类与根因分析系统，自动识别异常模式，关联 Trace，输出故障定位与操作建议。
                 </motion.p>
@@ -5086,7 +5614,7 @@ const LogsAssistantView = ({
             )}
           </div>
 
-          <div className="p-6 bg-gradient-to-t from-[var(--bg-card)] via-[var(--bg-card)]/95 to-transparent shrink-0">
+          <div className="p-6 bg-gradient-to-t from-[#141418] via-[#141418]/95 to-transparent shrink-0">
             <div className="max-w-4xl mx-auto">
               <AnimatePresence>
                 {showLogContextBanner && activeLogCluster && (
@@ -5103,7 +5631,7 @@ const LogsAssistantView = ({
       </div>
 
       {/* Footer Meta */}
-      <div className="h-10 shrink-0 bg-[var(--bg-deepest)] border-t border-slate-800/60 flex items-center px-6 justify-between text-[11px] text-slate-500 z-30">
+      <div className="h-10 shrink-0 bg-[#070b14] border-t border-slate-800/60 flex items-center px-6 justify-between text-[11px] text-slate-500 z-30">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
@@ -5132,7 +5660,7 @@ const LogsAssistantView = ({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-[var(--bg-navy-alt)] border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
+              className="relative bg-[#141b2d] border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
             >
               <div className="p-8">
                 <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-6">
@@ -5206,7 +5734,7 @@ const AnalysisStepCard = ({ step, title, isExpanded, onToggle, isComplete, child
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ step: 0.1 }}
-    className={`bg-[var(--bg-navy-alt)]/80 backdrop-blur-md rounded-2xl border transition-all ${isExpanded ? 'border-slate-700 shadow-xl' : 'border-slate-800/50'
+    className={`bg-[#141b2d]/80 backdrop-blur-md rounded-2xl border transition-all ${isExpanded ? 'border-slate-700 shadow-xl' : 'border-slate-800/50'
       }`}
   >
     <div
@@ -5255,12 +5783,12 @@ const InspectionOverview = ({ onAction }: { onAction?: any }) => (
         { label: '异常任务', val: '3', change: '⚠️ 需优先处理', color: 'text-rose-400', icon: <AlertCircle size={20} /> },
         { label: '覆盖实例数', val: '156', change: '🟢 正常', color: 'text-purple-400', icon: <Server size={20} /> }
       ].map((card, idx) => (
-        <div key={idx} onClick={(e) => e.stopPropagation()} className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all group">
+        <div key={idx} onClick={(e) => e.stopPropagation()} className="bg-[#141418] border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all group">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{card.label}</span>
             <span className={card.color}>{card.icon}</span>
           </div>
-          <div className="text-2xl font-bold text-slate-200 mb-1">{card.val}</div>
+          <div className="text-2xl font-bold text-slate-100 mb-1">{card.val}</div>
           <div className={`text-[10px] font-bold ${card.change.includes('↑') ? 'text-emerald-500' : card.change.includes('↓') ? 'text-rose-500' : 'text-slate-500'}`}>{card.change}</div>
         </div>
       ))}
@@ -5276,7 +5804,7 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
     <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:text-slate-100 transition-all">
+          <button onClick={onBack} className="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white transition-all">
             <ArrowLeft size={16} />
           </button>
           <div>
@@ -5296,7 +5824,7 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-1 space-y-6">
-          <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5">
+          <div className="bg-[#141418] border border-slate-800 rounded-xl p-5">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Info size={14} className="text-blue-500" /> 基础信息</h3>
             <div className="space-y-4">
               {[
@@ -5315,7 +5843,7 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
         </div>
 
         <div className="col-span-2 space-y-6">
-          <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5">
+          <div className="bg-[#141418] border border-slate-800 rounded-xl p-5">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Activity size={14} className="text-orange-500" /> 核心指标预览 (Anomaly Metrics)</h3>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -5346,7 +5874,7 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5">
+        <div className="bg-[#141418] border border-slate-800 rounded-xl p-5">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><FileText size={14} className="text-blue-400" /> 日志摘要 (Logs)</h3>
           <div className="space-y-2 font-mono text-[10px]">
             <div className="p-2 rounded bg-rose-500/5 border border-rose-500/10 text-rose-400">14:05:12 [ERROR] payment-gw - Connection timeout to upstream bank-api (10.0.4.12)</div>
@@ -5354,7 +5882,7 @@ const InspectionDetailPanel = ({ task, onBack, onAction, analysisStatus }: any) 
             <div className="p-2 rounded bg-rose-500/5 border border-rose-500/10 text-rose-400">14:05:08 [ERROR] payment-gw - SocketException: Broken pipe</div>
           </div>
         </div>
-        <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5">
+        <div className="bg-[#141418] border border-slate-800 rounded-xl p-5">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><History size={14} className="text-purple-400" /> 变更记录 (Recent Changes)</h3>
           <div className="space-y-3">
             {[
@@ -5445,7 +5973,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
         <div className="flex items-center gap-3">
           <div className="relative group">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input type="text" placeholder="搜索任务名称/摘要..." className="bg-slate-900/30 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-blue-500/50 w-64 transition-all" />
+            <input type="text" placeholder="搜索任务名称/摘要..." className="bg-black/30 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-blue-500/50 w-64 transition-all" />
           </div>
         </div>
       </div>
@@ -5456,7 +5984,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
         <div
           key={idx}
           onClick={(e) => { e.stopPropagation(); setSelectedTask(task); setShowBanner(true); }}
-          className={`bg-[var(--bg-card)] border rounded-xl p-4 transition-all group cursor-pointer relative ${
+          className={`bg-[#141418] border rounded-xl p-4 transition-all group cursor-pointer relative ${
             selectedTask?.name === task.name 
             ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-blue-600/[0.04]' 
             : 'border-slate-800 hover:border-blue-500/50 hover:bg-blue-600/[0.02]'
@@ -5465,8 +5993,13 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
           <div className="mb-3">
             <div className="flex items-center gap-3 mb-1">
               <div className={`w-1.5 h-1.5 rounded-full ${task.status === '健康' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
-              <h4 className="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase tracking-tight font-mono">{task.name}</h4>
+              <h4 className="text-sm font-bold text-slate-100 group-hover:text-blue-400 transition-colors uppercase tracking-tight font-mono">{task.name}</h4>
               <div className="flex items-center gap-1.5 ml-auto">
+                {task.executionType === 'scheduled' ? (
+                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">定时</span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-amber-400 bg-amber-500/10 border border-amber-500/20">手动</span>
+                )}
                 <span className={`px-1.5 py-0.5 rounded-[4px] text-[9px] font-black border ${
                   task.inspectionStatus === '巡检中' 
                   ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' 
@@ -5475,11 +6008,36 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
                   {task.inspectionStatus === '巡检中' && <RefreshCw size={8} className="inline mr-1 animate-spin" />}
                   {task.inspectionStatus}
                 </span>
-                {task.status !== '健康' && (
-                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-white bg-rose-600">
-                    异常
+                {task.status !== '健康' ? (
+                  <div className="relative group/tooltip">
+                    <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-white bg-rose-600 cursor-help flex items-center gap-0.5">
+                      异常 ⚠️
+                    </span>
+                    <div className="absolute bottom-full right-0 mb-2 w-56 hidden group-hover/tooltip:block bg-[#161622] border border-slate-700 p-2.5 rounded-lg text-[10px] text-slate-300 shadow-xl z-20 leading-relaxed font-sans">
+                      <div className="font-bold text-rose-400 mb-1 border-b border-slate-800 pb-1">异常预警：</div>
+                      {task.name.includes('支付') 
+                        ? '支付网关 (payment-gw) 近 5 分钟 5xx 错误率突增至 15%，触发严重预警水位。' 
+                        : task.name.includes('慢查询') 
+                        ? '监测到 12 条超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。'
+                        : '检测到关键监控指标超出安全上限，系统已触发专家分析。'}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                    健康
                   </span>
                 )}
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction?.('CONFIGURE_PLAN', task);
+                  }}
+                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors ml-1.5"
+                  title="配置计划"
+                >
+                  <Settings size={13} />
+                </button>
               </div>
             </div>
             
@@ -5488,18 +6046,24 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-y-2 gap-x-8 mb-4 py-2 border-y border-slate-800/50 pointer-events-none">
+          <div className="grid grid-cols-2 gap-y-2 gap-x-8 mb-4 py-2 border-y border-slate-800/50">
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">巡检对象</span>
               <span className="text-[11px] text-slate-300 font-medium">{task.target}</span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">当前状态</span>
-              <span className={`text-[11px] font-black ${task.status === '正常' ? 'text-emerald-500' : task.status === '高风险' ? 'text-rose-500' : 'text-orange-500'}`}>{task.status}</span>
+              <span className={`text-[11px] font-black ${task.status === '正常' || task.status === '健康' ? 'text-emerald-500' : 'text-rose-500'}`}>{task.status}</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">最近更新</span>
-              <span className="text-[11px] text-slate-400 font-mono tracking-tight">{task.updatedAt}</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">最近执行</span>
+              <span className="text-[11px] text-slate-400 font-mono tracking-tight">{task.updatedAt || '无'}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">下次执行</span>
+              <span className="text-[11px] text-slate-400 font-mono tracking-tight">
+                {task.executionType === 'scheduled' ? (task.nextExecutionTime || '2026-06-04 00:00:00') : '无 (单次立即执行)'}
+              </span>
             </div>
           </div>
 
@@ -5596,10 +6160,10 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
         </div>
       </div>
       <div className="flex gap-2">
-        <button className="px-3 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-slate-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed font-bold" disabled>PREV</button>
+        <button className="px-3 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed font-bold" disabled>PREV</button>
         <button className="px-3.5 py-1.5 bg-blue-600 rounded-lg text-white font-black shadow-lg shadow-blue-500/20">1</button>
-        <button className="px-3.5 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-slate-100 transition-all font-bold">2</button>
-        <button className="px-3 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-slate-100 transition-all font-bold">NEXT</button>
+        <button className="px-3.5 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-white transition-all font-bold">2</button>
+        <button className="px-3 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/50 hover:bg-slate-700 hover:text-white transition-all font-bold">NEXT</button>
       </div>
     </div>
   </div>
@@ -5610,7 +6174,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
         <div className="text-xs font-bold text-slate-400 uppercase">当前任务:</div>
-        <div className="px-3 py-1.5 bg-[var(--bg-hover)] border border-slate-700 rounded-lg flex items-center gap-4 cursor-pointer hover:border-blue-500 transition-all">
+        <div className="px-3 py-1.5 bg-[#1e1e24] border border-slate-700 rounded-lg flex items-center gap-4 cursor-pointer hover:border-blue-500 transition-all">
           <span className="text-xs text-slate-200">CPU巡检-生产环境</span>
           <ChevronDown size={14} className="text-slate-500" />
         </div>
@@ -5625,9 +6189,9 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
           </div>
           
           {/* 预留的历史版本浮窗 */}
-          <div className="absolute top-full left-0 mt-2 w-48 bg-[var(--bg-elevated)] border border-slate-700 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover/version:opacity-100 group-hover/version:translate-y-0 group-hover/version:pointer-events-auto transition-all z-50 p-2">
+          <div className="absolute top-full left-0 mt-2 w-48 bg-[#1a1a24] border border-slate-700 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover/version:opacity-100 group-hover/version:translate-y-0 group-hover/version:pointer-events-auto transition-all z-50 p-2">
             {['2024-04-12', '2024-04-11', '2024-04-10'].map((date, i) => (
-              <div key={date} className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${i === 0 ? 'bg-blue-500/10 text-blue-400' : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'}`}>
+              <div key={date} className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${i === 0 ? 'bg-blue-500/10 text-blue-400' : 'hover:bg-white/5 text-slate-400 hover:text-slate-200'}`}>
                 <span className="text-[10px] font-mono font-bold">{date}</span>
                 {i === 0 && <CheckCircle2 size={10} />}
               </div>
@@ -5640,9 +6204,9 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
       </div>
     </div>
 
-    <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl overflow-hidden">
+    <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden">
       <table className="w-full text-left text-[11px]">
-        <thead className="bg-slate-900/20 border-b border-slate-800">
+        <thead className="bg-white/[0.02] border-b border-slate-800">
           <tr>
             {['主机IP', 'CPU%', '内存%', '磁盘%', '负载', '状态'].map(h => (
               <th key={h} className="px-4 py-3 font-bold text-slate-500 uppercase tracking-wider">{h}</th>
@@ -5658,7 +6222,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
             { ip: '10.0.1.27', cpu: '92%', mem: '71%', disk: '52%', load: '4.2', status: '🔴 告警' },
             { ip: '10.0.1.28', cpu: '31%', mem: '44%', disk: '39%', load: '1.1', status: '🟢 正常' }
           ].map((row, i) => (
-            <tr key={i} className="hover:bg-slate-900/10 transition-colors">
+            <tr key={i} className="hover:bg-white/[0.01] transition-colors">
               <td className="px-4 py-3 font-mono text-slate-300">{row.ip}</td>
               <td className="px-4 py-3 text-slate-300">{row.cpu}</td>
               <td className="px-4 py-3 text-slate-300">{row.mem}</td>
@@ -5667,7 +6231,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
               <td className="px-4 py-3">{row.status}</td>
             </tr>
           ))}
-          <tr className="bg-slate-900/20 font-bold">
+          <tr className="bg-white/[0.02] font-bold">
             <td className="px-4 py-3 text-slate-400">汇总/平均</td>
             <td className="px-4 py-3 text-slate-200">48%</td>
             <td className="px-4 py-3 text-slate-200">52%</td>
@@ -5680,7 +6244,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
     </div>
 
     <div className="grid grid-cols-2 gap-6">
-      <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5">
+      <div className="bg-[#141418] border border-slate-800 rounded-xl p-5">
         <h3 className="text-xs font-bold text-slate-300 flex items-center gap-2 mb-6"><TrendingUp size={14} className="text-blue-500" /> 📊 趋势对比: 10.0.1.27 CPU使用率</h3>
         <div className="h-40 relative flex items-end justify-between px-2">
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -5697,7 +6261,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
         </div>
       </div>
 
-      <div className="bg-[var(--bg-card)] border border-slate-800 rounded-xl p-5 flex flex-col">
+      <div className="bg-[#141418] border border-slate-800 rounded-xl p-5 flex flex-col">
         <h3 className="text-xs font-bold text-slate-300 flex items-center gap-2 mb-4"><Zap size={14} className="text-purple-500" /> 操作建议 (AI 生成)</h3>
         <div className="flex-1 space-y-3">
           <div className="text-[11px] text-slate-400 leading-relaxed">• 10.0.1.25 CPU 持续走高，建议检查 Java 进程堆栈状况</div>
@@ -5714,6 +6278,8 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
 
 const INITIAL_INSPECTION_TASKS = [
   {
+    id: 'PLAN-001',
+    planId: 'PLAN-ID-1000',
     name: '核心支付链路稳定性巡检',
     target: '集群 (K8s-Prod-Main)',
     status: '异常',
@@ -5723,7 +6289,50 @@ const INITIAL_INSPECTION_TASKS = [
     summary: '检测到支付网关 (payment-gw) 近 5 分钟 5xx 错误率突增至 15%，疑似三方依赖超时。',
     updatedAt: '2024-04-12 14:05:12',
     availableDates: ['2024-04-12', '2024-04-11', '2024-04-10'],
-    hasReport: false
+    hasReport: false,
+    executionType: 'scheduled',
+    enabled: true,
+    cronExpression: '*/30 * * * *',
+    cronDescription: '每 30 分钟一次',
+    tasks: [
+      {
+        taskId: 'TASK-K8S-01',
+        name: 'Kubernetes Pod 重启率检测',
+        description: '核查 payment-svc 命名空间下 Pod 的重启次数和崩溃环回状态',
+        resourceType: 'Kubernetes 集群',
+        target: '集群 (K8s-Prod-Main)',
+        scriptType: 'shell',
+        scriptContent: '#!/bin/bash\n# 巡检 K8s 异常 Pod\nkubectl get pods -n prod -o wide | grep -E "CrashLoopBackOff|Error"',
+        variables: [
+          { name: 'RESTART_LIMIT', value: '3', editable: true },
+          { name: 'NAMESPACE', value: 'production', editable: false }
+        ]
+      },
+      {
+        taskId: 'TASK-MYSQL-01',
+        name: 'MySQL 支付慢查询审计',
+        description: '捕获涉及支付核心账户表的慢日志和死锁记录',
+        resourceType: 'MySQL 实例',
+        target: 'MySQL-Order-Primary',
+        scriptType: 'python',
+        scriptContent: 'import time\n# 模拟数据库慢 SQL 检查\nprint("Scanning order db for queries exceeding 2s...")',
+        variables: [
+          { name: 'SLOW_LIMIT_SEC', value: '2', editable: true }
+        ]
+      },
+      {
+        taskId: 'TASK-HOST-01',
+        name: '网关外部 SLB 网络时延核查',
+        description: '测量 SLB 边缘节点到服务内部 VPC 网络包传输往返时延',
+        resourceType: '主机/SLB',
+        target: '默认服务器节点-01',
+        scriptType: 'shell',
+        scriptContent: '#!/bin/bash\nping -c 10 slb.external.node.connection',
+        variables: [
+          { name: 'WARN_LATENCY_MS', value: '100', editable: true }
+        ]
+      }
+    ]
   },
   {
     name: '数据库慢查询扫描',
@@ -5791,22 +6400,13 @@ const MOCK_LOG_EVENTS = [
 ];
 
 const MOCK_KNOWLEDGE_LIBS = [
-  { id: 'lib-1', name: 'OCR 模型部署', docCount: 42, tagCount: 12, updated: '2024-05-20 10:24', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
-  { id: 'lib-2', name: '容器服务指南', docCount: 36, tagCount: 8, updated: '2024-05-19 16:45', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
-  { id: 'lib-3', name: '网络故障排查', docCount: 28, tagCount: 6, updated: '2024-05-18 09:30', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
-  { id: 'lib-4', name: '日志采集方案', docCount: 15, tagCount: 4, updated: '2024-05-15 14:20', status: 'inactive', statusLabel: '未启用', icon: Folder, documents: [] },
-  { id: 'lib-5', name: 'GPU 资源管理', docCount: 22, tagCount: 5, updated: '2024-05-12 11:10', status: 'active', statusLabel: '已启用', icon: Folder, documents: [] },
-  { id: 'lib-6', name: '测试知识库', docCount: 3, tagCount: 1, updated: '2024-05-10 17:00', status: 'draft', statusLabel: '草稿', icon: Folder, documents: [] },
   {
     id: 'sop',
     name: '标准 SOP',
     icon: ClipboardList,
     type: 'txt',
-    docCount: 24,
-    tagCount: 5,
-    updated: '2024-03-24 14:20',
-    status: 'active',
-    statusLabel: '已启用',
+    count: 24,
+    updatedAt: '2024-03-24 14:20',
     category: 'SOP',
     documents: [
       {
@@ -5841,11 +6441,8 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '核心架构',
     icon: Network,
     type: 'pdf',
-    docCount: 12,
-    tagCount: 3,
-    updated: '2024-04-10 09:15',
-    status: 'active',
-    statusLabel: '已启用',
+    count: 12,
+    updatedAt: '2024-04-10 09:15',
     category: '架构',
     documents: [
       {
@@ -5860,11 +6457,8 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '故障复盘库',
     icon: History,
     type: 'txt',
-    docCount: 48,
-    tagCount: 10,
-    updated: '2024-04-12 11:30',
-    status: 'active',
-    statusLabel: '已启用',
+    count: 48,
+    updatedAt: '2024-04-12 11:30',
     category: '故障复盘',
     documents: [
       {
@@ -5879,11 +6473,8 @@ const MOCK_KNOWLEDGE_LIBS = [
     name: '监控告警规则',
     icon: ShieldCheck,
     type: 'yml',
-    docCount: 156,
-    tagCount: 22,
-    updated: '2024-04-11 18:45',
-    status: 'active',
-    statusLabel: '已启用',
+    count: 156,
+    updatedAt: '2024-04-11 18:45',
     category: '监控规则',
     documents: [
       { id: 'r1', title: '基础资源 CPU/内存 阈值规范', author: '架构组', date: '2024-04-11', hot: true, content: "规范全站服务的告警基准线..." },
@@ -5923,12 +6514,12 @@ const KnowledgeSidebar = ({ selectedLibIds, onSelectLibs, activeLibId, setActive
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-card)]">
+    <div className="flex flex-col h-full bg-[#0d0d11]">
       {/* Header with Search */}
-      <div className="p-6 border-b border-slate-800/50 bg-[var(--bg-card)] shrink-0 space-y-4">
+      <div className="p-6 border-b border-slate-800/50 bg-[#111115] shrink-0 space-y-4">
         <div className="flex items-center justify-between group cursor-pointer" onClick={toggleAll}>
-          <span className="text-sm font-bold text-slate-200 group-hover:text-slate-100 transition-colors uppercase tracking-widest">知识资源库</span>
-          <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${selectedLibIds.length === MOCK_KNOWLEDGE_LIBS.length ? 'bg-[#4f46e5] border-[#4f46e5] shadow-[0_0_12px_rgba(79,70,229,0.4)]' : 'border-slate-700 bg-slate-900/30 group-hover:border-slate-500'}`}>
+          <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors uppercase tracking-widest">知识资源库</span>
+          <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${selectedLibIds.length === MOCK_KNOWLEDGE_LIBS.length ? 'bg-[#4f46e5] border-[#4f46e5] shadow-[0_0_12px_rgba(79,70,229,0.4)]' : 'border-slate-700 bg-black/30 group-hover:border-slate-500'}`}>
             {selectedLibIds.length === MOCK_KNOWLEDGE_LIBS.length && <Check size={14} strokeWidth={4} className="text-white" />}
           </div>
         </div>
@@ -5940,7 +6531,7 @@ const KnowledgeSidebar = ({ selectedLibIds, onSelectLibs, activeLibId, setActive
             placeholder="搜索库名称或分类标签..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/40 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
+            className="w-full bg-black/40 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
           />
         </div>
 
@@ -5972,7 +6563,7 @@ const KnowledgeSidebar = ({ selectedLibIds, onSelectLibs, activeLibId, setActive
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`flex flex-col p-4 rounded-2xl hover:bg-slate-900/30 transition-all group cursor-pointer border ${activeLibId === lib.id ? 'bg-indigo-500/[0.04] border-indigo-500/30' : 'border-slate-800/40 hover:border-slate-700'}`}
+                className={`flex flex-col p-4 rounded-2xl hover:bg-white/[0.03] transition-all group cursor-pointer border ${activeLibId === lib.id ? 'bg-indigo-500/[0.04] border-indigo-500/30' : 'border-slate-800/40 hover:border-slate-700'}`}
                 onClick={() => onEnterLib(lib.id)}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -5993,7 +6584,7 @@ const KnowledgeSidebar = ({ selectedLibIds, onSelectLibs, activeLibId, setActive
                   </div>
                   <button
                     onClick={(e) => toggleLib(lib.id, e)}
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${selectedLibIds.includes(lib.id) ? 'bg-[#4f46e5] border-[#4f46e5] shadow-[0_0_8px_rgba(79,70,229,0.2)]' : 'border-slate-700 bg-slate-900/30 hover:border-slate-500'}`}
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${selectedLibIds.includes(lib.id) ? 'bg-[#4f46e5] border-[#4f46e5] shadow-[0_0_8px_rgba(79,70,229,0.2)]' : 'border-slate-700 bg-black/30 hover:border-slate-500'}`}
                   >
                     {selectedLibIds.includes(lib.id) && <Check size={14} strokeWidth={4} className="text-white" />}
                   </button>
@@ -6014,10 +6605,10 @@ const KnowledgeSidebar = ({ selectedLibIds, onSelectLibs, activeLibId, setActive
         </div>
       </div>
 
-      <div className="p-6 border-t border-slate-800 bg-[var(--bg-card)] shrink-0">
+      <div className="p-6 border-t border-slate-800 bg-[#0d0d11] shrink-0">
         <div className="relative group/search">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/search:text-indigo-500" />
-          <input type="text" placeholder="全库搜索..." className="w-full bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-400 focus:outline-none focus:border-indigo-500/50 transition-all" />
+          <input type="text" placeholder="全库搜索..." className="w-full bg-black/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-400 focus:outline-none focus:border-indigo-500/50 transition-all" />
         </div>
       </div>
     </div>
@@ -6031,9 +6622,9 @@ const KnowledgeDocViewer = ({ activeLibId, selectedDocId, onSelectDoc, onAction,
   const selectedDoc = currentLib.documents.find(d => d.id === selectedDocId);
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-deepest)]">
+    <div className="flex flex-col h-full bg-[#0a0a0c]">
       {/* Header */}
-      <div className="p-6 border-b border-slate-800 bg-[var(--bg-card)] shrink-0 shadow-sm z-10 transition-all">
+      <div className="p-6 border-b border-slate-800 bg-[#141418] shrink-0 shadow-sm z-10 transition-all">
         <button
           onClick={() => selectedDocId ? onSelectDoc(null) : onBack()}
           className="flex items-center gap-2 text-slate-500 hover:text-indigo-400 transition-colors mb-4 group"
@@ -6077,7 +6668,7 @@ const KnowledgeDocViewer = ({ activeLibId, selectedDocId, onSelectDoc, onAction,
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="p-8 pb-20 bg-[var(--bg-card)]"
+              className="p-8 pb-20 bg-[#0d0d11]"
             >
               <div className="prose prose-invert max-w-none">
                 {(selectedDoc as any).pdfUrl ? (
@@ -6096,7 +6687,7 @@ const KnowledgeDocViewer = ({ activeLibId, selectedDocId, onSelectDoc, onAction,
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
-              className="p-6 space-y-3 bg-[var(--bg-card)]"
+              className="p-6 space-y-3 bg-[#0d0d11]"
             >
               {currentLib.documents.map(doc => (
                 <button
@@ -6144,13 +6735,13 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
   return (
     <div 
       ref={containerRef}
-      className={`absolute left-0 w-80 bg-[var(--bg-elevated)] border border-slate-800 rounded-2xl z-50 overflow-hidden transition-all duration-300 shadow-2xl ${
+      className={`absolute left-0 w-80 bg-[#1a1a24] border border-slate-800 rounded-2xl z-50 overflow-hidden transition-all duration-300 shadow-2xl ${
         direction === 'up' 
           ? 'bottom-full mb-3 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-2' 
           : 'top-full mt-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] animate-in slide-in-from-top-2'
       }`}
     >
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/20">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-white/[0.02]">
         <h4 className="text-[11px] font-black text-slate-200 uppercase tracking-widest flex items-center gap-2">
           <BookOpen size={14} className="text-indigo-400" /> 选择检索范围
         </h4>
@@ -6158,7 +6749,7 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
           <X size={14} />
         </button>
       </div>
-      <div className="max-h-72 overflow-y-auto no-scrollbar p-2 space-y-1.5 bg-[var(--bg-muted)]">
+      <div className="max-h-72 overflow-y-auto no-scrollbar p-2 space-y-1.5 bg-[#0d0d12]">
         {/* Select All Toggle - Precision Aligned */}
         <div className="px-3 py-2 mb-1">
           <button 
@@ -6171,7 +6762,7 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
             }}
             className="flex items-center gap-4 text-slate-400 hover:text-indigo-400 transition-colors group/all w-full"
           >
-            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${isAllSelected ? 'bg-indigo-600 border-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]' : 'border-slate-700 bg-slate-900/40 group-hover/all:border-slate-500'}`}>
+            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${isAllSelected ? 'bg-indigo-600 border-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]' : 'border-slate-700 bg-black/40 group-hover/all:border-slate-500'}`}>
                {isAllSelected && <Check size={10} strokeWidth={4} className="text-white" />}
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest">全选</span>
@@ -6188,7 +6779,7 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
                 const newIds = isSelected ? selectedIds.filter((id: string) => id !== lib.id) : [...selectedIds, lib.id];
                 onSelect(newIds);
               }}
-              className={`flex flex-col p-3 rounded-xl border transition-all cursor-pointer group ${isSelected ? 'bg-indigo-500/[0.08] border-indigo-500/40' : 'bg-transparent border-transparent hover:bg-slate-900/30 hover:border-slate-800'}`}
+              className={`flex flex-col p-3 rounded-xl border transition-all cursor-pointer group ${isSelected ? 'bg-indigo-500/[0.08] border-indigo-500/40' : 'bg-transparent border-transparent hover:bg-white/[0.03] hover:border-slate-800'}`}
             >
               <div className="flex items-center gap-4">
                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'bg-[#4f46e5] border-[#4f46e5]' : 'border-slate-700 bg-black/20 group-hover:border-slate-500'}`}>
@@ -6221,124 +6812,92 @@ const KnowledgeLibPicker = ({ isOpen, selectedIds, onSelect, onClose, direction 
   );
 };
 
-const KnowledgeChatPanel = ({ messages, chatEndRef, renderInput, selectedLibIds, selectedDocId, isCollapsed, onToggle, onAction, inspectionContext, knowledgeTab, setKnowledgeTab, renderKnowledgeManagement }: any) => {
-
+const KnowledgeChatPanel = ({ messages, chatEndRef, renderInput, selectedLibIds, selectedDocId, isCollapsed, onToggle, onAction, inspectionContext }: any) => {
   const selectedLibs = MOCK_KNOWLEDGE_LIBS.filter(l => selectedLibIds.includes(l.id));
   const doc = selectedLibs.flatMap(l => l.documents).find(d => d.id === selectedDocId);
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-deepest)]">
+    <div className="flex flex-col h-full bg-[#0a0a0c]">
       {/* Context Header */}
-      <div className="h-14 border-b border-slate-800/80 flex items-center justify-between px-6 bg-[var(--bg-card)] shrink-0">
-        <div className="flex items-center gap-6">
-          {/* Header Tabs (Relocated) */}
-          <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-slate-800/40 backdrop-blur-md">
-            <button 
-              onClick={() => setKnowledgeTab('qa')}
-              className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-tight transition-all relative ${knowledgeTab === 'qa' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
-            >
-              {knowledgeTab === 'qa' && (
-                <motion.div layoutId="knowTabHeader" className="absolute inset-0 bg-indigo-600 rounded-lg -z-10 shadow-lg shadow-indigo-500/20" />
-              )}
-              AI 知识专家
-            </button>
-            <button 
-              onClick={() => setKnowledgeTab('manage')}
-              className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-tight transition-all relative ${knowledgeTab === 'manage' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
-            >
-              {knowledgeTab === 'manage' && (
-                <motion.div layoutId="knowTabHeader" className="absolute inset-0 bg-indigo-600 rounded-lg -z-10 shadow-lg shadow-indigo-500/20" />
-              )}
-              知识库管理
-            </button>
-          </div>
+      <div className="h-14 border-b border-slate-800/80 flex items-center justify-between px-6 bg-[#141418] shrink-0">
+        <div className="flex items-center gap-2">
+          {/* Subtle title to match Inspection style */}
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AI 知识专家</span>
         </div>
         <div className="flex items-center gap-4">
-          <button className="text-slate-500 hover:text-slate-100 transition-colors"><Maximize2 size={16} /></button>
+          <button className="text-slate-500 hover:text-white transition-colors"><Maximize2 size={16} /></button>
         </div>
-
       </div>
-
-
 
       <div className={`flex-1 overflow-y-auto p-8 no-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.03),transparent_40%)] flex flex-col`}>
-        {knowledgeTab === 'manage' ? (
-          <div className="max-w-4xl mx-auto w-full">
-            {renderKnowledgeManagement()}
-          </div>
-        ) : (
-          <div className={`max-w-4xl mx-auto w-full ${messages.length === 0 ? 'flex-1 flex flex-col items-center justify-center' : 'space-y-6'}`}>
-            <AnimatePresence>
-              {messages.length === 0 ? (
+        <div className={`max-w-4xl mx-auto w-full ${messages.length === 0 ? 'flex-1 flex flex-col items-center justify-center' : 'space-y-6'}`}>
+          <AnimatePresence>
+            {messages.length === 0 ? (
+              <motion.div
+                key="knowledge-welcome"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex flex-col items-center justify-center text-center w-full max-w-2xl px-10 -mt-10"
+              >
                 <motion.div
-                  key="knowledge-welcome"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-20 h-20 rounded-[28px] mx-auto bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)] flex items-center justify-center mb-6"
+                >
+                  <Brain size={40} className="text-indigo-400" />
+                </motion.div>
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex flex-col items-center justify-center text-center w-full max-w-2xl px-10 -mt-10"
+                  transition={{ delay: 0.1 }}
+                  className="text-xl font-bold text-slate-200 mb-3"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-20 h-20 rounded-[28px] mx-auto bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)] flex items-center justify-center mb-6"
-                  >
-                    <Brain size={40} className="text-indigo-400" />
-                  </motion.div>
-                  <motion.h2
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-xl font-bold text-slate-200 mb-3"
-                  >
-                    AI 知识专家
-                  </motion.h2>
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-base text-slate-500 leading-relaxed max-w-[480px]"
-                  >
-                    您的企业级智能知识引擎。无缝对接各类文档源，智能解析结构化与非结构化数据，打造会说话的内部百科全书，全面赋能团队的高效协同与知识创新。
-                  </motion.p>
+                  AI 知识专家
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-base text-slate-500 leading-relaxed max-w-[480px]"
+                >
+                  您的企业级智能知识引擎。无缝对接各类文档源，智能解析结构化与非结构化数据，打造会说话的内部百科全书，全面赋能团队的高效协同与知识创新。
+                </motion.p>
 
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="knowledge-messages"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-6"
-                >
-                  {messages.map((msg: any) => (
-                    <ChatBubble key={msg.id} message={msg} onAction={onAction} inspectionContext={inspectionContext} />
-                  ))}
-                  <div ref={chatEndRef} className="h-20" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="knowledge-messages"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-6"
+              >
+                {messages.map((msg: any) => (
+                  <ChatBubble key={msg.id} message={msg} onAction={onAction} inspectionContext={inspectionContext} />
+                ))}
+                <div ref={chatEndRef} className="h-20" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-
-      {knowledgeTab === 'qa' && (
-        <div className="p-6 bg-gradient-to-t from-[var(--bg-deepest)] via-[var(--bg-deepest)]/95 to-transparent shrink-0">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-2 mb-4">
-              {['发布后 pod 持续重启怎么排查？', 'CPU 突增如何定位？'].map(cmd => (
-                <button
-                  key={cmd}
-                  onClick={() => onAction('SEND_PROMPT', cmd)}
-                  className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 transition-all font-mono"
-                >
-                  {cmd}
-                </button>
-              ))}
-            </div>
-            {renderInput()}
+      <div className="p-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/95 to-transparent shrink-0">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 mb-4">
+            {['生成摘要', '发布后 pod 持续重启怎么排查？', 'CPU 突增如何定位？'].map(cmd => (
+              <button
+                key={cmd}
+                onClick={() => onAction('SEND_PROMPT', cmd)}
+                className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 transition-all font-mono"
+              >
+                {cmd}
+              </button>
+            ))}
           </div>
+          {renderInput()}
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -6373,8 +6932,8 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
   const selectedLevelObj = levelOptions.find(l => l.key === filterLevel) || levelOptions[0];
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-card)]">
-      <div className="p-4 border-b border-slate-800 bg-[var(--bg-card)] shrink-0">
+    <div className="flex flex-col h-full bg-[#0d0d11]">
+      <div className="p-4 border-b border-slate-800 bg-[#141418] shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
@@ -6396,9 +6955,9 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="粘贴告警ID或内容进行搜索"
-              className="w-full bg-slate-900/40 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-purple-500/50 transition-all font-medium"
+              className="w-full bg-black/40 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-purple-500/50 transition-all font-medium"
             />
-            {searchQuery && <X size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 cursor-pointer hover:text-slate-100" onClick={() => setSearchQuery('')} />}
+            {searchQuery && <X size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 cursor-pointer hover:text-white" onClick={() => setSearchQuery('')} />}
           </div>
 
           <div className="flex items-center gap-2">
@@ -6415,7 +6974,7 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
                 <ChevronDown size={10} className={`text-slate-500 transition-transform ${isLevelOpen ? 'rotate-180' : ''}`} />
               </button>
               {isLevelOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-[var(--bg-dropdown)] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-full bg-[#1c1c22] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
                   <div className="max-h-48 overflow-y-auto no-scrollbar">
                     {levelOptions.map(l => (
                       <button
@@ -6444,7 +7003,7 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
                 <ChevronDown size={10} className={`text-slate-500 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
               </button>
               {isTypeOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-[var(--bg-dropdown)] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-full bg-[#1c1c22] border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50">
                   <div className="max-h-48 overflow-y-auto no-scrollbar">
                     {typeOptions.map(t => (
                       <button
@@ -6499,7 +7058,7 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
                 </div>
               </div>
 
-              <h4 className="text-xs font-bold text-slate-200 mb-3 leading-relaxed group-hover:text-slate-100 transition-colors line-clamp-2">{alarm.title}</h4>
+              <h4 className="text-xs font-bold text-slate-200 mb-3 leading-relaxed group-hover:text-white transition-colors line-clamp-2">{alarm.title}</h4>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 ">
@@ -6535,7 +7094,7 @@ const DiagnosticContextBanner = ({ alarm }: { alarm: Alarm | null }) => {
       animate={{ opacity: 1, y: 0 }}
       className="mb-6 mx-auto max-w-4xl"
     >
-      <div className="bg-[var(--bg-elevated-alt)]/80 backdrop-blur-md border border-purple-500/30 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden group">
+      <div className="bg-[#1a1a20]/80 backdrop-blur-md border border-purple-500/30 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-3 flex gap-2">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 font-bold">
             <Check size={10} /> 根因分析已完成
@@ -6586,11 +7145,11 @@ const DiagnosticContextBanner = ({ alarm }: { alarm: Alarm | null }) => {
 };
 
 const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCollapsed, onToggle, selectedAlarm, showBanner, inspectionContext }: any) => (
-  <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-deepest)]">
-    <div className="h-12 flex items-center px-6 border-b border-slate-800/50 shrink-0 bg-[var(--bg-card)]">
+  <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0c]">
+    <div className="h-12 flex items-center px-6 border-b border-slate-800/50 shrink-0 bg-[#141418]">
       <button
         onClick={() => onToggle?.()}
-        className="p-1 px-2 hover:bg-slate-800/50 rounded-md border border-slate-800/50 transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
+        className="p-1 px-2 hover:bg-white/5 rounded-md border border-slate-800/50 transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
         title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
       >
         {isCollapsed ? <PanelLeft size={14} className="text-indigo-500" /> : <PanelLeftClose size={14} className="text-rose-500" />}
@@ -6615,7 +7174,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-500 mb-4 tracking-tight"
+            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 mb-4 tracking-tight"
           >
             AI 诊断专家
           </motion.h1>
@@ -6652,7 +7211,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
       )}
     </div>
 
-    <div className="p-6 bg-gradient-to-t from-[var(--bg-card)] via-[var(--bg-card)]/95 to-transparent shrink-0">
+    <div className="p-6 bg-gradient-to-t from-[#141418] via-[#141418]/95 to-transparent shrink-0">
       <div className="max-w-4xl mx-auto">
         <AnimatePresence>
           {selectedAlarm && showBanner ? (
@@ -6667,7 +7226,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
 
               {/* 增强型吸附看板 (Enhanced Context Banner) */}
               <div className="flex flex-col">
-                <div className="bg-[var(--bg-elevated)]/90 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 shadow-2xl shadow-black/40 relative overflow-hidden group/banner transition-all hover:border-indigo-500/40">
+                <div className="bg-[#1a1a24]/90 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 shadow-2xl shadow-black/40 relative overflow-hidden group/banner transition-all hover:border-indigo-500/40">
                   <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50" />
 
                   <div className="flex items-start justify-between">
@@ -6682,7 +7241,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
                         <div className="flex items-center gap-2 mb-1.5">
 
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded leading-none ${selectedAlarm.level === 'P0' ? 'bg-rose-500 text-white' : 'bg-orange-500 text-white'
-                            }`}>{selectedAlarm.level === 'P0' ? '紧急' : '严重'}</span>
+                            }`}>{selectedAlarm.level} 告警联动</span>
                         </div>
                         <h3 className="text-sm font-bold text-slate-200 truncate group-hover/banner:text-white transition-colors">{selectedAlarm.title}</h3>
 
@@ -6734,7 +7293,7 @@ const DiagnosticChatPanel = ({ messages, chatEndRef, onAction, renderInput, isCo
 // --- Capacity Manager Components ---
 
 const ResourceInspector = () => (
-  <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6 bg-[var(--bg-deepest)]">
+  <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6 bg-[#0a0a0c]">
     <div className="flex items-center justify-between">
       <h3 className="text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2">
         <Cpu size={16} className="text-indigo-400" /> 资源详情探测
@@ -6748,7 +7307,7 @@ const ResourceInspector = () => (
         { label: 'Disk I/O', value: '12.4MB/s', color: 'text-blue-500', icon: HardDrive },
         { label: 'Network', value: '450Mbps', color: 'text-emerald-500', icon: Zap },
       ].map(stat => (
-        <div key={stat.label} className="bg-[var(--bg-card)] border border-slate-800/50 p-4 rounded-2xl">
+        <div key={stat.label} className="bg-[#141418] border border-slate-800/50 p-4 rounded-2xl">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] text-slate-500 font-bold uppercase">{stat.label}</span>
             <stat.icon size={14} className={stat.color} />
@@ -6757,7 +7316,7 @@ const ResourceInspector = () => (
         </div>
       ))}
     </div>
-    <div className="bg-[var(--bg-card)] border border-slate-800/50 rounded-2xl p-6">
+    <div className="bg-[#141418] border border-slate-800/50 rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
         <span className="text-xs font-bold text-slate-200">Pod 分布拓扑</span>
         <button className="text-[10px] text-indigo-400 font-bold hover:underline">查看全量</button>
@@ -6784,12 +7343,12 @@ const ResourceInspector = () => (
 // --- Inspection Assistant Components ---
 
 const InspectionDashboard = ({ tasks, activeTab, setActiveTab, onAction, setShowBanner, selectedTask, setSelectedTask, analysisStatus }: any) => (
-  <div
-    className="flex-1 flex flex-col min-h-0 bg-[var(--bg-card)]"
+  <div 
+    className="flex-1 flex flex-col min-h-0 bg-[#0a0a0c]"
     onClick={() => { setShowBanner(false); setSelectedTask(null); }}
   >
     {/* Header banner always visible */}
-    <div onClick={(e) => e.stopPropagation()} className="px-6 py-3 border-b border-slate-800/50 bg-[var(--bg-card)] flex items-center justify-between shrink-0">
+    <div onClick={(e) => e.stopPropagation()} className="px-6 py-3 border-b border-slate-800/50 bg-[#111115] flex items-center justify-between shrink-0">
        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
@@ -6824,13 +7383,13 @@ const InspectionDashboard = ({ tasks, activeTab, setActiveTab, onAction, setShow
 );
 
 const InspectionChat = ({ messages, chatEndRef, onAction, renderInput, isCollapsed, onToggle, selectedTask, showBanner, setShowBanner, analysisStatus, inspectionContext }: any) => (
-  <div className="flex-1 flex flex-col border-l border-slate-800/50 bg-[var(--bg-deepest)] shrink-0 min-w-0">
+  <div className="flex-1 flex flex-col border-l border-slate-800/50 bg-[#0d0d11] shrink-0 min-w-0">
     {/* Page Toggle & Agent Label */}
-    <div className="h-10 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[var(--bg-card)] shrink-0">
+    <div className="h-10 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[#0d0f1a] shrink-0">
        <div className="flex items-center gap-2">
           <button
             onClick={onToggle}
-            className="p-1 px-2 hover:bg-slate-800/50 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-orange-400 group"
+            className="p-1 px-2 hover:bg-white/5 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-orange-400 group"
             title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
           >
             {isCollapsed ? <PanelLeftClose size={14} className="text-orange-500" /> : <PanelLeft size={14} />}
@@ -6880,7 +7439,7 @@ const InspectionChat = ({ messages, chatEndRef, onAction, renderInput, isCollaps
        )}
     </div>
 
-    <div className="h-[44px] px-3 border-t border-slate-800/50 flex items-center gap-2 bg-[var(--bg-card)] shrink-0 overflow-x-auto no-scrollbar">
+    <div className="h-[44px] px-3 border-t border-slate-800/50 flex items-center gap-2 bg-[#0d0f1a] shrink-0 overflow-x-auto no-scrollbar">
       {[
         { id: 'NEW_TASK', icon: <PlusCircle size={12} />, label: '新建任务', color: 'text-blue-400' },
         { id: 'REPORT', icon: <FilePieChart size={12} />, label: '今日报告', color: 'text-emerald-400' },
@@ -6901,7 +7460,7 @@ const InspectionChat = ({ messages, chatEndRef, onAction, renderInput, isCollaps
       ))}
     </div>
 
-    <div className="p-4 bg-[var(--bg-panel)] border-t border-slate-800/80 shrink-0">
+    <div className="p-4 bg-[#111324] border-t border-slate-800/80 shrink-0">
        <AnimatePresence>
          {showBanner && selectedTask && (
            <InspectionTaskContextBanner
@@ -6919,8 +7478,8 @@ const InspectionChat = ({ messages, chatEndRef, onAction, renderInput, isCollaps
 // --- Report Assistant Components ---
 
 const ReportAssistantView = ({ messages, chatEndRef, onAction, renderInput, isCollapsed, onToggle, inspectionContext }: any) => (
-  <div className="flex-1 flex min-h-0 bg-[var(--bg-input)]">
-    <div className="w-1/4 border-r border-slate-800/50 bg-[var(--bg-card)] p-6 space-y-6 hidden md:flex flex-col">
+  <div className="flex-1 flex min-h-0 bg-[#0a0b14]">
+    <div className="w-1/4 border-r border-slate-800/50 bg-[#0d0d11] p-6 space-y-6 hidden md:flex flex-col">
       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">报告管理</h3>
       <div className="space-y-2">
         {['今日日报', '本周周报', '资源水位月报'].map(r => (
@@ -6931,7 +7490,7 @@ const ReportAssistantView = ({ messages, chatEndRef, onAction, renderInput, isCo
         ))}
       </div>
     </div>
-    <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-navy)]">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0b1220]">
       <div className="flex-1 overflow-y-auto p-8 no-scrollbar max-w-[900px] mx-auto w-full">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
@@ -6956,13 +7515,13 @@ const ReportAssistantView = ({ messages, chatEndRef, onAction, renderInput, isCo
 
 // --- Assistant Chat View ---
 const AssistantChatView = ({ messages, chatEndRef, onAction, renderInput, isCollapsed, onToggle, inspectionContext }: any) => (
-  <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-deepest)] relative">
+  <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0f] relative">
     {/* Page Toggle & Agent Label */}
-    <div className="h-10 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[var(--bg-card)] shrink-0">
+    <div className="h-10 border-b border-slate-800/60 flex items-center px-4 justify-between bg-[#0d0f1a] shrink-0">
        <div className="flex items-center gap-2">
           <button
             onClick={onToggle}
-            className="p-1 px-2 hover:bg-slate-800/50 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
+            className="p-1 px-2 hover:bg-white/5 rounded-md transition-all flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 group"
           >
             {isCollapsed ? <PanelLeftClose size={14} className="text-indigo-500" /> : <PanelLeft size={14} />}
             <span className="text-[10px] font-bold uppercase tracking-tight">{isCollapsed ? '展开面板' : '收起面板'}</span>
@@ -6970,7 +7529,7 @@ const AssistantChatView = ({ messages, chatEndRef, onAction, renderInput, isColl
           <div className="w-px h-3 bg-slate-800 mx-1" />
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-indigo-500" />
-            <span className="text-[10px] font-bold text-slate-200 uppercase tracking-widest">SRE 智能助手 (General AI)</span>
+            <span className="text-[10px] font-bold text-slate-200 uppercase tracking-widest">SRE 超级助手 (General AI)</span>
           </div>
        </div>
     </div>
@@ -6991,7 +7550,7 @@ const AssistantChatView = ({ messages, chatEndRef, onAction, renderInput, isColl
               transition={{ delay: 0.1 }}
               className="text-3xl font-black text-slate-100 mb-4 tracking-tight"
             >
-              我是您的 SRE 智能助手
+              我是您的 SRE 超级助手
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -7015,3198 +7574,23 @@ const AssistantChatView = ({ messages, chatEndRef, onAction, renderInput, isColl
     </div>
 
     <div className="p-8 max-w-[900px] mx-auto w-full shrink-0">
-       <div className="bg-[var(--bg-panel)] border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden focus-within:border-indigo-500/30 transition-all">
+       <div className="bg-[#111324] border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden focus-within:border-indigo-500/30 transition-all">
           {renderInput()}
        </div>
     </div>
   </div>
 );
 
-
-// --- Interaction Guide Components ---
-const GUIDE_TABS = [
-  {
-    id: 'home',
-    title: '首页',
-    icon: <Home size={16} />,
-    children: [
-      { id: 'home-rules', title: '首页交互规则', content: `# SRE Agent 首页 PRD / 测试用例版
-
-## 1. 文档信息
-- **文档名称**：SRE Agent 首页交互规则 PRD / 测试用例
-- **适用范围**：SRE Agent 首页
-- **文档目的**：用于产品、设计、开发、测试对齐首页各入口、输入区、上传能力、卡片跳转、空状态与排序规则
-- **当前状态**：含已确认规则 + 待确认建议项
-
----
-
-## 2. 产品目标
-SRE Agent 首页作为平台统一入口，承载以下能力：
-- 快速进入告警相关分析流程
-- 通过输入框发起不同场景的智能助手任务
-- 快速跳转至各核心模块页面
-- 在首页预览关键业务信息，并在无数据时保持可理解的状态反馈
-
----
-
-## 3. 页面范围
-本次规则覆盖以下区域：
-
-1. 顶部通知条
-2. 首页输入框区域
-3. 首页核心能力卡片
-   - 故障根因分析
-   - 告警收敛
-   - 运维知识专家
-   - 智能巡检助手
-4. 首页空状态
-5. 附件/图片上传规则
-6. 告警排序规则
-
----
-
-## 4. 术语说明
-
-### 4.1 \`@标签\`
-指输入框底部可选的场景标签，用于指定当前消息的目标能力模块。
-当前包含：
-- \`@诊断专家\`
-- \`@巡检助手\`
-- \`@知识专家\`
-
-
-### 4.2 快捷指令
-指输入框下方的常用指令按钮，点击后可将预设内容写入输入框。
-
-### 4.3 空状态
-指模块在无数据时展示的占位内容，用于反馈当前无内容可展示。
-
-### 4.4 空数据状态
-与空状态语义一致，强调当前模块暂无数据，非系统异常。
-
----
-
-## 5. 功能需求说明（PRD）
-
----
-
-## 5.1 顶部通知条
-
-### 5.1.1 功能说明
-顶部通知条用于展示待处理告警信息，支持轮播查看，并可快捷进入单条告警分析流程。
-
-### 5.1.2 交互规则
-1. 顶部通知条同一时刻仅展示 **1 条告警信息**
-2. 当存在多条告警时，通知条以 **滚动轮播** 形式依次展示
-3. 当首页 **没有告警数据时**：
-   - 通知条整体隐藏
-   - 不占据页面布局空间
-4. 点击通知条内操作按钮后：
-   - 进入 **AI 诊断助手页面**
-   - 自动带入当前通知条对应的 **单条告警上下文**
-   - 并 **直接开始分析**
-
-### 5.1.3 输出要求
-- 当前展示的告警需可被识别为单条告警对象
-- 跳转后分析上下文应与通知条当前展示内容一致
-
----
-
-## 5.2 首页输入框区域
-
-### 5.2.1 功能说明
-输入框为首页统一任务发起入口，支持文本输入、附件上传、图片上传、\`@标签\` 路由以及快捷指令辅助输入。
-
-### 5.2.2 输入框能力范围
-输入框支持：
-- 文本输入
-- 上传附件
-- 上传图片
-- 选择 \`@标签\`
-- 点击快捷指令
-- 发送消息
-
----
-
-## 5.3 \`@标签\` 规则
-
-### 5.3.1 标签选择规则
-1. \`@标签\` **不支持多选**
-2. 用户可在 **输入前** 选择 \`@标签\`
-3. 用户也可在 **输入完成后** 再选择 \`@标签\`
-
-### 5.3.2 标签替换规则
-1. 当用户点击新的 \`@标签\` 时：
-   - 当前已选中的 \`@标签\` 被替换
-   - 新标签成为当前唯一生效标签
-2. 切换标签时：
-   - 已输入文本内容保留
-   - 不清空已有输入内容
-
-### 5.3.3 标签取消规则
-1. 当某个 \`@标签\` 已选中时，用户再次点击输入框下方同一个标签：
-   - 取消该标签选中状态
-   - 输入框内对应标签同步移除
-2. 取消后，当前消息恢复为 **无标签状态**
-
-### 5.3.4 标签与快捷指令联动规则
-1. 当用户已选择 \`@标签\` 后，再点击输入框下方快捷指令：
-   - 快捷指令内容写入输入框
-   - 当前 \`@标签\` 保持不变
-   - 不触发标签替换或取消
-2. 快捷指令仅补充输入内容，不改变当前路由目标
-
----
-
-## 5.4 输入发送路由规则
-
-### 5.4.1 路由映射
-- \`@诊断专家\` → **AI 诊断专家页面**
-- \`@巡检助手\` → **AI巡检助手页面**
-- \`@知识专家\` → **AI知识专家页面**
-
-### 5.4.2 发送时携带内容
-发送时需带入以下内容（如当前场景支持）：
-- 用户输入文本
-- 当前选中 \`@标签\`
-- 已上传附件
-- 已上传图片
-- 已选择知识库
-
-
-### 5.4.3 用户输入内容发送后的意图识别
-参考下面的md文档（1.2首页通用智能体意图识别）
-
-
----
-
-## 5.5 附件与图片上传
-
-### 5.5.1 功能说明
-用户可在首页输入框区域上传附件和图片，作为输入上下文的一部分参与后续任务处理。
-
-### 5.5.2 附件展示规则（已确认）
-附件上传成功后，输入框区域展示附件卡片，卡片内容包括：
-- 文件类型 icon
-- 文件名
-- 格式名称（展示在文件名下方）
-
-### 5.5.3 文件名展示规则（已确认 + 待确认）
-1. 文件名需限制展示字符数，避免撑开布局
-2. 文件名单行展示
-3. 超出展示长度后以省略号截断
-
-#### 建议值（待确认）
-- 建议最多展示 **10 个中文字符**
-
-### 5.5.4 图片与文件展示规则
-建议图片上传成功后展示图片卡片，包含：
-- 图片缩略图
-
-建议图片上传成功后展示文件卡片，包含：
-- 文件icon
-- 文件名称
-- 文件格式名称
-
-### 5.5.5 上传成功后行为
-建议支持：
-- 展示已上传的文件与图片卡片
-
-### 5.5.6 上传限制
-建议补充明确以下规则：
-- 支持的文件格式（目前Aone支持的所有）
-- 最大上传数量（10个）
-- 单文件大小限制（待定）
-- 上传失败提示文案
-
----
-
-
-
-## 5.6 首页核心能力卡片
-
----
-
-### 5.6.1 故障根因分析模块
-
-#### 功能说明
-用于展示当前重点告警（前5条），并支持进入诊断页面或直接对单条告警发起分析。
-
-#### 交互规则
-1. 点击模块整块：
-   - 进入 **AI 诊断专家页面**
-2. 点击模块内某条告警卡片：
-   - 进入 **AI 诊断专家页面**
-   - 自动带入该条告警上下文
-   - 并 **直接开始分析**
-3. 当模块 **无告警数据时**：
-   - 展示 **空状态**
-
-#### 告警排序规则
-1. 一级排序：按告警严重级别降序排列  
-   \`严重 > 重要 > 次要 > 警告 > 信息\`
-2. 二级排序：同级别下按 **最新更新时间倒序**
-
----
-
-### 5.6.2 告警收敛模块
-
-#### 交互规则
-- 点击卡片整块：
-  - 进入 **告警收敛页面**
-
----
-
-### 5.6.3 运维知识专家模块
-
-#### 交互规则
-- 点击卡片整块：
-  - 进入 **告警收敛页面**
-- 当模块无数据时：
-  - 展示 **空状态**
-
----
-
-### 5.6.4 智能巡检助手模块
-
-#### 交互规则
-- 点击卡片整块：
-  - 进入 **AI巡检助手页面**
-- 当模块无数据时：
-  - 展示 **空数据状态**
-
----
-
-## 5.7 首页空状态规则
-
-### 5.7.1 顶部通知条
-- 无告警数据时隐藏
-
-### 5.7.2 故障根因分析模块
-- 无告警数据时展示空状态
-
-### 5.7.3 运维知识专家模块
-- 无数据时展示空状态
-
-### 5.7.4 智能巡检助手模块
-- 无数据时展示空数据状态
-
----
-
-## 6. 验收标准（Acceptance Criteria）
-
-### AC-01 顶部通知条展示
-- 当存在告警数据时，首页顶部展示通知条
-- 同一时刻仅展示 1 条告警
-
-### AC-02 顶部通知条轮播
-- 当存在多条告警时，通知条按滚动轮播形式展示
-
-### AC-03 顶部通知条隐藏
-- 当无告警数据时，通知条隐藏且不占位
-
-### AC-04 顶部通知条按钮跳转
-- 点击通知条操作按钮后，进入 AI 诊断助手页面
-- 自动带入当前展示的单条告警
-- 进入后直接开始分析
-
-### AC-05 \`@标签\` 单选
-- \`@标签\` 不支持多选
-- 选择新标签时替换旧标签
-
-### AC-06 \`@标签\` 选择时机
-- 用户可在输入前选择标签
-- 用户可在输入后再选择标签
-
-### AC-07 \`@标签\` 替换不清空内容
-- 用户切换标签时，输入内容保留
-
-### AC-08 \`@标签\` 取消
-- 点击已选中的同一个标签后，标签被取消
-
-### AC-09 \`@标签\` 与快捷指令联动
-- 已选标签后点击快捷指令，标签保持不变
-- 快捷指令内容写入输入框
-
-### AC-10 输入发送路由
-- 根据当前选中的唯一标签跳转到对应页面
-
-### AC-11 附件卡片展示
-- 附件上传成功后展示附件卡片
-- 卡片展示 icon、文件名、格式名称
-
-### AC-12 文件名截断
-- 文件名超出展示限制后，以省略号截断，不影响布局
-
-### AC-13 根因分析整块跳转
-- 点击根因分析整块进入 AI 诊断助手页面
-
-### AC-14 根因分析单条告警直达分析
-- 点击根因分析模块内某条告警卡片后：
-  - 进入 AI 诊断助手页面
-  - 自动带入告警
-  - 直接开始分析
-
-### AC-15 根因分析排序
-- 告警按严重级别降序展示
-- 同级别下按最新更新时间倒序展示
-
-### AC-16 告警收敛跳转
-- 点击告警收敛卡片进入告警收敛页面
-
-### AC-17 运维知识专家跳转
-- 点击运维知识专家卡片进入 AI知识专家页面
-
-### AC-18 智能巡检助手跳转
-- 点击智能巡检助手卡片进入 AI巡检助手页面
-
-### AC-19 根因分析空状态
-- 根因分析无告警数据时展示空状态
-
-### AC-20 运维知识专家空状态
-- 运维知识专家无数据时展示空状态
-
-### AC-21 智能巡检助手空数据状态
-- 智能巡检助手无数据时展示空数据状态
-
----
-
-## 7. 测试用例
-
----
-
-### TC-01 顶部通知条单条展示
-- **前置条件**：存在 1 条以上的告警数据
-- **操作步骤**：进入首页
-- **预期结果**：
-  - 顶部通知条展示
-  - 仅显示 1 条告警内容
-  - **单条规则**：告警单条规则为：告警设备+告警名称
-
----
-
-### TC-02 顶部通知条轮播展示
-- **前置条件**：存在多条告警数据
-- **操作步骤**：进入首页并观察通知条
-- **预期结果**：
-  - 顶部通知条以轮播方式展示多条告警
-  - 任一时刻仅显示 1 条
-
----
-
-### TC-03 顶部通知条隐藏
-- **前置条件**：无告警数据
-- **操作步骤**：进入首页
-- **预期结果**：
-  - 顶部通知条不展示
-  - 页面布局正常，无空白占位
-
----
-
-### TC-04 顶部通知条按钮跳转分析
-- **前置条件**：首页存在顶部告警通知条
-- **操作步骤**：点击通知条操作按钮
-- **预期结果**：
-  - 跳转至 AI 诊断助手页面
-  - 自动带入当前告警
-  - 自动开始分析
-
----
-
-### TC-05 输入前选择 \`@标签\`
-- **前置条件**：进入首页
-- **操作步骤**：
-  1. 先点击任一 \`@标签\`
-  2. 再输入文本
-- **预期结果**：
-  - 标签处于选中态
-  - 输入内容正常保留
-
----
-
-### TC-06 输入后选择 \`@标签\`
-- **前置条件**：进入首页
-- **操作步骤**：
-  1. 先输入文本
-  2. 再点击任一 \`@标签\`
-- **预期结果**：
-  - 标签选中成功
-  - 已输入文本不丢失
-
----
-
-### TC-07 \`@标签\` 替换
-- **前置条件**：已选中一个 \`@标签\`
-- **操作步骤**：点击另一个 \`@标签\`
-- **预期结果**：
-  - 原标签取消
-  - 新标签选中
-  - 输入内容保留
-
----
-
-### TC-08 \`@标签\` 取消
-- **前置条件**：已选中一个 \`@标签\`
-- **操作步骤**：再次点击当前已选标签
-- **预期结果**：
-  - 当前标签取消选中
-  - 输入框中的对应标签同步移除
-
----
-
-### TC-09 \`@标签\` 与快捷指令联动
-- **前置条件**：已选中任一 \`@标签\`
-- **操作步骤**：点击底部任一快捷指令
-- **预期结果**：
-  - 快捷指令内容写入输入框
-  - 当前标签保持不变
-
----
-
-### TC-10 \`@诊断专家\` 路由
-- **前置条件**：已选中 \`@诊断专家\`
-- **操作步骤**：输入内容并发送
-- **预期结果**：
-  - 跳转至 AI 诊断助手页面
-  - 带入当前输入内容及上下文
-
----
-
-### TC-12 \`@巡检助手\` 路由
-- **前置条件**：已选中 \`@巡检助手\`
-- **操作步骤**：输入内容并发送
-- **预期结果**：
-  - 跳转至 AI巡检助手页面
-
----
-
-### TC-13 \`@知识专家\` 路由
-- **前置条件**：已选中 \`@知识专家\`
-- **操作步骤**：输入内容并发送
-- **预期结果**：
-  - 跳转至 AI知识专家页面
-
----
-
-### TC-14 附件卡片展示
-- **前置条件**：选择并成功上传附件
-- **操作步骤**：观察输入框上传区域
-- **预期结果**：
-  - 展示附件卡片
-  - 包含 icon、文件名、格式名称
-
----
-
-### TC-15 文件名超长截断
-- **前置条件**：上传超长文件名附件
-- **操作步骤**：观察附件卡片
-- **预期结果**：
-  - 文件名按规则截断
-  - 不撑开布局
-  - 显示省略号
-
----
-
-### TC-16 根因分析整块跳转
-- **前置条件**：首页展示根因分析模块
-- **操作步骤**：点击模块整块
-- **预期结果**：
-  - 跳转至 AI 诊断助手页面
-
----
-
-### TC-17 根因分析单条告警直接分析
-- **前置条件**：根因分析模块存在告警卡片
-- **操作步骤**：点击某条告警卡片
-- **预期结果**：
-  - 跳转至 AI 诊断助手页面
-  - 自动带入该条告警
-  - 自动开始分析
-  - **单条规则**：告警单条规则为：告警级别+告警设备+告警名称
-
----
-
-### TC-18 根因分析排序验证
-- **前置条件**：根因分析模块存在多条不同等级及不同更新时间的告警
-- **操作步骤**：观察告警顺序
-- **预期结果**：
-  - 按严重级别降序排列
-  - 同级别下按最新更新时间倒序排列
-
----
-
-### TC-19 告警收敛跳转
-- **前置条件**：首页展示告警收敛模块
-模块中数据内容可参考「告警收敛」页面
-- **操作步骤**：点击告警收敛卡片
-- **预期结果**：
-  - 跳转至告警收敛页面
-
----
-
-### TC-20 运维知识专家跳转
-- **前置条件**：首页展示运维知识专家模块
-- **操作步骤**：点击运维知识专家卡片
-- **预期结果**：
-  - 跳转至 AI知识专家页面
-
----
-
-### TC-21 智能巡检助手跳转
-- **前置条件**：首页展示智能巡检助手模块
-- **操作步骤**：点击智能巡检助手卡片
-- **预期结果**：
-  - 跳转至 AI巡检助手页面
-
----
-
-### TC-22 根因分析空状态
-- **前置条件**：根因分析模块无告警数据
-- **操作步骤**：进入首页
-- **预期结果**：
-  - 模块展示空状态
-
----
-
-### TC-23 运维知识专家空状态
-- **前置条件**：知识专家模块无数据
-- **操作步骤**：进入首页
-- **预期结果**：
-  - 模块展示空状态
-  - 页面列表为用户发出提问的高频问题，从最多次到最低次展示，当次数一样时，按照最新时间排序
-
----
-
-### TC-24 智能巡检助手空数据状态
-- **前置条件**：巡检助手模块无数据
-- **操作步骤**：进入首页
-- **预期结果**：
-  - 模块展示空数据状态
-
----
-
-## 8. 待确认项
-
-以下内容建议在后续评审中补齐，以完善测试边界：
-
-1. 无 \`@标签\` 时发送消息的默认去向超级智能体助手
-2. 支持的文件格式清单（目前Aone支持的所有）
-3. 最大上传数量（10）
-4. 单文件大小限制（待定）
-5. 上传失败提示文案与样式
-6. 输入内容为空时发送按钮是否禁用
-
-
----` },
-      { id: 'home-intent', title: '首页输入内容意图识别', content: `# 通用智能体页「系统推荐转交」交互流程（含意图识别优先级）
-
-## 一、补充目标
-本补充规则用于完善首页「SRE超级助手」页面（以下称为通用智能体页）的以下能力：
-- 用户问题的意图识别优先级
-- 推荐转交按钮的触发条件
-- 问题留在通用智能体时的回答方式
-- 意图不明确场景下的引导逻辑
-
----
-
-## 二、意图识别优先级
-
-### 1. 路由原则
-系统对用户在首页提出的问题的处理优先级如下：
-
-#### 第一优先级：显式标签优先
-当用户输入中包含显式标签时，优先按显式标签路由：
-- \`@诊断专家\`
-- \`@巡检助手\`
-- \`@知识专家\`
-
-若命中显式标签：
-- 直接按标签进入对应智能体
-- 不再进入通用智能体的意图判断逻辑
-
----
-
-#### 第二优先级：关键词匹配（高置信度）
-当用户未使用显式标签时，系统优先根据关键词进行高置信度匹配。
-
-##### 诊断类关键词示例
-- 怎么回事
-- 原因
-- 报错
-- 异常
-- 慢
-- 高延迟
-- P99
-- P95
-- 超时
-- 失败
-- 错误
-- 故障
-- 分析
-
-##### 巡检类关键词示例
-- 检查
-- 告警
-- 巡检
-- 扫描
-- 健康
-- 状态
-- 有没有问题
-- SLA
-- 达标
-- 风险
-- 配置检查
-
-##### 知识类关键词示例
-- SOP
-- 文档
-- 怎么做
-- 如何
-- 步骤
-- 流程
-- 最佳实践
-- 规范
-- 手册
-- 知识
-- 知识库
-
-##### 通用类关键词示例
-- 你好
-- 帮我
-- 什么
-- 介绍
-- 能做什么
-- 最近
-- 总结
-- 概览
-
----
-
-#### 第三优先级：上下文延续
-当用户当前问题为明显追问，且当前会话已有上一个智能体上下文时：
-- 若识别为追问问题，则优先延续上一轮智能体上下文
-- 避免用户在连续追问时频繁跳转页面
-
-适用示例：
-- 上一轮已进入通用智能体场景语境，用户继续问：\`那根因更可能是什么？\`
-- 上一轮已进入诊断语境，用户继续问：\`那这个 SOP 的前置条件呢？\`
-
----
-
-#### 第四优先级：LLM 意图分类（中等置信度）
-当显式标签、关键词匹配、上下文延续都无法明确判断时：
-- 由 LLM 进行意图分类
-- 当分类置信度大于阈值（建议 \`0.8\`）时，按其识别结果处理
-
----
-
-#### 第五优先级：兜底到通用智能体
-当以上规则均无法形成明确结论时：
-- 问题留在通用智能体
-- 通用智能体先进行初步回答与引导
-
----
-
-## 三、通用智能体与推荐转交的关系
-
-### 1. 什么时候直接转交
-满足以下任一条件时，可推荐转交到专业智能体：
-- 命中显式专业标签
-- 关键词命中明显，且场景高度明确
-- LLM 意图分类置信度高
-- 用户问题具有明确执行目标（如创建巡检任务、排查异常、查看 SOP 来源）
-
----
-
-### 2. 什么时候留在通用智能体
-满足以下任一条件时，问题继续留在通用智能体：
-- 问题属于简单泛问答
-- 问题属于平台能力咨询
-- 问题属于概览 / 汇总 / 复合信息协调
-- 问题意图不明确
-- 当前更适合先做一轮澄清，而不是立即转交
-
----
-
-## 四、问题留在通用智能体时的回答模式
-
-当问题最终未被直接转交，而是留在通用智能体中时，通用智能体应根据问题类型采用不同回答模式。
-
----
-
-### 模式 1：简单问题直接回答
-
-#### 适用场景
-- 用户咨询平台能力
-- 用户进行泛问题提问
-- 用户问题无需进入专业智能体也可直接回答
-
-#### 示例
-用户问题：
-- \`你能做什么？\`
-
-通用智能体回答方式：
-- 直接说明能力范围，同时支持点击操作
-- 给出可继续操作的方向
-- 不强制推荐转交
-
-#### 示例回答结构
-- 我是 SRE 智能助手，可以帮你：
-  - [诊断故障和性能问题→] **（支持点击，并提示转到 AI诊断专家）**
-  - [巡检系统健康状态→] **（支持点击，并提示转到 AI巡检助手）**
-  - [查询运维知识和 SOP→] **（支持点击，并提示转到 AI知识专家）**
-  - [处理和分析告警→] **（支持点击，并提示转到 AI诊断专家）**
-- 欢迎您继续提问
----
-
-### 模式 2：复合问题协调回答
-
-#### 适用场景
-- 用户的问题不是单一子任务
-- 用户更像在问“整体情况”
-- 用户希望先看到概览，再决定深入哪个方向
-
-#### 示例
-用户问题：
-- \`最近系统有什么问题吗？\`
-
-通用智能体回答方式：
-- 不立即强制跳去某个专业智能体
-- 先给出多维度汇总结果
-- 再在不同模块结果中给出对应入口
-
-#### 示例回答结构
-- 告警情况（最近24小时）
-  - 3 条严重告警，2 条已处理
-  - \`[查看详情 →]\`
-- 性能诊断
-  - payment-svc P99 偏高（245ms）
-  - \`[深入分析 →]\`
-- 巡检结果
-  - 整体健康度 87%，有 3 个待优化项
-  - \`[查看报告 →]\`
-
-#### 交互特点
-- 此类回答不是单一“转交按钮”
-- 而是“通用协调回答 + 多入口继续深入”
-- 当用户点击其中一个入口后，跳转到对应的专业智能体页面，不需要用户确认，直接点击后跳转到专业智能体页面
-
----
-
-### 模式 3：意图不明确时引导
-
-#### 适用场景
-- 用户描述过于模糊
-- 系统无法准确判断其目标场景
-- 若直接转交，容易误判
-
-#### 示例
-用户问题：
-- \`帮我看看\`
-
-通用智能体回答方式：
-- 不直接转交
-- 给出可选方向，引导用户补充
-- 降低误跳转概率
-
-#### 示例回答结构
-- 好的，我可以帮你：
-  - 诊断某个服务的问题
-  - 巡检系统健康状态
-  - 查询运维文档
-- 请告诉我你想看什么？
-
-#### 推荐交互形式
-可在回答下方给出引导按钮：
-- \`诊断问题\`
-- \`查看巡检\`
-- \`选择文档查询\`
-
----
-
-## 五、推荐转交按钮触发规则（补充版）
-
-### 1. 诊断助手推荐触发
-当问题满足以下特征时，在回答下方展示：
-- \`转到 AI诊断专家\`
-
-#### 典型特征
-- 性能指标异常
-- 服务报错
-- 超时 / 失败 / 高延迟
-- 根因分析诉求
-- 日志分析诉求
-
-#### 示例问题
-- \`payment-svc 为什么 P99 飙升？\`
-- \`为什么最近接口老是超时？\`
-- \`这段报错日志帮我看下\`
-
----
-
-### 2. 知识专家推荐触发
-当问题满足以下特征时，在回答下方展示：
-- \`转到 AI知识专家\`
-
-#### 典型特征
-- 查询 SOP
-- 查询步骤 / 流程
-- 查询最佳实践
-- 查询规范 / 手册 / 文档
-
-#### 示例问题
-- \`K8s OOMKill 的 SOP 是什么？\`
-- \`Redis timeout 一般怎么处理？\`
-- \`这个流程在哪份文档里？\`
-
----
-
-### 3. 巡检助手推荐触发
-当问题满足以下特征时，在回答下方展示：
-- \`进入 AI巡检助手\`
-
-#### 典型特征
-- 创建巡检任务
-- 巡检规则配置
-- 定时巡检
-- 风险检查 / 健康检查
-
-#### 示例问题
-- \`帮我创建一个每日巡检任务\`
-- \`我想检查服务健康状态\`
-- \`想配一个 CPU 和内存巡检\`
-
----
-
-## 六、通用智能体推荐转交的最终判断逻辑
-
-### 判断顺序
-1. 是否存在显式标签（首页）  
-2. 是否命中高置信度关键词  
-3. 是否应延续上一轮上下文  
-4. 是否可由 LLM 高置信度分类  
-5. 若仍不明确，则留在通用智能体
-
-### 输出方式
-- 若识别明确：  
-  - 先给简要回答  
-  - 再推荐转交按钮
-- 若识别不明确：  
-  - 留在通用智能体  
-  - 用澄清式回答引导用户补充
-- 若属于复合问题：  
-  - 通用智能体先协调输出概览  
-  - 再提供多个方向入口
-
----
-
-## 七、测试关注点（补充）
-
-### 1. 意图识别优先级是否生效
-- 显式标签是否覆盖关键词判断
-- 关键词匹配是否先于 LLM 分类
-- 上下文追问是否正确延续
-- 未命中时是否正确兜底到通用智能体
-
-### 2. 通用智能体回答模式是否符合问题类型
-- 简单问题是否直接回答
-- 复合问题是否输出协调型概览
-- 模糊问题是否先澄清再引导
-
-### 3. 推荐按钮是否与问题类型一致
-- 诊断类 → AI诊断助手
-- 知识类 → AI知识专家
-- 巡检类 → AI巡检助手
-
-### 4. 跳转交互保持一致
-- 当用户点击其中一个入口后，跳转到对应的专业智能体页面
-
----` }
-    ]
-  },
-  {
-    id: 'diagnostic',
-    title: '诊断专家',
-    icon: <Activity size={16} />,
-    children: [
-
-      { id: 'diag-rules', title: '诊断通用交互规则', content: `# AI 诊断助手页面交互说明（测试版）
-
----
-
-## 1. 文档目的
-
-本文档用于明确 **AI 诊断助手页面** 的页面结构、核心交互、状态流转、异常处理与测试关注点，供测试人员进行功能验证、交互验收与边界场景覆盖。
-
----
-
-## 2. 页面定位
-
-AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故障诊断，并基于 AI 完成根因分析、自愈建议查看、报告查阅与知识归档。
-
-页面由两部分组成：
-
-- 左侧：告警列表区
-- 右侧：诊断工作区
-
----
-
-## 3. 页面结构说明
-
-### 3.1 左侧告警列表区
-
-包含以下模块：
-
-- 告警列表标题区
-- 搜索框
-- 筛选区
-- 告警卡片列表
-
-### 3.2 右侧诊断工作区
-
-包含以下模块：
-
-- 面包屑/当前功能标识区
-- 欢迎态 / 空状态内容区
-- AI 对话 / 任务流展示区
-- 底部输入框
-- 输入框上方的“已选告警吸附区”
-
----
-
-## 4. 告警列表规则
-
-### 4.1 排序规则
-
-左侧告警列表默认按以下规则排序：
-
-#### 一级排序：告警严重级别降序
-排序优先级为：
-
-1. 严重
-2. 重要
-3. 次要
-4. 警告
-5. 信息
-
-#### 二级排序：同级别内按最新更新时间倒序
-即：
-- 同一严重级别下，更新时间越新，越靠上展示
-
----
-
-### 4.2 告警卡片基础信息
-
-每张告警卡片需至少展示：
-
-- 告警级别
-- 告警类型
-- 告警标题
-- 所属对象/服务名
-- 收敛数量（如有）
-- 触发时间（当天触发：HH:MM:SS； 非当天触发：MM-DD HH:mm； 跨年触发：YYYY-MM-DD HH:mm；）
-- 操作按钮：\`一键诊断\`
-
----
-
-### 4.3 告警卡片可执行动作
-
-每张告警卡片支持两类独立操作：
-
-#### 操作 A：点击卡片主体
-用于“选中告警”，不直接启动诊断流程，将吸附在右侧输入框顶部，支持与自然语言一起发送给AI。
-
-#### 操作 B：点击「一键诊断」
-用于直接启动该告警的根因分析流程。
-
----
-
-## 5. 告警卡片交互规则
-
-### 5.1 点击卡片主体：选中逻辑
-
-当用户点击告警卡片主体时：
-
-#### 系统行为
-- 该卡片进入“选中态”
-- 右侧输入框上方生成一条“已选告警吸附卡片”
-- 右侧不立即进入根因分析流程
-- 输入框保留可继续输入的能力
-
-#### 设计意图
-- 支持用户先绑定告警上下文，再补充问题后发起诊断
-- 满足“带上下文提问”而不是“立即分析”的使用场景
-
----
-
-### 5.2 吸附卡片规则
-
-当左侧告警被选中后，右侧输入框上方需展示对应的吸附卡片。
-
-#### 吸附卡片展示内容建议
-- 告警标题
-- 严重级别
-- 来源
-- 类型（指标/链路/日志/拨测/其他）
-- 持续时间
-- 触发时间
-- 可选：移除按钮 / 取消选择按钮
-
-#### 吸附规则
-- 同一时刻仅允许吸附 1 条告警
-- 若用户再次点击其他告警卡片，则替换当前吸附内容
-- 吸附后输入框仍可继续输入文本
-- 吸附卡片仅表示“上下文绑定成功”，不代表已启动分析
-
----
-
-### 5.3 点击「一键诊断」：直接诊断逻辑
-
-当用户点击某张告警卡片上的 \`一键诊断\` 按钮时：
-
-#### 系统行为
-- 自动将该告警作为当前诊断对象
-- 若右侧已有其他吸附告警，则替换为当前告警
-- 直接进入根因分析流程
-- 右侧从空状态切换为“AI 任务流执行态”
-
-#### 设计原则
-根据既有规范，点击告警卡片仅完成上下文绑定，必须点击 \`一键诊断\` 才真正启动诊断流程。
-
----
-
-## 6. 右侧工作区状态定义
-
-### 6.1 空状态
-
-触发条件：
-- 页面初次进入
-- 当前未选中任何告警
-- 未发起任何诊断任务
-
-展示内容：
-- AI 诊断专家说明文案
-- 输入框占位提示
-- 不展示任务流内容
-
----
-
-### 6.2 已选中未诊断状态
-
-触发条件：
-- 用户点击左侧告警卡片主体
-- 尚未点击 \`一键诊断\`
-- 尚未发送输入框内容触发诊断
-
-展示内容：
-- 输入框上方显示吸附告警卡片
-- AI 主体区域仍可为默认态，或进入“待发起诊断”提示态
-- 用户可继续补充文本后发起分析
-
----
-
-### 6.3 诊断进行中状态
-
-触发条件：
-- 用户点击 \`一键诊断\`
-- 或用户在吸附告警后，通过输入框发送诊断请求
-
-展示内容：
-- 右侧进入任务流执行区
-- 展示阶段进度、执行状态、关键结果
-- 输入框可根据产品策略设为可继续追问，或在执行中临时限制重复触发
-
----
-
-### 6.4 诊断完成状态
-
-触发条件：
-- 根因分析流程全部执行完成
-
-展示内容：
-- 根因结论
-- 推荐操作
-- 根因分析报告入口
-- 归档到知识库入口
-
----
-
-## 7. 根因分析主流程
-
-根因分析流程采用三步任务流结构：
-
-### Step 1：告警解析与拓扑发现
-对应阶段：初始化调查与范围界定。
-
-#### 触发方式
-- 用户点击 \`一键诊断\`
-
-#### 系统动作
-- 自动提取告警元数据：对象、时间、级别等
-- 调用拓扑图谱 API，识别受影响调用链路
-- 在任务流中展示关键调用路径
-- 当前步骤状态更新为“解析完成 / 拓扑调用成功”
-
----
-
-### Step 2：多智能体并行诊断
-对应阶段：深度证据探索与路径验证。
-
-#### 系统动作
-- 分配多个分析智能体并行执行
-- 分析链路
-- 采集指标
-- 识别监控缺失、调用失败、接口异常等证据
-- 实时展示各分析器状态：运行中 / 成功 / 失败
-
-#### 页面要求
-- 每个分析节点需有状态标识
-- 失败与异常证据需可见，不可静默吞掉
-
----
-
-### Step 3：结果汇总与自愈方案
-对应阶段：根因确认、结论输出与操作落地。
-
-#### 系统动作
-- 汇总所有分析证据
-- 输出结构化根因结论
-- 输出推荐操作建议
-- 提供三个核心操作入口：
-  - \`一键执行自愈\`
-  - \`根因分析报告\`
-  - \`归档\`
-
-#### 页面要求
-- 根因结论需清晰可读
-- 推荐操作与报告入口需在分析完成后出现
-- 任务流状态更新为“已完成”
-
----
-
-## 8. 结果区后续交互
-
-### 8.1 点击「一键执行自愈」
-
-点击后不弹窗，而是在 AI 对话流中插入一张“操作授权卡片”。
-
-#### 卡片需包含
-- 风险提示
-- 执行预览（Dry Run）
-- 影响范围
-- 操作按钮：
-  - \`取消\`
-  - \`授权并执行\`
-
-#### 用户点击授权并执行后
-- 卡片切换为执行日志视图
-- 实时滚动展示执行日志
-- 最终输出执行成功或失败结论
-
----
-
-### 8.2 点击「根因分析报告」
-
-点击后从右侧滑出全屏抽屉，或以宽屏模态形式展示完整报告。
-
-#### 报告内容应包含
-1. Header 区
-2. 执行摘要
-3. 故障时间轴
-4. 拓扑与证据快照
-5. 后续预防建议
-
-#### 支持操作
-- 导出
-- 分享
-- 关联知识库/工单
-
----
-
-### 8.3 点击「归档到知识库」
-
-该入口应出现在根因分析完成后的结果区域底部，为弱化按钮，不打断主流程。
-
-#### 初始态
-- 展示按钮： \`归档\`
-
-#### 点击后
-在按钮下方 Inline 展开归档区，不使用弹窗。
-
-展开后字段：
-- 知识库选择器
-- 确认归档按钮
-
-#### 交互规则
-- 未选择知识库时，确认按钮禁用
-- 选择知识库后，确认按钮可点击
-- 点击确认后调用归档接口
-- 成功后展示：
-  - \`已归档到 xxx 知识库\`
-  - \`文档名称\`
-  - \`查看知识库\`
-
----
-
-## 9. 状态流转关系
-
-### 9.1 左侧告警卡片状态
-
-告警卡片可存在以下状态：
-
-- 默认态
-- Hover态
-- 选中态
-- 诊断中态
-- 不可操作态（异常情况下）
-
----
-
-### 9.2 右侧工作区状态流转
-
-主状态流转如下：
-
-\`空状态\`
-→ \`已选中未诊断\`
-→ \`诊断进行中\`
-→ \`诊断完成\`
-→ \`自愈执行中 / 报告查看 / 归档展开\`
-
----
-
-## 10. 异常与边界场景
-
-### 10.1 告警选择相关
-
-#### 场景 1：重复点击同一张卡片
-预期：
-- 保持选中态
-- 不重复生成多个吸附卡片
-
-#### 场景 2：已有吸附卡片时再选另一张
-预期：
-- 替换为新卡片
-- 不允许多条同时吸附
-
-#### 场景 3：点击卡片后未做任何操作
-预期：
-- 仅完成绑定，不自动分析
-
----
-
-### 10.2 一键诊断相关
-
-#### 场景 4：连续快速点击一键诊断
-预期：
-- 仅触发一次有效请求
-- 按钮进入 loading 或禁用态，防止重复发起
-
-#### 场景 5：诊断接口失败
-预期：
-- 右侧显示失败提示
-- 保留当前告警上下文
-- 支持重试
-
-#### 场景 6：拓扑接口失败但基础诊断仍可继续
-预期：
-- 明确提示拓扑获取失败
-- 保留后续步骤可继续执行的能力，或按策略中断并提示原因
-
----
-
-### 10.3 归档相关
-
-#### 场景 7：未选择知识库直接确认
-预期：
-- 按钮不可点击
-
-#### 场景 8：归档接口失败
-预期：
-- 展示失败提示
-- 支持重试
-- 不影响已有诊断结果查看
-
----
-
-### 10.4 自愈相关
-
-#### 场景 9：执行授权后日志中断
-预期：
-- 显示执行异常状态
-- 输出失败原因或超时提示
-- 不可只停留在 loading
-
----
-
-## 11. 测试重点建议
-
-### 11.1 核心功能验证
-- 告警列表排序是否符合“严重级别优先 + 同级按更新时间倒序”
-- 点击卡片是否仅选中，不触发诊断
-- 点击一键诊断是否直接进入根因分析
-- 吸附卡片是否只允许单条存在
-- 诊断流程是否严格按步骤流转
-- 分析完成后是否展示推荐操作、报告入口、归档入口
-
-### 11.2 状态验证
-- 卡片选中态是否清晰
-- 任务流各步骤状态是否正确
-- 按钮 loading / disabled / success / error 是否完整
-
-### 11.3 边界验证
-- 快速重复点击
-- 网络慢 / 超时 / 接口失败
-- 告警切换时上下文替换是否正确
-- 报告与归档入口在异常情况下是否仍能正确展示或禁用
-
-### 11.4 一致性验证
-- 左侧当前操作对象与右侧诊断对象是否始终一致
-- 一键诊断触发对象是否与吸附对象一致
-- 归档内容是否对应当前分析结果，而非历史结果
-
----
-
-## 12. 验收口径
-
-满足以下条件可视为交互验收通过：
-
-1. 左侧列表排序规则准确无误
-2. 卡片点击与一键诊断两类动作语义清晰且不混淆
-3. 右侧吸附机制稳定，仅单条存在
-4. 根因分析流程可完整执行并正确展示状态
-5. 分析结果后的自愈、报告、归档入口完整可用
-6. 异常场景下有明确反馈，不出现静默失败或状态错乱` },
-      { id: 'diag-archive', title: '归档交互流程', content: `# AI SRE - 根因分析报告归档交互方案
-
----
-
-## 一、设计目标
-
-在 AI 完成根因分析后，提供一个轻量入口，引导用户将本次分析报告归档到指定知识库，形成可复用的运维知识资产。
-
-设计原则：
-- 不打断主流程（诊断 / 执行操作）
-- 操作路径最短（1次选择 + 1次点击）
-- 无额外填写成本
-- 渐进式交互（按需展开）
-
----
-
-## 二、交互位置
-
-所属区域：右侧 AI 诊断结果面板底部
-
-层级关系（从上到下）：
-1. 根因结论（ROOT CAUSE）
-2. 推荐操作（RECOMMENDED PLANS）
-3. 主操作按钮（建议执行自愈 / 根因分析报告）
-4. ↓（新增按钮）
-5. [归档到知识库]
-
-界面结构：
-
-[建议执行自愈]   [根因分析报告]  
-↓  
-[归档到知识库]
-
----
-
-## 三、交互方式（按钮触发）
-
-初始形态：
-
-[归档到知识库]
-
-类型：Secondary Button（弱于主操作）
-
-设计意图：
-- 不打断用户主任务（处理故障）
-- 提供明确但低干扰的知识沉淀入口
-
----
-
-## 四、点击后展开（Inline 展开，不弹窗）：
-
-📚 归档到知识库  
-[选择知识库 ▼]     [确认归档]
-
-展开方式说明：
-- 默认采用 Inline 展开（按钮下方展开）
-- 不遮挡当前诊断内容
-- 不允许使用 Modal（避免打断流程）
-- 空间不足时可降级为 Popover
-
----
-
-## 五、字段设计
-
-1. 知识库选择器
-
-类型：Dropdown（下拉选择）
-
-默认值策略：
-- 优先使用「最近使用的知识库」
-- 若无历史记录 → 默认「SRE故障案例库」
-
-下拉内容：
-- 最近使用的知识库
-- 没有使用过的展示系统默认知识库
-
----
-
-2. 标题（系统自动生成，不展示）
-
-标题由系统自动生成，不在当前界面展示，也不可编辑。
-
-生成规则：
-{服务名} + {问题描述} + {告警ID}
-
-示例：
-- order-service 错误率升高根因分析报告
-- payment P99 延迟告警根因分析报告
-- 数据库连接异常根因分析报告
-
----
-
-3. 确认归档按钮
-
-类型：Primary Button
-
-状态规则：
-- 未选择知识库 → disabled
-- 已选择知识库 → active（可点击）
-
----
-
-## 六、交互流程
-
-Step 1：AI分析完成  
-系统展示：
-- 根因结论
-- 推荐操作
-- 页面底部出现「归档」按钮
-
----
-
-Step 2：用户点击按钮  
-系统行为：
-- 在按钮下方展开归档操作区域
-
----
-
-Step 3：用户选择知识库  
-用户行为：
-- 点击下拉框
-- 选择目标知识库
-
-系统行为：
-- 激活「确认归档」按钮
-
----
-
-Step 4：用户确认归档  
-用户行为：
-- 点击「确认归档」
-
-系统行为：
-- 调用归档接口
-- 将本次根因分析报告写入知识库
-
----
-
-Step 5：归档成功反馈  
-
-界面状态更新为：
-
-✅ 已归档到「SRE故障案例库」  
-[查看知识库]
-
-同时提示 Toast：
-
-根因分析报告已成功归档到知识库
-
----
-
-## 七、状态设计
-
-初始态：
-[归档到知识库]
-
----
-
-展开态（未选择）：
-
-📚 归档到知识库  
-[选择知识库 ▼]     [确认归档（disabled）]
-
----
-
-展开态（已选择）：
-
-📚 归档到知识库  
-[已选择：SRE故障案例库 ▼]     [确认归档]
-
----
-
-成功态：
-
-✅ 已归档到「SRE故障案例库」  
-[查看知识库]
-点击后跳转新窗口打开该知识库
-
----
-
-异常态（可选）：
-
-归档失败，请稍后重试  
-[重试]
-
----
-
-## 八、交互约束
-
-- 不弹窗（避免打断诊断流程）
-- 不强制用户归档
-- 不提供“取消/不归档”按钮（用户可忽略）
-- 不展示标签、分类、结构化字段
-- 不展示内容预览
-- 不允许编辑标题
-- 保持最小操作路径（选择 + 点击）
-
----
-
-## 九、设计总结
-
-该方案实现：
-- 极简交互（最低操作成本）
-- 非侵入式体验（不打断用户主流程）
-- 清晰闭环（诊断 → 归档 → 知识沉淀）
-- 可扩展能力（未来可接入AI推荐、分类、去重等）
-
----
-
-## 十、未来扩展（非当前版本）
-
-（不在本期实现）
-
-- AI推荐知识库
-- 相似案例检测（去重）
-- 自动分类（问题类型）
-- 知识库结构化增强
-- 与AI知识助手联动（RAG）` },
-    ]
-  },
-  {
-    id: 'knowledge',
-    title: '知识专家',
-    icon: <BookOpen size={16} />,
-    children: [
-
-      { id: 'know-flow', title: '知识检索交互流程规则', content: `# AI 运维知识助手 Markdown 文档
-
-## 一、产品定位
-
-AI 运维知识助手是一个融合以下能力的运维知识工作台：
-
-- 知识浏览（Browse）
-- AI 问答（Ask）
-- 数据溯源（Trace）
-
-系统基于企业内部知识库，为用户提供：
-
-- 标准操作流程（SOP）查询
-- 架构与系统说明
-- 故障排查与复盘经验
-- 结构化运维建议
-- 可验证的答案来源
-
----
-
-## 二、设计目标
-
-### 核心目标
-
-1. 提供 AI + 文档双路径获取知识
-2. 提升运维问题定位效率
-3. 确保答案可信（可溯源）
-4. 支持从“查文档”到“问问题”的自然过渡
-
-### 设计原则
-
-- 所有回答支持可溯源
-- 默认简洁，按需展开信息
-- 输出结构化优于对话式
-- 明确能力边界（避免误导）
-- 浏览与问答分离但可切换
-- 检索过程透明化（增强可信度）
-
----
-
-## 三、关键能力边界（必须明确）
-
-- AI 回答粒度：知识库级（Knowledge Base Level）
-
-### 当前不支持
-
-- 基于单文档回答
-- 限定某一文档范围提问
-
----
-
-## 四、页面信息架构
-
-页面结构分为：
-
-- 主工作区（知识库选择/问答）
-- 右侧：溯源抽屉（默认隐藏，按需触发）
-
----
-
-## 五、核心模式划分
-
-
----
-
-## 六、知识浏览流程
-
-### 流程 1：进入知识库
-
-#### 用户操作
-
-- 点击选择知识库
-
-#### 气泡展示
-
-- 知识库名称
-- 标签
-- 更新时间
-- xx 篇文档
-- 全选按钮
-
-
-#### 操作区
-
-- ✔ 去 AI 助手提问（基于当前选择的知识库/未选择时按照通用场景考虑）
-- ✔ 加入当前问答范围（知识库级）
-
-#### 关键提示
-
-- AI 回答基于整个知识库生成，而非当前文档
-
----
-
-## 七、AI 问答流程（增强版）
-
-### 流程 3：选择知识库
-
-当前知识范围：
-
-- [标准 SOP]
-- [架构文档]
-
-
-
-### 流程 4：输入问题
-
-请输入运维问题、故障现象或日志信息。
-
-### 流程 5：AI 检索与生成（核心增强）
-
-#### 5.1 检索阶段总览
-
-正在基于所选知识库检索相关内容...
-
-#### 5.2 检索过程分阶段展示
-
-##### 阶段 1：问题解析
-
-- 阶段 1：问题语义理解
-
-识别信息：
-
-- 故障对象：pod
-- 故障现象：持续重启
-- 关键词：CrashLoopBackOff / 启动失败
-
-##### 阶段 2：知识库检索
-
-- 阶段 2：检索方式
-
-已检索关键词：
-
-- 标准 SOP
-- Kubernetes 手册
-
-
-##### 阶段 3：命中文档筛选
-
-- 阶段 3：候选文档召回
-
-高相关文档片段统计（Top 8），并根据初步分值进行第一次过滤，并保留x篇核心文档：
-
-
-##### 阶段 4：证据提取与归纳
-
-- 阶段 4：重排序&片段精提
-
-提取结果：
-
-- 保留最相关片段：x 段
-- 相似度：0.91/0.87
-
-
-##### 阶段 5：生成回答
-
-- 阶段 5：构建上下文
-
-#### 5.3 展示策略
-
-- 检索过程中：默认展示
-- 检索完成后：自动收起
-- 支持「查看知识检索过程」展开完整过程
----
-
-
-## 九、数据溯源机制（增强版）
-
-### 9.1 来源摘要
-
-- [查看来源]
-
-### 9.2 来源详情（抽屉）
-
-每条来源包含：
-
-- 文档名称：Pod 重启排查 SOP
-- 相关度：0.92
-- 命中章节：pod 重启
-- 标签
-- [跳转查看原文]
-
-
-### 9.3 原文片段
-
-- 高亮展示
-- 标识引用位置
-- 展示所属的页码 
-
-
----
-
-## 十、推荐追问
-
-- 标准 SOP 是什么？
-- 历史案例有哪些？
-- 如何确认根因？
-
----
-
-## 十一、继续追问
-
-- 保持上下文
-- 基于当前知识范围
-
----
-
-## 十二、异常与边界
-
-### 未选择知识库
-
-支持通用回答
-
-### 未命中
-
-建议扩大范围或补充信息。
-
-### 命中不足
-
-当前回答基于少量资料，请谨慎参考。
-
-### 文档异常
-
-- 空
-- 加载失败
-
----
-
-## 十三、核心流程总结
-
-
-### 问答路径
-
-选择知识库 → 输入问题 → 检索 → 回答 → 查看来源 → 抽屉 → 继续追问
-
----
-
-## 十四、设计策略总结
-
-### 1. 双路径
-
-问答
-
-### 2. 渐进式信息
-
-默认简洁 → 按需展开
-
-### 3. 检索透明化（核心升级）
-
-让用户看到：
-
-- 检索范围
-- 命中数量
-- 文档质量
-- 证据来源
-
-### 4. 用溯源建立信任
-
-- AI 总结
-- 用户验证
-
-### 5. 明确能力边界
-
-避免误解 AI 精度
-
----
-
-## 十五、组件定位
-
-### 组件名称
-
-检索过程摘要组件（Retrieval Summary）
-
-### 放置位置（非常关键）
-
-👉 放在 AI 回答卡片顶部
-
-
-### 二、默认展示（核心 UI）
-
-#### 2.1 完成态（最终效果）
- 
-[知识检索过程]
-
-#### 2.2 加载态
-
-🔍 知识检索过程...
-
-
-
-### 三、交互行为
-
-#### 4.1 点击行为
-
-点击「知识检索过程」  
-👉 展开一个折叠面板（Accordion）
-
-#### 4.2 收起行为
-
-- 再次点击 → 收起
-
-
----` },
-    ]
-  },
-  {
-    id: 'inspection',
-    title: '巡检助手',
-    icon: <FileText size={16} />,
-    children: [
-      { id: 'ins-targets', title: '巡检对象选择提示交互逻辑', content: `# AI巡检助手 - 巡检对象选择数量提示交互（原型生成版）
-
-## 一、页面说明
-该页面为「AI巡检助手 - 新建任务」流程中的「巡检对象选择」步骤。  
-用户在右侧面板中选择巡检对象，系统在底部实时反馈选择数量及对应的报告生成成本（时间 & 性能风险）。
-
----
-
-## 二、页面结构
-
-### 布局
-- 左侧：巡检对象分类列表（数据库 / Redis / MQ / 应用服务 / 云主机 / VPC 等）
-- 右侧：对象选择列表（支持勾选）
-- 顶部：搜索框（按名称筛选对象）
-- 底部：状态提示区 + 操作按钮
-
----
-
-## 三、底部状态提示区（核心交互）
-
-### 位置
-固定在选择面板底部，紧邻「确认执行」按钮
-
-### 结构
---------------------------------------------------
-| 共选中：X 项 | 状态提示信息                     |
-|                                                |
-|                          [确认执行]             |
---------------------------------------------------
-
----
-
-## 四、交互逻辑
-
-### 1. 初始状态（未选择）
-- 共选中：0 项  
-- 提示文案：
-  将根据所选巡检对象生成 AI 巡检报告，选择数量越多，生成耗时越长  
-- 按钮状态：
-  [确认执行] 禁用
-
----
-
-### 2. 实时反馈机制
-用户每勾选 / 取消勾选对象时：
-- 实时更新：
-  - 已选数量（X）
-  - 预计生成时间
-  - 风险提示等级
-- 无需点击确认即可动态变化
-
----
-
-## 五、数量分级策略
-
-| 等级 | 数量范围 | 状态 | UI表现 | 是否允许执行 |
-|------|----------|------|--------|--------------|
-| L1 | 1 ~ 10 | 正常 | 默认颜色（灰） | 是 |
-| L2 | 11 ~ 20 | 提醒 | 蓝色提示 | 是 |
-| L3 | 21 ~ 30 | 警告 | 黄色提示 | 是 |
-| L4 | > 30 | 超限 | 红色提示 | 否 |
-
----
-
-## 六、提示文案规则
-
-### L1 正常状态（1~10）
-共选中：6 项  
-预计报告生成时长：约 30s ~ 1min  
-
----
-
-### L2 提醒状态（11~20）
-共选中：14 项  
-巡检范围较大，预计报告生成时间将有所增加（约 1~3 分钟）
-
----
-
-### L3 警告状态（21~30）
-共选中：26 项  
-当前巡检范围较大，可能导致报告生成时间明显变长，建议缩小范围或分批执行（约 3~6 分钟）
-
-UI要求：
-- 文案颜色：黄色
-- 可配警告图标（⚠️）
-
----
-
-### L4 超限状态（>30）
-共选中：32 项  
-已超出单次巡检建议上限，可能影响系统性能与报告稳定性，请减少巡检对象数量后再执行
-
-UI要求：
-- 文案颜色：红色
-- 按钮禁用
-
----
-
-## 七、按钮状态逻辑
-
-### 「确认执行」按钮规则
-- 未选择：禁用
-- L1 / L2 / L3：可点击
-- L4：禁用
-
----
-
-### 禁用提示（hover 或下方提示）
-当前选择数量已超出上限（最多 30 项）
-
----
-
-## 八、时间估算规则（用于显示，待定）
-
-| 数量范围 | 时间估算 |
-|----------|----------|
-| 1~5 | 30s 内 |
-| 6~10 | 30s ~ 1min |
-| 11~20 | 1~3 min |
-| 21~30 | 3~6 min |
-| >30 | 不支持 |
-
-说明：
-- 时间为区间估算，不要求精确
-- 可根据后端能力动态调整
-
----
-
-## 九、辅助信息（顶部说明）
-
-在选择面板顶部增加一行说明：
-
-建议单次巡检对象不超过 30 项
-
----
-
-## 十、用户完整流程
-
-1. 用户点击「新建任务」
-2. 进入巡检对象选择界面
-3. 用户开始勾选巡检对象
-4. 底部状态区实时反馈：
-   - 已选数量
-   - 预计耗时
-   - 风险等级
-5. 当数量增加：
-   - 提示从正常 → 提醒 → 警告
-6. 当超过上限：
-   - 提示变为红色
-   - 「确认执行」禁用
-7. 用户调整选择数量
-8. 点击「确认执行」
-9. 进入 AI 巡检分析流程
-
----
-
-## 十一、设计原则
-
-- 即时反馈：选择即看到成本变化
-- 渐进提示：从轻提示到强限制
-- 明确边界：提供清晰上限（30项）
-- 避免打断：仅在超限时强制拦截
-
----` },
-      { id: 'ins-full-flow', title: '巡检整体交互流程', content: `# AI 巡检助手交互与分析方案
-
-## 1. 巡检对象类型
-
-系统支持多类型巡检对象（统一抽象），根据当前采集情况判断：
-
-- 主机（Host）
-- 应用服务（Service）
-- 容器 / Pod（Container）
-- 数据库（Database）
-- 中间件（Middleware）
-
----
-
-## 2. 每个巡检对象的基础信息
-
-### 2.1 基础属性
-
-- 对象名称（如：\`order-service\` / \`10.0.1.45\`）
-- 类型（Service / Host 等）
-- 所属环境（\`prod\` / \`staging\`）
-- 所属集群
-- 最近部署时间（可选）
-
----
-
-## 3. 核心指标结构（用于详情页展示）
-
-### 3.1 资源类指标
-
-- CPU 使用率（%）
-- 内存使用率（%）
-- 磁盘使用率（%）
-
-### 3.2 运行状态指标
-
-- 线程数（Thread Count）
-- 负载（Load Average）
-- 进程状态（Running / Crash）
-
-### 3.3 JVM / 应用指标（如适用）
-
-- Heap 使用率（Eden / Old Gen）
-- GC 次数（Minor / Full）
-- GC 停顿时间（Pause Time）
-
-### 3.4 业务与错误指标
-
-- 错误率（Error Rate）
-- 请求成功率
-- QPS / TPS
-- 异常日志数量
-
----
-
-## 4. 整体架构
-
-### 4.1 页面结构
-
-**一级页面：巡检任务面板**
-
-- 左侧：任务列表
-- 右侧：AI 对话面板（支持分析选中任务）
-
-↓
-
-**二级页面：任务详情页**
-
-- 左侧：任务详情（数据与证据）
-- 右侧：AI 对话面板（分析当前任务）
-
-↑ 支持返回一级页面
-
----
-
-## 5. 核心设计原则
-
-- 分层结构：列表页 → 详情页
-- 左侧负责数据（What）
-- 右侧负责分析（Why + Next）
-- AI 分析由用户手动触发
-- 页面支持返回，保持操作路径清晰
-
----
-
-## 6. 主流程（核心用户路径）
-
-### 6.1 用户进入巡检任务面板
-
-- 浏览任务列表
-- 识别异常 / 高风险任务
-
-### 6.2 用户选择任务
-
-路径：
-
-- 点击「开始分析」
-- 右侧 AI 面板开始分析（不跳转页面）
-
-### 6.3 AI 输出结果
-
-- 右侧 AI 输出分析过程与结果
-- 用户执行推荐动作
-
----
-
-## 7. 一级页面：巡检任务面板
-
-### 7.1 任务列表
-
-#### 功能
-
-- 展示巡检任务卡片
-- 支持任务选择
-- 支持任务分析
-
-#### 卡片信息结构
-
-每个巡检任务卡片包含：
-
-- 任务名称
-- 巡检对象（根据当前采集的资源类型）
-- 当前状态（根据当前可采集到的状态：巡检中 / 已结束）
-- 风险等级（根据当前可采集到的等级：健康 / 异常）
-- 异常摘要（简要描述问题，根据可实现情况可选展示）
-- 最近更新时间
-
-#### 卡片操作
-
-- 主按钮：「开始分析」
-- 点击卡片：吸附在输入框上方，作为提问上下文
-
-#### 状态流转
-
-\`未分析 → 分析中 → 查看报告\`
-
----
-
-### 7.2 AI 对话面板（右侧）
-
-#### 功能
-
-- 支持分析当前选中任务
-- 展示分析过程与结果
-
-#### 未分析状态
-
-当未触发分析时：
-
-> 当前任务尚未进行 AI 分析
-
-按钮：
-
-- 「开始分析」
-
-#### 分析触发
-
-用户点击「开始分析」后：
-
-- AI 开始分阶段分析
-- 右侧展示分析过程
-
----
-
-## 8. 关键交互补充
-
-### 8.1 分析中
-
-- 按钮显示 Loading 状态
-- AI 流式输出分析过程
-
-### 8.2 已分析
-
-- 展示「查看报告」
-- 支持重新分析
-- 若定时巡检任务完成后需要自动分析，则自动生成巡检报告，无需人工手动点击分析
-
----
-
-## 9. 系统能力边界
-
-### 9.1 当前支持
-
-- 异常识别
-- 分阶段分析
-- 推荐分析动作
-
-### 9.2 暂不支持
-
-- 自动修复
-- 长期优化建议
-
----
-
-## 10. AI 分析流程（分阶段 · 可视化增强版）
-
-### 阶段 1：启动调查（Initialization）
-
-#### 目标
-
-识别巡检对象与异常入口，建立分析上下文。
-
-#### AI 行为
-
-- 确认巡检对象（类型 / 名称 / 环境）
-- 加载基础指标数据（CPU / 内存 / GC / 错误率等）
-- 获取最近时间窗口数据（如近 30 分钟）
-- 初步识别异常指标（超过阈值或明显偏离基线）
-
-#### 输出（结构化 + 数据化）
-
-##### （1）巡检对象信息
-
-| 字段 | 内容 |
-|---|---|
-| 对象名称 | order-service |
-| 类型 | Service |
-| 环境 | prod |
-| 集群 | cluster-A |
-
-##### （2）关键指标快照
-
-| 指标 | 当前值 | 阈值 | 状态 |
-|---|---:|---:|---|
-| CPU 使用率 | 92% | 80% | 异常 |
-| 内存使用率 | 88% | 80% | 偏高 |
-| 错误率 | 3.2% | 1% | 异常 |
-
-##### （3）异常指标列表
-
-- CPU 使用率异常升高（92%）
-- 内存使用率接近上限（88%）
-- 错误率明显上升（3.2%）
-
----
-
-### 阶段 2：路径与证据探索（Exploration）
-
-#### 目标
-
-基于时间维度与多指标关系，分析异常发展路径。
-
-#### AI 行为
-
-- 分析指标趋势（时间序列）
-- 识别趋势模式（上升 / 波动 / 突变）
-- 关联指标关系（CPU ↔ 内存 ↔ 错误率）
-- 对比历史数据（昨日 / 基线）
-- 检查异常时间点（如发布 / 波动）
-
-#### 输出（图表 + 表格 + 描述）
-
-##### （1）指标趋势图（必须）
-
-**CPU Usage Trend (Last 30 min)**
-
-- x: [10:00, 10:05, 10:10, 10:15, 10:20, 10:25, 10:30]
-- y: [65, 70, 75, 82, 88, 90, 92]
-
-**Memory Usage Trend (Last 30 min)**
-
-- x: [10:00, 10:05, 10:10, 10:15, 10:20, 10:25, 10:30]
-- y: [60, 65, 70, 75, 80, 85, 88]
-
-##### （2）趋势摘要
-
-- CPU 使用率在过去 30 分钟持续上升
-- 内存使用率同步增长，未出现明显回落
-- 错误率存在波动上升趋势
-
-##### （3）历史对比表
-
-| 指标 | 当前值 | 昨日同时间 | 阈值 |
-|---|---:|---:|---:|
-| CPU 使用率 | 92% | 68% | 80% |
-| 内存使用率 | 88% | 64% | 80% |
-| 错误率 | 3.2% | 0.8% | 1% |
-
-##### （4）多指标关联分析
-
-| 指标 | 当前状态 | 趋势 | 关联关系 |
-|---|---|---|---|
-| CPU | 高 | 持续上升 | 与线程数相关 |
-| 内存 | 高 | 持续上升 | 无明显回收 |
-| 错误率 | 异常 | 波动上升 | 与流量无明显关联 |
-
-##### （5）异常时间点标记（可选）
-
-**CPU Usage with Event**
-
-- x: [10:00, 10:05, 10:10, 10:15, 10:20]
-- y: [60, 65, 70, 85, 92]
-- events:
-  - time: 10:15
-  - label: 异常开始
-
----
-
-### 阶段 3：确认原因（Diagnosis）
-
-#### 目标
-
-基于证据收敛可能原因（不做绝对判断）。
-
-#### AI 行为
-
-- 综合多指标趋势与关系
-- 匹配常见异常模式（如资源压力 / 异常负载）
-- 排除明显不相关因素
-- 标识信息缺口（未验证数据）
-
-#### 输出（结构化推理）
-
-##### （1）可能原因（候选）
-
-| 可能原因 | 支撑证据 | 说明 |
-|---|---|---|
-| 资源压力 | CPU + 内存同步上升 | 资源占用持续增加 |
-| 异常请求 | 错误率上升 | 但未与流量直接关联 |
-
-##### （2）关键证据总结
-
-- CPU 与内存同步上升
-- 内存未观察到明显回收行为
-- 错误率存在异常波动
-
-##### （3）未确认信息（重要）
-
-- 未获取线程堆栈信息
-- 未分析 Heap 结构
-- 未确认请求类型变化
-
----
-
-### 阶段 4：最终结论（Conclusion）
-
-#### 目标
-
-输出当前阶段分析结果（基于已有数据）。
-
-#### 输出（结构化结论）
-
-##### （1）问题概览
-
-| 维度 | 内容 |
-|---|---|
-| 问题类型 | 资源使用异常 |
-| 影响范围 | 当前服务实例 |
-| 状态 | 持续中 |
-
-##### （2）关键发现
-
-- CPU 使用率持续高位（92%）
-- 内存使用率持续上升（88%）
-- 错误率出现异常波动（3.2%）
-
-##### （3）指标关系总结
-
-- CPU 与内存同步增长
-- 未观察到明显资源释放行为
-- 错误率未与流量变化形成直接关联
-
-##### （4）当前判断
-
-- 存在资源压力风险
-- 可能影响服务稳定性与响应性能
-
-##### （5）不确定性说明（必须）
-
-- 当前分析基于指标数据
-- 未进行深度诊断（如线程 / Heap）
-- 结论存在一定不确定性
-
-##### （6）下一步建议（简化版）
-
-- 建议查看详细日志
-- 建议持续关注资源变化趋势
-- 建议确认近期是否存在发布或配置变更
-
----
-
-## 11. 总体输出结构（统一规范）
-
-\`\`\`text
-指标快照
-↓
-趋势图（至少 1 个）
-↓
-对比表（至少 1 个）
-↓
-多指标关联表
-↓
-原因分析
-↓
-\`\`\`` },
-      { id: 'ins-new-flow', title: '巡检新建任务整体流程', content: `# AI SRE 平台 - AI巡检助手「新建巡检任务」重构版交互文档（可直接用于 AI 生成原型）
-
-## 一、需求背景
-
-当前「AI巡检助手」在新建巡检任务时，用户需要先选择巡检对象类型与具体对象，然后再自行输入巡检规则，或从快捷指令中手动选择规则。
-
-该方案存在以下问题：
-
-1. 用户仍需自己思考“应该配置哪些规则”，使用门槛较高。
-2. 不同巡检对象类型所关注的核心指标不同，当前规则推荐不够贴合对象特征。
-3. 规则创建路径偏手动，效率不高，无法体现 AI 在运维场景中的辅助价值。
-4. 用户更希望系统先给出一套“可直接使用”的规则草案，而不是从零开始写。
-
-因此，本次交互重构目标为：
-
-- 在用户确定巡检对象后，由 AI 根据对象类型、对象角色、常见风险自动生成一套推荐巡检规则草案。
-- 用户只需要对推荐规则进行确认、少量调整或新增，即可完成任务创建。
-- 整体交互从“用户手动写规则”升级为“系统先生成规则草案，用户再编辑确认”。
-
----
-
-## 二、设计目标
-
-### 1. 降低任务创建门槛
-用户无需从零思考巡检规则，系统自动生成推荐内容。
-
-### 2. 提升推荐规则的场景贴合度
-推荐规则应结合巡检对象类型、角色特征、常见健康风险进行生成，而不是仅展示固定通用规则。
-
-### 3. 强化 AI 的辅助感
-AI 不只是提供几条快捷规则，而是输出一套可直接使用的“巡检规则草案”。
-
-### 4. 保留用户控制权
-用户可以对 AI 推荐的规则进行启用、禁用、编辑和新增，避免系统完全自动决定。
-
----
-
-## 三、适用范围
-
-适用于 AI SRE 平台中「AI巡检助手」页面的「新建任务」流程，重点覆盖以下巡检对象类型（具体根据资源采集类型）：
-
-- 数据库
-- 应用服务
-- 云主机
-- Redis
-- MQ
-- 负载均衡
-- VPC
-- 网络类资源
-
----
-
-## 四、核心交互思路
-
-在用户完成“巡检对象类型 + 巡检对象选择”后，系统不再要求用户立即手动输入巡检规则，而是进入：
-
-## 第二步：AI 自动生成推荐巡检规则草案
-
-系统根据已选对象，自动生成一套可编辑的规则草案，草案由三部分组成：
-
-### 1. 基础推荐规则
-基于对象类型自动装配的一组通用核心指标规则，默认勾选。
-
-### 2. 自定义补充规则
-用户可以在 AI 推荐基础上，自行新增自定义巡检规则。
-
----
-
-## 五、整体流程
-
-### 流程步骤
-
-1. 用户进入「AI巡检助手」页面
-2. 点击「新建任务」
-3. 在 AI 对话流中选择巡检对象类型
-4. 选择具体巡检对象
-5. 点击「确认执行」
-6. 系统进入“AI 生成推荐巡检规则草案”阶段
-7. 用户查看规则草案
-8. 用户对规则进行编辑、删除、新增
-9. 用户确认规则后，进入“设置执行频率”
-10. 用户设置任务名称、执行频率、执行时间等信息
-11. 用户确认创建巡检任务
-12. 系统创建成功，返回任务详情或任务列表
-
----
-
-## 六、页面交互结构
-
-## 1. 新建任务入口区
-
-页面底部保留原有快捷入口：
-
-- 新建任务
-- 今日报告
-- 诊断任务
-
-用户点击「新建任务」后，进入 AI 对话式任务创建流程。
-
----
-
-## 2. 第一步：选择巡检对象
-（保留当前交互）
-
-## 七、第二步：AI 自动生成推荐巡检规则草案
-
-当用户确认巡检对象后，进入该阶段。
-
-### AI 对话提示文案
-
-**已为您选定的 3 个巡检对象生成推荐巡检规则草案。您可以直接使用，也可以按需调整。**
-
-次级说明：
-
-**系统会根据对象类型、对象角色和常见健康风险自动推荐指标规则，您也可以新增自定义规则。**
-
----
-
-## 八、规则草案生成逻辑
-
-系统推荐逻辑采用“模板装配 + AI增强”的方式：
-
-### 1. 模板装配
-按巡检对象类型自动带出通用规则模板。
-
-### 2. AI增强
-结合以下信息进行规则补充、排序 and 差异化推荐：
-
-- 巡检对象类型
-- 对象名称特征
-- 所属集群
-- 主从角色
-- 服务角色
-- 常见风险类型
-- 历史高频巡检指标
-- 最近变更信息（若系统可获取）
-- 环境属性（生产 / 测试）
-
----
-
-## 九、规则草案展示结构
-
-规则草案区分为两个层级：
-
-### 1. 基础推荐规则
-- 默认展开
-- 默认勾选
-- 面向绝大多数用户
-- 用于快速创建任务
-
----
-
-## 十、规则草案区域布局
-
-### 区域标题
-**推荐巡检规则草案**
-
-### 区域摘要信息
-展示一行摘要：
-
-**已为 3 个数据库对象生成 6 条推荐规则，重点覆盖资源使用、主从健康与查询性能风险。**
-
----
-
-## 十一、按类型分组展示规则
-
-若用户所选对象包含多种类型，则按对象类型分组展示。
-
-### 示例分组标题
-#### 数据库（3个对象）
-
-每组下展示对应推荐规则列表。
-
----
-
-## 十二、单条规则卡片结构
-
-每条规则以可编辑卡片形式展示，而不是纯文本标签。
-
-### 单条规则卡片示例
-
-#### 规则名称
-CPU 使用率
-
-#### 适用对象
-mysql-order-primary、mysql-order-replica、pg-user-master
-
-#### 规则内容
-- 指标：CPU 使用率
-- 条件：>
-- 阈值：80%
-- 持续时间：5 分钟
-- 严重等级：高
-
-#### 推荐理由
-适用于数据库资源瓶颈的基础健康巡检，可用于识别高负载风险。
-
-#### 交互操作
-- 输入框内直接编辑
-- 按钮：[删除]
-
----
-
-## 十三、基础推荐规则示例（数据库场景）
-
-当用户选择数据库类型对象时，系统可默认推荐以下基础规则：
-
-1. CPU 使用率 > 80% 持续 5 分钟
-2. 内存使用率 > 80% 持续 5 分钟
-3. 磁盘使用率 > 85% 持续 10 分钟
-4. 主从延迟 > 30 秒 持续 3 分钟
-5. 数据库连接数持续异常升高
-6. 慢查询数量异常升高
-
----
-
-## 十五、不同对象类型的推荐规则策略
-
-## 1. 云主机类
-基础推荐：
-- CPU 使用率
-- 内存使用率
-- 磁盘使用率
-- 网络延迟
-- 网络丢包率
-
-## 2. 应用服务类
-基础推荐：
-- 服务错误率 > 5% 持续 3 分钟
-- 响应时间 P95 异常升高
-- 实例异常退出
-- CPU / 内存使用率持续升高
-
-## 3. Redis 类
-基础推荐：
-- 内存使用率过高
-- 连接数异常增长
-- 命中率下降
-- 主从同步异常
-
-## 4. MQ 类
-基础推荐：
-- 消息堆积异常
-- 消费延迟异常
-- 消费失败率升高
-
----
-
-## 十六、规则编辑交互
-
-用户点击某条规则的【编辑】后，展开该规则的可编辑表单。
-
-### 可编辑字段
-
-- 指标名称
-- 条件符（> / < / = / >= / <= / 波动异常 / 持续异常）
-- 阈值
-- 单位（% / ms / s / count / MB / GB）
-- 持续时间
-- 严重等级（低 / 中 / 高）
-
-### 交互方式
-- 行内编辑
-
----
-
-## 十七、规则新增交互
-
-在规则草案底部提供按钮：
-
-[新增规则]
-
-用户点击后，弹出新增规则面板。
-
-### 新增方式支持两种
-
-#### 方式一：结构化新增
-用户手动选择：
-- 指标
-- 阈值
-- 持续时间
-- 严重等级
-
----
-
-## 二十、第三步：设置执行频率
-
-当用户确认规则草案后，进入执行频率设置阶段。
-
-### AI 对话提示文案
-
-**好的，巡检规则已确认。第三步，请设置该任务的执行频率。**
-
-次级提示：
-
-**您可以直接选择常用执行频率，也可以自定义调度时间。**
-
----
-
-## 二十一、执行频率快捷选项
-
-由于巡检任务为定时巡检，不建议出现过短频率。
-
-### 推荐快捷选项
-- 每天一次
-- 每天两次
-- 每周一至周五 09:00
-
-### 自定义选项
-- 自定义 Cron 表达式
-- 自定义日期与时间
-- 自定义重复规则
-
----
-
-## 二十二、执行频率设置表单字段
-
-- 执行频率
-- 首次执行时间
-- 是否启用通知
-- 通知方式（站内 / 邮件 / IM）
-- 任务名称
-- 任务描述（可选）
-
----
-
-## 二十三、第四步：确认任务信息
-
-在用户正式创建任务前，展示任务确认摘要卡片。
-
-### 摘要信息包括
-
-- 任务名称
-- 巡检对象类型
-- 巡检对象数量
-- 已启用规则数
-- 执行频率策略
-- 首次执行时间
-
-### 底部按钮
-- [返回修改]
-- [确认创建任务]
-
----
-
-## 二十四、创建成功反馈
-
-任务创建成功后，系统返回成功状态。
-
-### 成功提示文案
-**巡检任务已创建成功。系统将按设定频率自动执行，并生成巡检报告。**
-
-### 后续操作按钮
-- [查看任务]
-- [继续新建任务]
-
----
-
-## 二十五、异常与边界情况
-
-## 1. 未选择任何对象时
-点击「确认执行」按钮后提示：
-置灰，不可点击
-
----
-
-## 2. 系统无法生成推荐规则时
-提示：
-
-**当前未能基于所选对象生成推荐规则，您可以手动新增规则后继续创建任务。**
-
-并保留：
-- [新增规则]
-- [重新生成推荐]
-
----
-
-## 4. 用户删除了所有推荐规则
-提示：
-
-**当前未启用任何巡检规则，请至少保留 1 条规则后再继续。**
-
----
-
-## 6. 自然语言新增规则解析失败
-提示：
-
-**未能识别该规则内容，请尝试更明确地描述指标、阈值和持续时间。**
-
----
-
-## 二十六、状态流转
-
-### 状态 1：初始选择对象
-用户尚未确认巡检对象。
-
-### 状态 2：已确认对象，AI 生成规则中
-系统展示 loading 状态。
-
-加载提示文案：
-
-**正在根据所选巡检对象生成推荐巡检规则…**
-
-### 状态 3：规则草案生成完成
-展示推荐规则草案与编辑能力。
-
-### 状态 4：用户修改规则中
-支持编辑、删除、新增。
-
-### 状态 5：规则确认完成，进入执行频率配置
-用户填写定时巡检信息。
-
-### 状态 6：任务确认中
-展示任务摘要与最终确认。
-
-### 状态 7：任务创建成功
-进入任务详情或任务列表。
-
----
-
-## 二十七、推荐的页面文案
-
-## 对象确认后提示文案
-**已为您选定的巡检对象生成推荐巡检规则草案。您可以直接使用，也可以按需调整。**
-
-## 规则摘要文案
-**已生成 6 条推荐规则，重点覆盖资源使用、主从健康与查询性能风险。**
-
-
-## 规则区域标题
-**推荐巡检规则草案**
-
-
-## 新增规则按钮
-**新增规则**
-
-## 进入下一步按钮
-**下一步：设置执行频率**
-
----
-
-## 二十八、原型重点表现建议
-
-AI 生成原型时，应重点表现以下内容：
-
-### 1. AI 对话式流程感
-整个新建任务流程应保持在 AI 对话流中推进，而不是切成传统表单页面。
-
-### 2. 规则草案的结构化展示
-规则不应只用标签按钮展示，应使用卡片化、可编辑的规则结构。
-
-### 3. 推荐与编辑并存
-页面重点不是“推荐完结束”，而是“推荐后允许轻编辑”。
-
-
-### 4. 专业运维感
-规则字段、指标命名、推荐理由、对象信息应体现 SRE / 运维专业语境。
-
----
-
-## 二十九、最终交付要求
-
-请基于以上交互说明，生成「AI SRE 平台 - AI巡检助手 - 新建巡检任务」的高保真产品原型页面，要求包括：
-
-1. 对话式新建任务流程
-2. 巡检对象选择区域
-3. AI 自动生成推荐规则草案区域
-4. 基础推荐规则展示
-5. 规则卡片结构化编辑能力
-6. 新增规则入口
-7. 执行频率配置区域
-8. 最终任务确认区域
-9. 深色主题、专业运维平台视觉风格
-
----
-
-## 三十、总结
-
-本方案将「新建巡检任务」从原本的“用户手动输入规则”升级为“AI 自动生成一套可编辑的巡检规则草案，用户再进行确认与微调”的模式。
-
-核心价值包括：
-
-- 降低用户输入成本
-- 提升规则推荐贴合度
-- 提升 AI 的实际辅助感
-- 强化专业运维场景体验
-- 保证用户对最终规则的可控性` },
-      { id: 'ins-base-rules', title: '巡检对象执行基础规则', content: `巡检对象推荐规则
-
-### 🖥️ 1. 云主机类 (Host)
-| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **CPU 使用率** | \`host.cpu.usage\` | \`> 80%\` | 5 min | High | 主机基础计算负载监控 |
-| **内存使用率** | \`host.mem.usage\` | \`> 85%\` | 5 min | High | 预防系统内存水位过高 |
-| **磁盘使用率** | \`host.disk.usage\` | \`> 85%\` | 10 min | High | 基础存储空间预警 |
-| **网络延迟** | \`host.net.latency\` | \`> 200ms\` | 3 min | Medium | 监控网络链路通畅度 |
-| **网络丢包率** | \`host.net.loss\` | \`> 5%\` | 2 min | Medium | 评估网络传输稳定性 |
-
-### 🗄️ 2. 数据库类 (DB)
-| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **CPU 使用率** | \`db.cpu.usage\` | \`> 80%\` | 5 min | Critical | 数据库核心负载监控 |
-| **内存使用率** | \`db.mem.usage\` | \`> 80%\` | 5 min | High | 数据库内存水位管理 |
-| **磁盘使用率** | \`db.disk.usage\` | \`> 85%\` | 10 min | High | 预防数据文件溢出 |
-| **主从延迟** | \`db.replication.delay\` | \`> 30s\` | 3 min | High | 同步健康度检查 |
-| **数据库连接数** | \`db.connection.count\` | 持续异常升高 | 5 min | High | 预防连接句柄耗尽 |
-| **慢查询数量** | \`db.slow_query.count\` | 异常升高 | 2 min | High | 识别异常性能劣化 |
-
-### ⚡ 3. Redis 类
-| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **内存使用率过高** | \`redis.mem.usage\` | \`> 85%\` | 5 min | Critical | Redis 容量健康巡检 |
-| **连接数异常增长** | \`redis.connection.count\` | 异常波动 | 2 min | High | 监控并发连接风险 |
-| **命中率下降** | \`redis.cache.hit_rate\` | \`< 70%\` | 5 min | Medium | 缓存有效性评估 |
-| **主从同步异常** | \`redis.replication.status\`| \`!= connected\`| 1 min | High | 集群同步健康度 |
-
-### 📦 4. 应用服务类 (Service/App)
-| 规则名称 | 监控指标 (Metric) | 报警阈值 | 持续时间 | 严重等级 | AI 推荐理由 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **服务错误率** | \`app.error.rate\` | \`> 5%\` | 3 min | Critical | 保障核心业务可用性 |
-| **响应时间 P95** | \`app.p95.latency\` | 异常升高 | 3 min | High | 用户侧性能体验感知 |
-| **实例异常退出** | \`app.instance.exit\` | \`count > 0\` | 1 min | Critical | 预防服务雪崩风险 |
-| **CPU/内存持续升高**| \`app.resource.usage\` | 趋势异常 | 10 min | Medium | 识别潜在资源泄漏 |
-
----
-
-### 🛡️ 兜底规则 (Fallback)
-若系统未能识别资源类型，将自动推送以下基础环境指标，确保卡片永不为空：
-*   **CPU 负载巡检**: \`sys.cpu.logic\` > 90%
-*   **内存水位巡检**: \`sys.mem.usage\` > 90%
-
-这些逻辑现在已经固化在 \`App.tsx\` 的 \`handleAction\` 中，会随着您的对象选择动态实时加载。` },
-      { id: 'ins-btn-rules', title: '巡检列表按钮规则', content: `## 巡检卡片按钮状态规则
-
-### 状态 1：无报告、未分析
-#### 状态说明
-该任务从未产出过分析报告，且当前没有分析任务在执行。
-
-#### 按钮展示
-- 主按钮：\`开始分析\`
-
-#### 交互说明
-用户点击后，立即发起一次新的分析流程，并进入“分析中”状态。
-
----
-
-### 状态 2：无报告、分析中
-#### 状态说明
-该任务正在进行首次分析，当前尚未生成任何可查看报告。
-
-#### 按钮展示
-- 主按钮：\`分析中…\`
-
-#### 交互说明
-此状态下不展示“查看报告”，因为尚无可查看结果。
-
-
-
----
-
-### 状态 3：已有报告、已分析
-#### 状态说明
-该任务已生成过报告，当前没有新的分析在执行。
-
-#### 按钮展示
-- 主按钮：\`查看报告\`
-- 次按钮：\`开始分析\`
-
-#### 交互说明
-- 点击 \`查看报告\`：进入该任务的报告详情页
-- 点击 \`开始分析\`：基于当前数据重新发起一次新的分析任务
-
-#### 设计意图
-该状态是最常见的正常态：
-- 一个按钮负责查看已有结果
-- 一个按钮负责生成新的结果
-
----
-
-### 状态 4：已有报告、分析中
-#### 状态说明
-该任务此前已经存在报告，但当前用户又发起了一轮新的分析，新的分析任务尚未完成。
-
-#### 按钮展示
-- 主按钮：\`查看报告\`
-- 次按钮：\`分析中…\`
-
-#### 交互说明
-- \`查看报告\` 仍然可点击，查看已有报告
-- \`分析中…\` 为状态反馈按钮，不可重复点击发起新分析
-
-#### 设计意图
-分析中的新任务不应覆盖已有报告入口，避免用户在等待过程中无法查看旧结果。
-
----
-
-### 状态 5：已有报告、分析失败（可选状态）
-#### 状态说明
-该任务已有历史报告，但最近一次新发起的分析失败。
-
-#### 按钮展示
-- 主按钮：\`查看报告\`
-- 次按钮：\`开始分析\`
-
-#### 可选补充信息
-可在按钮附近或任务状态区域补充提示文案，例如：
-- \`本次分析失败，请重试\`
-- \`分析异常，请重新发起\`` },
-    ]
-  }
-];
-
-const InteractionGuideDrawer = ({ isOpen, onClose, expandedIds, setExpandedIds, activeSubId, setActiveSubId }: any) => {
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev: string[]) => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  const currentSub = GUIDE_TABS.flatMap(t => t.children).find(c => c.id === activeSubId);
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[1000] flex justify-end overflow-hidden">
-          {/* Backdrop */}
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/40"
-            onClick={onClose}
-          />
-          {/* Drawer Body */}
-          <motion.div 
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-            className="relative w-2/3 h-full bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between bg-slate-900">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-                  <HelpCircle size={18} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-100 tracking-tight">交互说明手册</h3>
-              </div>
-              <button 
-                onClick={onClose}
-                className="w-10 h-10 rounded-xl hover:bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all active:scale-95"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="flex-1 flex min-h-0 overflow-hidden">
-              {/* Sidebar - Nested List */}
-              <div className="w-72 border-r border-slate-800 bg-slate-950 overflow-y-auto no-scrollbar py-4 px-2.5">
-                {GUIDE_TABS.map(tab => (
-                  <div key={tab.id} className="mb-2">
-                    <button 
-                      onClick={() => toggleExpand(tab.id)}
-                      className={`w-full p-3 rounded-xl flex items-center justify-between transition-all group ${expandedIds.includes(tab.id) ? 'bg-indigo-500/5 text-indigo-400' : 'hover:bg-slate-800/30 text-slate-400'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`${expandedIds.includes(tab.id) ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'} transition-colors`}>{tab.icon}</span>
-                        <span className="text-sm font-bold tracking-tight">{tab.title}</span>
-                      </div>
-                      {expandedIds.includes(tab.id) ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-40" />}
-                    </button>
-                    
-                    <AnimatePresence>
-                      {expandedIds.includes(tab.id) && (
-                        <motion.div 
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pl-8 py-1.5 space-y-1">
-                            {tab.children.map(child => (
-                              <button 
-                                key={child.id}
-                                onClick={() => setActiveSubId(child.id)}
-                                className={`w-full text-left p-2.5 rounded-lg text-xs font-semibold transition-all ${activeSubId === child.id ? 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/20' : 'text-slate-500 hover:bg-slate-900/20 hover:text-slate-300'}`}
-                              >
-                                {child.title}
-                              </button>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
-              </div>
-
-              {/* Content area - Pure text centric */}
-              <div className="flex-1 bg-slate-900 p-12 overflow-y-auto no-scrollbar scroll-smooth">
-                <AnimatePresence mode="wait">
-                  <motion.div 
-                    key={activeSubId}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.2 }}
-                    className="max-w-2xl"
-                  >
-                    <div className="mb-10">
-                       <div className="flex items-center gap-2 text-[10px] text-indigo-500/80 font-mono font-bold tracking-[0.2em] uppercase mb-3">
-                         <div className="w-8 h-px bg-indigo-500/30" />
-                         Documentation Manual
-                       </div>
-                       <h1 className="text-4xl font-extrabold text-slate-100 tracking-tight">
-                         {currentSub?.title}
-                       </h1>
-                    </div>
-                    <div className="text-[15px] text-slate-400 leading-[1.8] font-medium selection:bg-indigo-500/30 whitespace-pre-line">
-                      {currentSub?.content}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-};
-
 export default function App() {
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+      setGlobalError(`JS Error: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}\nStack: ${event.error?.stack}`);
+    };
+    window.addEventListener('error', handleGlobalError);
+    return () => window.removeEventListener('error', handleGlobalError);
+  }, []);
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('home');
   const [activeLogAnalysisSummary, setActiveLogAnalysisSummary] = useState<any>(null);
@@ -10226,14 +7610,75 @@ export default function App() {
   const [knowledgeNavLevel, setKnowledgeNavLevel] = useState<'libs' | 'docs'>('libs');
   const [selectedKDocId, setSelectedKDocId] = useState<string | null>(null);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
-  const [inspectionTasks, setInspectionTasks] = useState(INITIAL_INSPECTION_TASKS);
+  const [selectedPlanForDetail, setSelectedPlanForDetail] = useState<any>(null);
+  const [tempMysqlPlan, setTempMysqlPlan] = useState<any>({ executionType: 'scheduled', target: '', cronExpression: '', cronDescription: '' });
+  const [isMysqlCreateWizard, setIsMysqlCreateWizard] = useState(false);
+
+  const [inspectionTasks, setInspectionTasks] = useState(() => {
+    const saved = localStorage.getItem('sre_inspection_tasks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map(plan => {
+            if (!plan.tasks || plan.tasks.length === 0) {
+              const matched = INITIAL_INSPECTION_TASKS.find(p => p.name === plan.name);
+              if (matched) {
+                return {
+                  ...matched,
+                  ...plan,
+                  tasks: matched.tasks
+                };
+              } else {
+                // If not found in defaults, generate a basic subtask array from rules
+                const rules = plan.rules || [];
+                const generatedTasks = rules.map((ruleName: string, ruleIdx: number) => {
+                  const isCpu = ruleName.includes('CPU') || ruleName.includes('错误') || ruleName.includes('延迟') || ruleName.includes('查询') || ruleName.includes('Connections') || ruleName.includes('率');
+                  const scriptType = isCpu ? 'shell' : 'python';
+                  let resourceType = 'Kubernetes 集群';
+                  if (plan.name.includes('数据库') || plan.name.includes('MySQL')) {
+                    resourceType = 'MySQL 实例';
+                  } else if (plan.name.includes('SSL') || plan.name.includes('网关')) {
+                    resourceType = '主机/SLB';
+                  }
+                  return {
+                    taskId: `TASK-FIX-${Date.now().toString().slice(-4)}-${ruleIdx}`,
+                    name: `${ruleName}监测`,
+                    description: `自动监控和核查 ${plan.name} 计划下的 ${ruleName} 指标状态`,
+                    resourceType,
+                    target: plan.target,
+                    scriptType,
+                    scriptContent: `#!/bin/bash\n# ${ruleName} 监测脚本`,
+                    variables: [
+                      { name: 'THRESHOLD', value: '80', editable: true },
+                      { name: 'TIMEOUT', value: '5s', editable: true },
+                      { name: 'SYSTEM_ENV', value: 'production', editable: false }
+                    ]
+                  };
+                });
+                return { ...plan, tasks: generatedTasks };
+              }
+            }
+            return plan;
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_INSPECTION_TASKS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sre_inspection_tasks', JSON.stringify(inspectionTasks));
+  }, [inspectionTasks]);
+
   const [inspectionWizard, setInspectionWizard] = useState<'idle' | 'type_selection' | 'host' | 'rule' | 'schedule' | 'confirmation' | 'success' | 'executing' | 'result'>('idle');
   const [inspectionTaskMode, setInspectionTaskMode] = useState<'scheduled' | 'immediate' | null>(null);
   const [inspectionExecutionProgress, setInspectionExecutionProgress] = useState(0);
   const [inspectionRuleDraft, setInspectionRuleDraft] = useState<any>(null);
   const [inspectionFrequency, setInspectionFrequency] = useState<any>('每天一次');
   const [inspectionTaskName, setInspectionTaskName] = useState('');
-  const [inspectionCronValue, setInspectionCronValue] = useState('0 0 * * *');
   const [selectedInspectionTargets, setSelectedInspectionTargets] = useState<any[]>([]);
   
   // --- Home Notification Banner Scrolling State ---
@@ -10411,18 +7856,6 @@ export default function App() {
   const [showLogContextBanner, setShowLogContextBanner] = useState(false);
   const [selectedCapacityResource, setSelectedCapacityResource] = useState<any>(null);
   const [isAnalyzingCapacity, setIsAnalyzingCapacity] = useState(false);
-  
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [expandedGuideIds, setExpandedGuideIds] = useState<string[]>(['home', 'diagnostic', 'knowledge', 'inspection']);
-  const [activeGuideSubId, setActiveGuideSubId] = useState('home-rules');
-
-  // 知识专家相关状态 (Knowledge Expert States)
-  const [knowledgeTab, setKnowledgeTab] = useState<'qa' | 'manage'>('qa');
-  const [knowledgeViewMode, setKnowledgeViewMode] = useState<'grid' | 'list'>('grid');
-
-  // 开发者工具相关状态 (Developer Tools States)
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<string>(new Date().toLocaleString());
 
   const handleAlarmClick = (alarm: Alarm) => {
     setSelectedAlarm(alarm);
@@ -10438,8 +7871,6 @@ export default function App() {
         setActiveSessionId(null);
       }
     }
-    setShowContextBanner(false);
-    setShowLogContextBanner(false);
     // 进入 AI 助手模块时默认展开左侧面板
     if (id !== 'home') {
       setIsLeftPanelCollapsed(false);
@@ -10455,68 +7886,37 @@ export default function App() {
     let targetSessionId: string | null = activeSessionId;
 
     // Global Routing Logic (Home & Assistant)
-    let detectedIntent = 'general-clarify'; // 默认模糊意图
-    let matchedAgent: MenuKey | null = null;
-    let cleanContent = contentToUse;
-
     if (activeMenu === 'home' || activeMenu === 'assistant') {
-      const explicitMentions: Record<string, MenuKey> = {
-        '@诊断专家': 'diagnostic' as MenuKey,
+      const mentions: Record<string, MenuKey> = {
+        '@诊断': 'diagnostic' as MenuKey,
+        '@告警': 'diagnostic' as MenuKey,
         '@知识专家': 'knowledge' as MenuKey,
-        '@巡检助手': 'inspection' as MenuKey
+        '@巡检': 'inspection' as MenuKey
       };
 
-      // 第一优先级：显式标签
-      for (const [tag, menu] of Object.entries(explicitMentions)) {
+      let matchedTag = false;
+      for (const [tag, menu] of Object.entries(mentions)) {
         if (contentToUse.includes(tag)) {
-          detectedIntent = menu;
-          matchedAgent = menu;
-          cleanContent = contentToUse.replace(tag, '').trim() || '新对话';
+          targetMenu = menu;
+          const sessionTitle = contentToUse.replace(tag, '').trim() || '新对话';
+          targetSessionId = createNewSession(menu, sessionTitle.slice(0, 30));
+          // Strip the tag from the actual message content as well
+          finalContent = contentToUse.replace(tag, '').trim() || sessionTitle;
+          matchedTag = true;
           break;
         }
       }
 
-      // 第二优先级：关键词匹配（高置信度）
-      if (!matchedAgent) {
-        const diagKeywords = ['怎么回事', '原因', '报错', '异常', '慢', '高延迟', 'P99', 'P95', '超时', '失败', '错误', '故障', '分析'];
-        const inspectKeywords = ['检查', '巡检', '扫描', '健康', '状态', '有没有问题', 'SLA', '达标', '风险', '配置检查'];
-        const knowKeywords = ['知识', '知识库', 'SOP', '文档', '怎么做', '如何', '步骤', '流程', '最佳实践', '规范', '手册'];
-        const genCompositeKeywords = ['最近', '总结', '概览', '情况'];
-        const genSimpleKeywords = ['你好', '帮我', '什么', '介绍', '能做什么'];
-
-        if (diagKeywords.some(k => contentToUse.includes(k))) {
-          detectedIntent = 'diagnostic';
-        } else if (inspectKeywords.some(k => contentToUse.includes(k))) {
-          detectedIntent = 'inspection';
-        } else if (knowKeywords.some(k => contentToUse.includes(k))) {
-          detectedIntent = 'knowledge';
-        } else if (genCompositeKeywords.some(k => contentToUse.includes(k))) {
-          detectedIntent = 'general-composite';
-        } else if (genSimpleKeywords.some(k => contentToUse.includes(k))) {
-          detectedIntent = 'general-simple';
-        } else {
-          // LLM Fallback -> general clarify
-          detectedIntent = 'general-clarify';
-        }
-      }
-
-      if (matchedAgent) {
-        targetMenu = matchedAgent;
-        handleMenuChange(matchedAgent);
-        const sessionTitle = cleanContent.slice(0, 30) || '新对话';
-        targetSessionId = createNewSession(matchedAgent, sessionTitle);
-        finalContent = cleanContent;
-      } else {
-        // 对于所有 Home 发出的消息（且没有显式标签），先保存在 assistant 里面给用户展示回应
+      // If no @mention matched, route to General SRE Super Assistant
+      if (!matchedTag) {
         targetMenu = 'assistant' as MenuKey;
-        const sessionTitle = cleanContent.slice(0, 30) || '通用助手';
-        targetSessionId = activeSessionId || createNewSession('assistant', sessionTitle);
-        finalContent = cleanContent;
+        const sessionTitle = contentToUse.trim() || '新通用对话';
+        targetSessionId = createNewSession('assistant', sessionTitle.slice(0, 30));
       }
     }
 
     // Auto-create session if missing for modular sends (ensures persistent context in sidebar)
-    if (!targetSessionId && targetMenu !== 'home' && targetMenu !== 'assistant') {
+    if (!targetSessionId && targetMenu !== 'home') {
       const sessionTitle = contentToUse.trim() || '新对话';
       targetSessionId = createNewSession(targetMenu, sessionTitle.slice(0, 30));
     }
@@ -10534,7 +7934,7 @@ export default function App() {
     };
 
     // 告警快照自动注入逻辑：当有吸附告警时，先发送快照
-    if (showContextBanner && selectedAlarm && targetMenu !== 'knowledge' && targetMenu !== 'inspection') {
+    if (showContextBanner && selectedAlarm) {
       addMessage({
         id: (Date.now() - 1).toString(),
         type: 'user',
@@ -10542,12 +7942,12 @@ export default function App() {
         content: `已关联告警快照: ${selectedAlarm.title}`,
         data: selectedAlarm,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }, targetMenu, targetSessionId);
+      });
       setShowContextBanner(false);
     }
 
     // 日志聚类快照自动注入逻辑
-    if (showLogContextBanner && activeLogCluster && targetMenu !== 'knowledge' && targetMenu !== 'inspection') {
+    if (showLogContextBanner && activeLogCluster) {
       addMessage({
         id: (Date.now() - 1).toString(),
         type: 'user',
@@ -10555,7 +7955,7 @@ export default function App() {
         content: '',
         data: activeLogCluster,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }, targetMenu, targetSessionId);
+      });
       setShowLogContextBanner(false);
     }
 
@@ -10577,59 +7977,34 @@ export default function App() {
     setAttachments([]);
 
     // Homepage Routing Mock AI Response
-    if ((activeMenu === 'home' || activeMenu === 'assistant') && !matchedAgent) {
+    if (activeMenu === 'home' && targetMenu !== 'home') {
       setIsAIProcessing(true);
       setTimeout(() => {
         setIsAIProcessing(false);
         const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const cleanContent = contentToUse.replace(/@(诊断|告警|知识库|巡检)/g, '').trim();
         
         let aiContent = '';
-        let transferOptions: any[] = [];
-        
-        const attachInput = (opts: any[]) => opts.map(opt => ({ ...opt, originalInput: cleanContent }));
-
-        if (detectedIntent === 'diagnostic') {
-          aiContent = `🔍 **识别到系统诊断/故障分析需求**\n\n针对您提出的这类问题，建议使用专门的**诊断专家**模块。它能够整合系统关键指标、异常链路与变更记录，为您提供更具针对性的排查深度与分析视角。您可以点击下方按钮开始：`;
-          transferOptions = attachInput([{ id: 'diagnostic', label: '确认转交至 诊断专家' }]);
-        } else if (detectedIntent === 'knowledge') {
-          aiContent = `📚 **已解析为知识检索意图**\n\n关于「${cleanContent || '相关知识'}」，知识专家能为您直接检索最佳实践手册及过往工单库，帮助迅速定位标准方案。`;
-          transferOptions = attachInput([{ id: 'knowledge', label: '确认转交至 知识专家' }]);
-        } else if (detectedIntent === 'inspection') {
-          aiContent = `🛡️ **识别到系统巡检/状态扫描需求**\n\n针对您提出的这类问题，建议使用专门的**巡检助手**模块。它支持自动化执行巡检任务、扫描存量风险并全面评估系统运行水位。您可以点击下方按钮进入：`;
-          transferOptions = attachInput([{ id: 'inspection', label: '确认进入 巡检助手' }]);
-        } else if (detectedIntent === 'general-simple') {
-          aiContent = `👋 您好！我是您的 SRE 智能助手（SRE Copilot），也是您运维工作的全能中枢。\n\n我不仅可以通过对话直接为您解答日常运维问题、汇总基础信息，还能化身“调度员”，为您一键拉起下方更专业的细分领域专家，开启深度的分析与执行：`;
-          transferOptions = attachInput([
-            { id: 'diagnostic', label: '诊断专家：分析故障和性能延迟' },
-            { id: 'inspection', label: '巡检助手：深度健康扫描巡检' },
-            { id: 'knowledge', label: '知识专家：查阅运维 SOP 知识库' }
-          ]);
-        } else if (detectedIntent === 'general-composite') {
-          aiContent = `📊 **系统近期活跃事件与告警全景**\n\n**当前在线报警 (Active Alarms)**\n- 🔴 1 项未恢复 (order-service 错误率飙升)\n- 🟡 2 项低优关注 (Redis 连接池抖动)\n\n**系统整体水位情况**\n- 核心应用延迟上升至 P99 ~ 2.4s (异常波动)\n- CPU 平均水位 72%，状态平稳。`;
-          transferOptions = attachInput([
-            { id: 'diagnostic', label: '前往 诊断专家 深度分析' },
-            { id: 'inspection', label: '通过 巡检助手 扫描详情' }
-          ]);
-        } else {
-          // general-clarify
-          aiContent = `🤔 关于您的输入「${cleanContent || '...' }」，意图似乎存在歧义或指向不明确。请问您需要我为您启动哪个特定的专家分析？`;
-          transferOptions = attachInput([
-            { id: 'diagnostic', label: '诊断专家 (精准故障诊断)' },
-            { id: 'inspection', label: '巡检助手 (自动化定期巡检)' },
-            { id: 'knowledge', label: '知识专家 (翻阅既有 SOP 和手册)' }
-          ]);
+        if (targetMenu === 'diagnostic') {
+          aiContent = `🔍 **已启动深度诊断流程**\n\n针对您描述的问题「${cleanContent || '系统异常'}」，我正在实时调取全链路 Trace 信息与容器指标...\n\n初步分析显示：相关服务的 P99 延迟确实存在波动，疑似与底层宿主机 CPU 抢占或数据库连接池竞争有关。我将继续进行根因推演。`;
+        } else if (targetMenu === 'knowledge') {
+          aiContent = `📚 **知识库扫描完毕**\n\n关于「${cleanContent || '相关操作'}」，我为您找到了 2 篇关联性极高的 SOP 手册：\n\n1. **《${cleanContent} 常见问题排查指南》**\n2. **《应急预案：核心组件抖动处置流程》**\n\n建议您优先查阅上述文档，或直接询问具体的报错解决方法。`;
+        } else if (targetMenu === 'inspection') {
+          aiContent = `🛡️ **巡检助手已就绪**\n\n收到关于「${cleanContent || '资源状态'}」的巡检需求。我已经开始对全量存量实例进行合规性扫描与资源水位校验。\n\n分析进度：[▓▓▓░░░░░░░] 30%\n待扫描完成后，我将为您汇总完整的执行报告。`;
+        } else if (targetMenu === 'assistant') {
+          aiContent = `✨ **超级助手已响铃**\n\n您好！我是 SRE 超级助手。关于您的通用请求「${cleanContent || '问题'}」，我正在为您检索全网全局上下文、近期变更与多模块健康阈值。\n\n分析表明当前核心流程运转顺畅。您需要我为您梳理具体的最佳实践或架构清单吗？`;
         }
 
-        addMessage({
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          contentType: 'text',
-          content: aiContent,
-          data: { transferOptions },
-          timestamp: ts
-        }, 'assistant', targetSessionId);
-
-      }, 1000);
+        if (aiContent) {
+          addMessage({
+            id: (Date.now() + 1).toString(),
+            type: 'ai',
+            contentType: 'text',
+            content: aiContent,
+            timestamp: ts
+          }, targetMenu, targetSessionId);
+        }
+      }, 1500);
       return;
     }
 
@@ -10711,6 +8086,20 @@ export default function App() {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         }, 800);
+        return;
+      }
+      if (contentToUse.includes('创建MySQL任务')) {
+        setIsMysqlCreateWizard(true);
+        setInspectionWizard('type_selection');
+        setInspectionTaskMode(null);
+        addMessage({
+          id: (Date.now() + 1).toString(),
+          type: 'ai',
+          contentType: 'inspection_type',
+          content: '好的，已为您启动 MySQL 巡检计划创建向导。请先在下方卡片选择此计划的执行方式：',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        setInputValue('');
         return;
       }
       if (contentToUse.includes('新建巡检任务') || contentToUse.toLowerCase().includes('new task')) {
@@ -10886,7 +8275,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             aiContent = "📊 **容量模型重算**\n\n已调取该资源的实时负载历史。正在进行资源水位推演以预测未来 24 小时内的瓶颈风险...";
             break;
           case 'assistant':
-            aiContent = "✨ **智能助手正在思考**\n\n收到您的请求。我正在整合诊断、巡检与知识库等多维度数据为您提供全景建议...";
+            aiContent = "✨ **超级助手正在思考**\n\n收到您的请求。我正在整合诊断、巡检与知识库等多维度数据为您提供全景建议...";
             break;
           default:
             aiContent = "🤖 **AI 正在处理**\n\n我已经收到了您的信息，正在为您检索相关上下文并在后台处理中。您可以继续补充更多细节。";
@@ -11037,7 +8426,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       setIsListening((current) => {
         if (current) {
           setInputValue(prev => {
-            const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+            const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
             const cmd = "帮我分析最近一小时的 payment-svc 错误日志并总结根因";
             return tagMatch ? `${tagMatch[0]} ${cmd}` : cmd;
           });
@@ -11048,49 +8437,16 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }, 2500);
   };
 
+  const handleSavePlan = (updatedPlan: any) => {
+    const planWithTime = { ...updatedPlan, updatedAt: new Date().toLocaleString() };
+    setInspectionTasks(prev => prev.map(p => p.id === updatedPlan.id ? planWithTime : p));
+    setSelectedPlanForDetail(planWithTime);
+  };
+
+
   const handleAction = (action: string, data?: any) => {
-    // --- Interaction Isolation Guard ---
-    const MUTATING_ACTIONS = [
-      'START_LOG_ANALYSIS', 
-      'START_INSPECTION_ANALYSIS', 
-      'ACT_SELF_HEAL', 
-      'AUTHORIZE_HEAL_EXECUTION', 
-      'EXECUTE_LOG_ACTION',
-      'SELECT_RESOURCE'
-    ];
-
-    // --- Interaction Isolation Guard Removed ---
-
-
-    if (action === 'REQUEST_TRANSFER') {
-      if (data && data.id) {
-        const targetMenu = data.id;
-        handleMenuChange(targetMenu);
-        const originalInput = data.originalInput || '新转交查询';
-        const sessionTitle = originalInput.slice(0, 30) || '转交会话';
-        const newSessionId = createNewSession(targetMenu as MenuKey, sessionTitle);
-
-        setTimeout(() => {
-          // Send automatic prompt simulating the jump context
-          addMessage({
-            id: Date.now().toString(),
-            type: 'user',
-            contentType: 'text',
-            content: `[系统推荐转交]\n已从通用助手转出，相关上下文需求：${originalInput}`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }, targetMenu as MenuKey, newSessionId);
-
-          setTimeout(() => {
-            addMessage({
-              id: (Date.now() + 1).toString(),
-              type: 'ai',
-              contentType: 'text',
-              content: `您好，我已经接收了由智能助手转交的相关上下文指令并分析「${originalInput}」，正在为您进行深度研判...您也可以在我的专业操作面板上继续提问。`,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }, targetMenu as MenuKey, newSessionId);
-          }, 800);
-        }, 300);
-      }
+    if (action === 'CONFIGURE_PLAN') {
+      setSelectedPlanForDetail(safeClonePlan(data));
       return;
     }
 
@@ -11913,6 +9269,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             type: 'ai',
             contentType: 'target_select',
             content: mode === 'scheduled' ? '已选择定时模式。请先勾选该计划要覆盖的巡检对象范围：' : '已选择立即执行。请先确认本次临时执行的巡检对象：',
+            data: isMysqlCreateWizard ? { isMysql: true } : {},
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         }, 600);
@@ -11972,8 +9329,84 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       }
 
       if (action === 'STEP_RULE') {
-        setInspectionWizard('rule');
         const targets = data?.targets || [];
+        setSelectedInspectionTargets(targets);
+
+        if (isMysqlCreateWizard) {
+          setInspectionWizard('rule');
+          const targetStr = targets.map((t: any) => t.name).join(', ') || 'MySQL-Order-Primary';
+          const mysqlTasks = [
+            {
+              taskId: 'TASK-MYSQL-01',
+              name: 'MySQL数据库连接数监测',
+              description: '监控当前活动连接数，预防数据库句柄耗尽',
+              resourceType: 'MySQL 实例',
+              target: targetStr,
+              scriptType: 'shell',
+              scriptContent: '#!/bin/bash\n# MySQL 连接数监测脚本\n/scripts/check_mysql_conn.sh --threshold ${MAX_CONN} --warning ${WARN_CONN}',
+              variables: [
+                { name: 'MAX_CONN', value: '800', editable: true },
+                { name: 'WARN_CONN', value: '500', editable: true },
+                { name: 'MYSQL_PORT', value: '3306', editable: false }
+              ]
+            },
+            {
+              taskId: 'TASK-MYSQL-02',
+              name: 'MySQL慢查询监测',
+              description: '捕获并分析慢 SQL 数量，诊断数据库性能瓶颈',
+              resourceType: 'MySQL 实例',
+              target: targetStr,
+              scriptType: 'python',
+              scriptContent: 'import sys\n# MySQL 慢查询扫描脚本\nprint("Scanning slow queries...")\nsys.exit(0)',
+              variables: [
+                { name: 'SLOW_LIMIT_SEC', value: '3', editable: true },
+                { name: 'WARN_SLOW_COUNT', value: '10', editable: true }
+              ]
+            },
+            {
+              taskId: 'TASK-MYSQL-03',
+              name: 'MySQL主从同步延迟监测',
+              description: '测量 Seconds_Behind_Master 延迟指标，确保副本同步正常',
+              resourceType: 'MySQL 实例',
+              target: targetStr,
+              scriptType: 'shell',
+              scriptContent: '#!/bin/bash\n# MySQL 主从延迟监测脚本\n/scripts/check_mysql_repl.sh --max-delay ${MAX_DELAY_SEC}',
+              variables: [
+                { name: 'MAX_DELAY_SEC', value: '30', editable: true }
+              ]
+            }
+          ];
+
+          setTempMysqlPlan(prev => ({
+            ...prev,
+            name: `MySQL-${targetStr.split(',')[0].trim()}-自动拨测`,
+            target: targetStr,
+            tasks: mysqlTasks
+          }));
+
+          const userMsg: Message = {
+            id: Date.now().toString(),
+            type: 'user',
+            contentType: 'text',
+            content: `🎯 已选定巡检对象: ${targetStr}`,
+            timestamp: new Date().toLocaleTimeString()
+          };
+          addMessage(userMsg);
+
+          setTimeout(() => {
+            addMessage({
+              id: (Date.now() + 1).toString(),
+              type: 'ai',
+              contentType: 'mysql_task_edit_list',
+              content: '已为您的 MySQL 实例生成了 3 个标准的巡检子任务。您可以在下方 Tab 页签中微调其运行变量与参数：',
+              data: { tasks: mysqlTasks },
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+          }, 600);
+          return;
+        }
+
+        setInspectionWizard('rule');
         // 增强匹配：统一大写并去除首尾空格
         const types = Array.from(new Set(targets.map((t: any) => String(t.type || '').trim().toUpperCase())));
         
@@ -12094,40 +9527,130 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         }, 600);
       }
 
-      if (action === 'STEP_CONFIRMATION_IMMEDIATE') {
+    if (action === 'MYSQL_TASK_EDIT_DONE') {
+      const updatedTasks = data?.tasks || [];
+      const updatedRules = updatedTasks.map((t: any) => t.name.replace('监测', '').replace('检测', ''));
+      setTempMysqlPlan(prev => ({
+        ...prev,
+        tasks: updatedTasks,
+        rules: updatedRules
+      }));
+
+      addMessage({
+        id: Date.now().toString(),
+        type: 'user',
+        contentType: 'text',
+        content: '✍️ 已确认并微调 MySQL 巡检子任务变量配置',
+        timestamp: new Date().toLocaleTimeString()
+      });
+
+      if (inspectionTaskMode === 'immediate') {
         setInspectionWizard('confirmation');
-        addMessage({
-          id: Date.now().toString(),
-          type: 'user',
-          contentType: 'text',
-          content: '规则已确认，请生成立即执行任务预览。',
-          timestamp: new Date().toLocaleTimeString()
-        });
+        setTimeout(() => {
+          handleAction('MYSQL_PLAN_SUBMIT_FINAL', { executionType: 'immediate' });
+        }, 600);
+      } else {
+        setInspectionWizard('schedule');
         setTimeout(() => {
           addMessage({
-            id: (Date.now() + 1).toString(),
+            id: Date.now().toString(),
             type: 'ai',
-            contentType: 'task_summary',
-            content: '已为您汇总本次手动巡检的核心配置，点击“确认执行”将立即开始：',
+            contentType: 'frequency_select',
+            content: '配置保存成功。接下来请在下方卡片中设定 MySQL 巡检任务的执行频次及名称：',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         }, 600);
       }
+      return;
+    }
+
+    if (action === 'MYSQL_PLAN_SUBMIT_FINAL') {
+      const execType = data?.executionType || tempMysqlPlan.executionType || 'scheduled';
+      const targetStr = tempMysqlPlan.target || 'MySQL-Order-Primary';
+      
+      const newPlan = {
+        ...tempMysqlPlan,
+        id: `PLAN-${(inspectionTasks.length + 1).toString().padStart(3, '0')}`,
+        planId: `PLAN-ID-${1000 + inspectionTasks.length}`,
+        name: execType === 'immediate' ? `MySQL-${targetStr.split(',')[0].trim()}-临时核查` : (inspectionTaskName || tempMysqlPlan.name || `MySQL-${targetStr.split(',')[0].trim()}-定时巡检`),
+        enabled: true,
+        status: '健康',
+        inspectionStatus: execType === 'immediate' ? '巡检中' : '已结束',
+        riskLevel: '低',
+        summary: execType === 'immediate' 
+          ? '立即执行任务已成功启动，AI 拨测引擎正在对 3 个子任务进行在线核查。' 
+          : '巡检计划已启用，系统将按照设定的周期频率自动执行深度检查。',
+        updatedAt: new Date().toLocaleString(),
+        executionType: execType,
+        cronExpression: execType === 'scheduled' ? (inspectionCronValue || '0 0 * * *') : '',
+        cronDescription: execType === 'scheduled' ? (inspectionFrequency || '每天一次') : '',
+        nextExecutionTime: execType === 'scheduled' ? '2024-04-13 00:00:00' : ''
+      };
+
+      setInspectionTasks(prev => [newPlan, ...prev]);
+      setInspectionWizard('success');
+      setIsMysqlCreateWizard(false);
+
+      setTimeout(() => {
+        addMessage({
+          id: Date.now().toString(),
+          type: 'ai',
+          contentType: 'task_success',
+          content: execType === 'immediate'
+            ? `⚡ 立即执行 MySQL 巡检任务创建成功并已启动！任务名称：${newPlan.name}，已关联对象：${newPlan.target}。`
+            : `✨ 定时调度 MySQL 巡检计划创建成功！任务名称：${newPlan.name}，调度周期：${newPlan.cronDescription}。`,
+          data: { hostCount: 3 },
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+      }, 800);
+      return;
+    }
 
       if (action === 'STEP_FINISH') {
-        setInspectionTasks(prev => [
-          {
-            name: '核心链路稳定性巡检任务',
-            target: '集群 (VPC-Prod-Main)',
-            status: '健康',
-            inspectionStatus: '待运行',
-            riskLevel: '低',
-            rules: ['CPU 监控', '慢查询检测', '同步延迟'],
-            summary: '任务已成功创建。系统将根据设定的频率自动调度 AI 专家执行深度诊断。',
-            updatedAt: new Date().toLocaleString()
-          },
-          ...prev
-        ]);
+        if (isMysqlCreateWizard) {
+          handleAction('MYSQL_PLAN_SUBMIT_FINAL', { 
+            executionType: 'scheduled', 
+            cronExpression: inspectionCronValue, 
+            cronDescription: inspectionFrequency 
+          });
+          return;
+        }
+
+        const generatedTasks = (selectedInspectionTargets || []).map((targetItem: any, idx: number) => {
+          return {
+            taskId: `TASK-GEN-${Date.now().toString().slice(-4)}-${idx}`,
+            name: `${targetItem.name || '核心指标'}监控`,
+            description: `针对 ${targetItem.name || '资源'} 的性能和稳定性自动巡检`,
+            resourceType: targetItem.type === 'DB' ? 'MySQL 实例' : targetItem.type === 'Host' ? '主机/SLB' : 'Kubernetes 集群',
+            target: targetItem.name,
+            scriptType: 'shell',
+            scriptContent: `#!/bin/bash\n# 自动生成的 ${targetItem.name} 监测脚本\nexit 0`,
+            variables: [
+              { name: 'TIMEOUT', value: '5s', editable: true },
+              { name: 'SYSTEM_ENV', value: 'production', editable: false }
+            ]
+          };
+        });
+
+        const newPlan = {
+          id: `PLAN-${(inspectionTasks.length + 1).toString().padStart(3, '0')}`,
+          planId: `PLAN-ID-${1000 + inspectionTasks.length}`,
+          name: inspectionTaskName || '核心链路稳定性巡检任务',
+          target: selectedInspectionTargets.map((t: any) => t.name).join(', ') || '集群 (VPC-Prod-Main)',
+          status: '健康',
+          inspectionStatus: '已结束',
+          riskLevel: '低',
+          rules: selectedInspectionTargets.map((t: any) => `${t.name}指标`),
+          summary: '任务已成功创建。系统将根据设定的频率自动调度 AI 专家执行深度诊断。',
+          updatedAt: new Date().toLocaleString(),
+          executionType: 'scheduled',
+          cronExpression: inspectionCronValue || '0 0 * * *',
+          cronDescription: inspectionFrequency || '每天凌晨 00:00',
+          tasks: generatedTasks,
+          enabled: true
+        };
+
+        setInspectionTasks(prev => [newPlan, ...prev]);
         setInspectionWizard('success');
         setTimeout(() => {
           addMessage({
@@ -12135,7 +9658,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             type: 'ai',
             contentType: 'task_success',
             content: '✨ 巡检任务创建成功！',
-            data: { hostCount: 5 },
+            data: { hostCount: selectedInspectionTargets.length || 5 },
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         }, 800);
@@ -12426,7 +9949,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     ].filter(Boolean);
 
     return (
-      <div className="h-[64px] overflow-hidden relative mt-1 border-t border-slate-800/30 pt-2">
+      <div className="h-[64px] overflow-hidden relative mt-1 border-t border-white/[0.03] pt-2">
         <div className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 px-1">
           <div className="w-1 h-1 rounded-full bg-rose-500 animate-pulse" />
           异常任务轮播
@@ -12473,7 +9996,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     ].filter(Boolean);
 
     return (
-      <div className="h-[80px] overflow-hidden relative mt-1 border-t border-slate-800/30 pt-2">
+      <div className="h-[80px] overflow-hidden relative mt-1 border-t border-white/[0.03] pt-2">
         <div className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 px-1">
           <div className="w-1 h-1 rounded-full bg-rose-500 animate-pulse" />
           异常日志轮播
@@ -12501,244 +10024,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             ))}
           </motion.div>
         </AnimatePresence>
-      </div>
-    );
-  };
-
-  const renderDeveloperWorkspace = () => {
-    const handleSync = () => {
-      setIsSyncing(true);
-      setTimeout(() => {
-        setIsSyncing(false);
-        setLastSyncTime(new Date().toLocaleString());
-      }, 3000);
-    };
-
-    return (
-      <div className="flex flex-col w-full gap-6 pb-20 px-2 lg:px-6 mt-6">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
-              <Terminal size={20} className="text-emerald-500" /> 开发者控制中心 (Local Only)
-            </h2>
-            <p className="text-xs text-slate-500 mt-1">管理局域网部署同步及本地调试工具</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SRECard status="normal" title="环境状态 (Environment)" icon={Activity}>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">当前模式</span>
-                <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">本地开发 (Local)</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">本地地址</span>
-                <span className="text-xs font-mono text-slate-300">127.0.0.1:3001</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">局域网地址</span>
-                <span className="text-xs font-mono text-blue-400">10.5.165.76:3000</span>
-              </div>
-            </div>
-          </SRECard>
-
-          <SRECard 
-            status={isSyncing ? 'running' : 'normal'} 
-            title="局域网同步 (LAN Sync)" 
-            icon={RefreshCw}
-            pulse={isSyncing}
-          >
-            <div className="flex flex-col gap-4">
-              <div className="text-[10px] text-slate-500 flex justify-between">
-                <span>上次同步时间</span>
-                <span className="font-mono">{lastSyncTime}</span>
-              </div>
-              <button 
-                onClick={handleSync}
-                disabled={isSyncing}
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border shadow-lg ${
-                  isSyncing 
-                  ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' 
-                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 hover:border-emerald-500/40 shadow-emerald-500/5'
-                }`}
-              >
-                {isSyncing ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" /> 正在同步项目资源...
-                  </>
-                ) : (
-                  <>
-                    <Zap size={14} /> 启动局域网增量同步
-                  </>
-                )}
-              </button>
-              <div className="text-[9px] text-slate-600 leading-relaxed bg-black/20 p-2 rounded-lg italic">
-                提示：手动同步将触发 `npm run sync` 指令。同步完成后，局域网内的 Read-Only 用户将看到您最新的文档改动与 UI 调整。
-              </div>
-            </div>
-          </SRECard>
-
-          <SRECard status="custom" statusColorHex="#6366f1" title="调试实用工具" icon={Settings}>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <button 
-                onClick={() => { setSessions([]); alert('本地会话缓存已清理'); }}
-                className="py-2 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg text-[10px] font-bold text-slate-300 transition-all"
-              >
-                清理会话缓存
-              </button>
-              <button 
-                onClick={() => { window.location.reload(); }}
-                className="py-2 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg text-[10px] font-bold text-slate-300 transition-all"
-              >
-                重载开发环境
-              </button>
-            </div>
-          </SRECard>
-
-          <SRECard status="normal" title="只读模式模拟" icon={Eye}>
-             <div className="flex items-center justify-between mt-2">
-                <span className="text-[10px] text-slate-500">模拟关闭本地权限</span>
-                <div className="w-8 h-4 bg-slate-800 rounded-full cursor-not-allowed opacity-50" />
-             </div>
-             <p className="text-[9px] text-slate-600 mt-2 leading-tight">
-               当前环境由 window.location.hostname 自动判定。如需测试 Read-Only 效果，请直接访问局域网 IP。
-             </p>
-          </SRECard>
-        </div>
-      </div>
-    );
-  };
-
-  const renderKnowledgeManagement = () => {
-    return (
-      <div className="flex flex-col gap-6 p-2">
-        {/* Header Section */}
-        <div className="flex flex-col gap-1 mb-2">
-          <h2 className="text-2xl font-bold text-slate-100 tracking-tight">知识库管理</h2>
-          <p className="text-xs text-slate-500 font-medium">管理企业知识库、文档和标签</p>
-        </div>
-
-        {/* Control Bar */}
-        <div className="flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="relative flex-1 max-w-md group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={16} />
-              <input 
-                type="text" 
-                placeholder="搜索知识库名称"
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all shadow-inner"
-              />
-            </div>
-            <div className="relative group min-w-[140px]">
-              <div className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-2.5 px-4 text-sm text-slate-400 flex items-center justify-between cursor-pointer hover:bg-slate-800/50 transition-all">
-                全部状态
-                <ChevronDown size={14} className="text-slate-600" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-slate-800/40">
-            <button 
-              onClick={() => setKnowledgeViewMode('grid')}
-              className={`p-2 rounded-lg transition-all ${knowledgeViewMode === 'grid' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-            >
-              <LayoutGrid size={18} />
-            </button>
-            <button 
-              onClick={() => setKnowledgeViewMode('list')}
-              className={`p-2 rounded-lg transition-all ${knowledgeViewMode === 'list' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-            >
-              <List size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Knowledge Lib Grid */}
-        <div className={`grid gap-4 mt-2 ${
-          knowledgeViewMode === 'grid' 
-          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-          : 'grid-cols-1'
-        }`}>
-          {MOCK_KNOWLEDGE_LIBS.map(lib => (
-            <motion.div
-              layout
-              key={lib.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -4, borderColor: 'rgba(99, 102, 241, 0.4)' }}
-              className="bg-[var(--bg-card)] border border-slate-800/80 rounded-2xl p-5 shadow-sm transition-all group relative overflow-hidden"
-            >
-              <div className="flex items-start justify-between mb-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-110 transition-transform">
-                    <Folder size={22} />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <h3 className="text-base font-bold text-slate-100 truncate tracking-tight">{lib.name}</h3>
-                  </div>
-                </div>
-                <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-                  lib.status === 'active' 
-                  ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' 
-                  : lib.status === 'draft'
-                  ? 'bg-slate-500/10 text-slate-500 border-slate-700'
-                  : 'bg-rose-500/5 text-rose-400 border-rose-500/20'
-                }`}>
-                  {lib.statusLabel}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-6 mb-5">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <FileText size={14} className="opacity-50" />
-                  <span className="text-xs font-medium">文档 <span className="text-slate-100 font-bold ml-1">{lib.docCount}</span></span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Tag size={14} className="opacity-50" />
-                  <span className="text-xs font-medium">标签 <span className="text-slate-100 font-bold ml-1">{lib.tagCount}</span></span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-600 font-medium">
-                <div className="flex items-center gap-1.5 uppercase tracking-tighter">
-                  更新于 {lib.updated}
-                </div>
-                <button className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded-md hover:bg-slate-800">
-                   <MoreHorizontal size={14} />
-                </button>
-              </div>
-
-              {/* Hover Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Pagination Section */}
-        <div className="mt-8 flex items-center justify-center gap-2 pb-10">
-          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700">
-            <ChevronLeft size={16} />
-          </button>
-          {[1, 2, 3].map(page => (
-            <button 
-              key={page}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                page === 1 
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
-                : 'text-slate-500 hover:bg-slate-800 border border-transparent hover:border-slate-700'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          <span className="text-slate-700 px-1">•••</span>
-          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-slate-500 hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all">
-            5
-          </button>
-          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700">
-            <ChevronRight size={16} />
-          </button>
-        </div>
       </div>
     );
   };
@@ -12774,7 +10059,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-2 lg:px-4">
           {/* Card 1: 故障根因分析 */}
-          <div onClick={() => createNewSession('diagnostic', 'AI 诊断专家')} className="bg-[var(--bg-card)] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
+          <div onClick={() => createNewSession('diagnostic', 'AI 诊断专家')} className="bg-[#1e1e2d] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
             <div className="flex items-start gap-4 mb-5">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center relative shrink-0">
                 <Activity size={18} className="text-indigo-500" />
@@ -12817,7 +10102,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           </div>
 
           {/* Card 2: 告警收效 */}
-          <div onClick={() => createNewSession('diagnostic', 'AI 诊断专家')} className="bg-[var(--bg-card)] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
+          <div onClick={() => createNewSession('diagnostic', 'AI 诊断专家')} className="bg-[#1e1e2d] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
             <div className="flex items-start gap-4 mb-5">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center relative shrink-0">
                 <Bell size={18} className="text-indigo-500" />
@@ -12857,7 +10142,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           </div>
 
           {/* Card 3: 运维知识专家 */}
-          <div onClick={() => createNewSession('knowledge', 'AI 知识专家')} className="bg-[var(--bg-card)] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
+          <div onClick={() => createNewSession('knowledge', 'AI 知识专家')} className="bg-[#1e1e2d] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
             <div className="flex items-start gap-4 mb-5">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center relative shrink-0">
                 <BookOpen size={18} className="text-indigo-500" />
@@ -12877,7 +10162,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                   e.stopPropagation();
                   createNewSession('knowledge', 'AI 知识专家');
                   setInputValue(prev => {
-                    const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                    const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                     return tagMatch ? `${tagMatch[0]} GC_频繁问题排查_SOP` : 'GC_频繁问题排查_SOP';
                   });
                 }}
@@ -12894,7 +10179,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                   e.stopPropagation();
                   createNewSession('knowledge', 'AI 知识专家');
                   setInputValue(prev => {
-                    const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                    const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                     return tagMatch ? `${tagMatch[0]} 数据库连接池耗尽排查指南` : '数据库连接池耗尽排查指南';
                   });
                 }}
@@ -12911,7 +10196,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                   e.stopPropagation();
                   createNewSession('knowledge', 'AI 知识专家');
                   setInputValue(prev => {
-                    const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                    const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                     return tagMatch ? `${tagMatch[0]} K8s Pod OOMKilled 处置流程` : 'K8s Pod OOMKilled 处置流程';
                   });
                 }}
@@ -12932,7 +10217,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           </div>
 
           {/* Card 4: 智能巡检助手 */}
-          <div onClick={() => createNewSession('inspection', 'AI 巡检助手')} className="bg-[var(--bg-card)] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
+          <div onClick={() => createNewSession('inspection', 'AI 巡检助手')} className="bg-[#1e1e2d] border border-slate-800/60 rounded-2xl p-5 flex flex-col hover:border-slate-700 transition-all cursor-pointer group shadow-lg">
             <div className="flex items-start gap-4 mb-5">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center relative shrink-0">
                 <HeartPulse size={18} className="text-indigo-500" />
@@ -12990,7 +10275,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             >
               <div className="space-y-3 pb-1">
                 {/* Aggregated Block */}
-                <div className="bg-[var(--bg-card)] rounded border border-rose-500/20 overflow-hidden">
+                <div className="bg-[#141418] rounded border border-rose-500/20 overflow-hidden">
                   <div className="p-1.5 bg-rose-500/10 flex justify-between items-center cursor-pointer">
                     <div className="flex items-center gap-1 font-bold text-[11px] text-rose-500">
                       <ChevronDown size={14} /> payment-svc 级联故障 (聚合并收敛 6 条)
@@ -13016,8 +10301,8 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                   </div>
                 </div>
 
-                <div className="bg-[var(--bg-card)] rounded border border-orange-500/20 overflow-hidden">
-                  <div className="p-1.5 flex justify-between items-center cursor-pointer hover:bg-slate-800/50">
+                <div className="bg-[#141418] rounded border border-orange-500/20 overflow-hidden">
+                  <div className="p-1.5 flex justify-between items-center cursor-pointer hover:bg-white/5">
                     <div className="flex items-center gap-1 text-[11px] text-orange-500 font-bold">
                       <ChevronRight size={14} /> k8s-node 资源告警 (聚合 2 条)
                     </div>
@@ -13028,13 +10313,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 <div>
                   <div className="text-[10px] text-slate-500 mb-1.5 font-bold px-1 uppercase tracking-wider">独立散发告警 (2)</div>
                   <div className="space-y-1.5 text-[10px]">
-                    <div className="flex flex-col px-1 hover:bg-slate-800/50 rounded py-1 pb-1.5">
+                    <div className="flex flex-col px-1 hover:bg-white/5 rounded py-1 pb-1.5">
                       <div className="flex justify-between"><span>user-service: 网络延迟突增</span><span className="text-orange-500">1m</span></div>
                       <div className="flex gap-2 mt-2 text-xs">
                         <span className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded cursor-pointer hover:bg-emerald-500/20 border border-emerald-500/20">👉 开启降级预案</span>
                       </div>
                     </div>
-                    <div className="flex justify-between px-1 hover:bg-slate-800/50 rounded py-0.5 opacity-60"><span>gateway: CPU 瞬时 90%</span><span className="text-slate-500">10s</span></div>
+                    <div className="flex justify-between px-1 hover:bg-white/5 rounded py-0.5 opacity-60"><span>gateway: CPU 瞬时 90%</span><span className="text-slate-500">10s</span></div>
                   </div>
                 </div>
               </div>
@@ -13064,7 +10349,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 </div>
               }
             >
-              <div className="bg-[var(--bg-card)] border border-slate-800 rounded p-2 text-slate-500 flex items-center mb-2">
+              <div className="bg-[#141418] border border-slate-800 rounded p-2 text-slate-500 flex items-center mb-2">
                 <Search size={12} className="mr-2" /> 输入 Lucene 或自然语言...
               </div>
               <div className="flex gap-1.5 flex-wrap">
@@ -13084,7 +10369,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               </div>
             </SRECard>
             <SRECard status="custom" statusColorHex="#3f3f46" title="当前上下文日志" icon={ClipboardList}>
-              <div className="space-y-1 text-[10px] bg-slate-900/30 p-2 rounded max-h-32 overflow-y-auto no-scrollbar">
+              <div className="space-y-1 text-[10px] bg-black/30 p-2 rounded max-h-32 overflow-y-auto no-scrollbar">
                 {anomalyResolved ? (
                   <>
                     <div className="text-slate-400">03:00:12 [ERROR] payment-svc: Connection refused to inventory-svc:8080</div>
@@ -13132,7 +10417,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         return (
           <>
             <SRECard status="custom" statusColorHex="#64748b" title="智能知识检索" icon={Search}>
-              <div className="bg-[var(--bg-card)] border border-slate-800 rounded p-2 text-slate-500 flex items-center mb-2">
+              <div className="bg-[#141418] border border-slate-800 rounded p-2 text-slate-500 flex items-center mb-2">
                 <Search size={12} className="mr-2" /> 搜索 K8s, JVM...
               </div>
               <div className="flex gap-1.5 flex-wrap">
@@ -13157,6 +10442,18 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 </div>
               </div>
             </SRECard>
+            <SRECard status="normal" title="相似故障案例" icon={Clock}>
+              <div className="space-y-2">
+                <div className="text-xs">
+                  <div className="font-bold text-slate-300">SRE-1923: payment-svc OOM</div>
+                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5"><span>相似度 89%</span><span>1个月前</span></div>
+                </div>
+                <div className="text-xs pt-1 border-t border-slate-800">
+                  <div className="text-slate-300">SRE-1845: JVM 参数配置不当</div>
+                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5"><span>相似度 76%</span><span>2个月前</span></div>
+                </div>
+              </div>
+            </SRECard>
           </>
         );
       case 'inspection':
@@ -13167,7 +10464,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 <div className="flex items-end gap-2">
                   <span className="text-3xl font-black text-emerald-500 leading-none">99.2%</span>
                 </div>
-                <div className="flex justify-between items-center border-t border-slate-800/30 pt-1.5 mt-0.5">
+                <div className="flex justify-between items-center border-t border-white/[0.03] pt-1.5 mt-0.5">
                   <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">今日巡检任务</span>
                   <span className="text-xs font-black text-slate-300">24</span>
                 </div>
@@ -13203,7 +10500,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               </div>
             </SRECard>
             <SRECard status="normal" title="历史报告" icon={Clock}>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+              <div className="flex justify-between items-center py-1 border-b border-white/5">
                 <span className="text-xs">2026-04-07 日报</span>
                 <Download size={12} className="text-slate-500 cursor-pointer hover:text-blue-400" />
               </div>
@@ -13211,15 +10508,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 <span className="text-xs text-slate-500">2026-W14 周报</span>
                 <Download size={12} className="text-slate-600 cursor-pointer hover:text-blue-400" />
               </div>
-              <div className="flex justify-between items-center py-1 border-t border-slate-800/50 mt-1 pt-1">
+              <div className="flex justify-between items-center py-1 border-t border-white/5 mt-1 pt-1">
                 <span className="text-xs text-orange-400/80">SRE-2026 故障复盘 (草稿)</span>
                 <FileText size={12} className="text-orange-400 cursor-pointer hover:text-orange-300" />
               </div>
             </SRECard>
           </>
         );
-      case 'dev':
-        return renderDeveloperWorkspace();
       default:
         return null;
     }
@@ -13244,10 +10539,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
         <div className={`rounded-2xl p-3 transition-all w-full flex flex-col ${
           isListening 
-          ? 'bg-[var(--bg-panel)] border-2 border-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.25)] ring-4 ring-indigo-500/10'
+          ? 'bg-[#111324] border-2 border-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.25)] ring-4 ring-indigo-500/10'
           : (activeMenu === 'home' || activeMenu === 'assistant')
-            ? 'bg-[var(--bg-panel)] border border-indigo-500/30 shadow-[0_0_40px_rgba(99,102,241,0.08)] focus-within:border-indigo-500/60 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:shadow-[0_0_60px_rgba(99,102,241,0.15)]'
-            : 'bg-[var(--bg-alarm)] border border-slate-800 shadow-2xl focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/30'
+            ? 'bg-[#111324] border border-indigo-500/30 shadow-[0_0_40px_rgba(99,102,241,0.08)] focus-within:border-indigo-500/60 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:shadow-[0_0_60px_rgba(99,102,241,0.15)]'
+            : 'bg-[#161a29] border border-slate-800 shadow-2xl focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/30'
           }`}>
           {/* Knowledge Context Tags Area (Embedded - Top Header Style) */}
           {/* Knowledge Context Tags Area Removed as per request */}
@@ -13306,14 +10601,14 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                     return (
                       <div 
                         key={attr.id} 
-                        className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-800/40 border border-slate-800/80 rounded-xl shrink-0 hover:bg-slate-800/80 hover:border-indigo-500/40 transition-all group"
+                        className="flex items-center gap-2.5 px-3 py-1.5 bg-white/[0.04] border border-white/[0.08] rounded-xl shrink-0 hover:bg-white/[0.08] hover:border-indigo-500/40 transition-all group"
                       >
                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/20 text-indigo-400">
                           {attr.type === 'log' ? <Terminal size={14} /> : <ClipboardList size={14} />}
                         </div>
                         <div className="flex flex-col gap-0 pr-2 min-w-0">
                           <span className="text-[12px] text-slate-100 font-bold truncate leading-tight">
-                            {fileName.length > 10 ? `${fileName.substring(0, 10)}...` : fileName}
+                            {fileName.length > 5 ? `${fileName.substring(0, 5)}...` : fileName}
                           </span>
                           <span className="text-[9px] text-indigo-400/80 font-black uppercase tracking-wider">{fileExt || attr.type}</span>
                         </div>
@@ -13344,7 +10639,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/30 relative">
             <div className="flex items-center gap-1.5 -ml-1">
               {/* Integrated Library Selector */}
-              {(activeMenu === 'knowledge') && (
+              {(activeMenu === 'knowledge' || activeMenu === 'home') && (
                 <>
                   <button
                     ref={pickerButtonRef}
@@ -13357,7 +10652,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                       }
                       setIsKLibPickerOpen(!isKLibPickerOpen);
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all text-xs font-medium text-slate-300 ${isKLibPickerOpen ? 'bg-[#9882ff]/10 border-[#9882ff]/50 text-[#9882ff] shadow-lg shadow-[#9882ff]/10' : 'bg-transparent border-transparent hover:text-slate-100 hover:bg-slate-800/50'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all text-xs font-medium text-slate-300 ${isKLibPickerOpen ? 'bg-[#9882ff]/10 border-[#9882ff]/50 text-[#9882ff] shadow-lg shadow-[#9882ff]/10' : 'bg-transparent border-transparent hover:text-slate-100 hover:bg-white/5'}`}
                   >
                     <BookOpen size={15} className={isKLibPickerOpen ? 'text-[#9882ff]' : 'text-slate-400'} />
                     <span>{selectedKLibIds.length > 0 ? `已选 ${selectedKLibIds.length} 个知识库` : '选择知识库'}</span>
@@ -13379,10 +10674,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               <button
                 onClick={() => {
                   const mockFiles = [
-                    { title: 'payment_error_trace_20240420_final.log', type: 'log' },
-                    { title: 'cluster_performance_metrics_detailed_report.pdf', type: 'file' },
-                    { title: 'nginx_access_summary_export_v2.csv', type: 'file' },
-                    { title: 'infrastructure_system_topology_complex_v2.yaml', type: 'file' }
+                    { title: 'payment_error_trace.log', type: 'log' },
+                    { title: 'cluster_metrics_report.pdf', type: 'file' },
+                    { title: 'nginx_access_summary.csv', type: 'file' },
+                    { title: 'system_topology_v2.yaml', type: 'file' }
                   ];
                   const picked = mockFiles[Math.floor(Math.random() * mockFiles.length)];
                   addAttachment({ type: picked.type, title: picked.title, content: 'Mock SRE log data...' });
@@ -13394,7 +10689,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               </button>
               <button 
                 onClick={() => {
-                  const mockImages = ['p99_latency_spike_analysis_graph.png', 'k8s_node_oom_error_stack_trace_capture.jpg', 'database_iops_trend_monthly_comparison.png'];
+                  const mockImages = ['p99_latency_spike.png', 'k8s_node_oom_error.jpg', 'database_iops_trend.png'];
                   const picked = mockImages[Math.floor(Math.random() * mockImages.length)];
                   addAttachment({ type: 'image', title: picked, content: 'Mock diagnostic image...' });
                 }}
@@ -13410,9 +10705,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                   <div className="flex items-center gap-1.5">
                     {/* Mutual exclusivity logic for @ tags */}
                     {[
-                      { id: '@诊断专家', icon: Activity },
-                      { id: '@巡检助手', icon: HeartPulse },
-                      { id: '@知识专家', icon: BookOpen }
+                      { id: '@诊断', icon: Activity },
+                      { id: '@巡检', icon: HeartPulse },
+                      { id: '@知识专家', icon: BookOpen },
+                      { id: '@告警', icon: Bell }
                     ].map(tag => (
                       <button 
                         key={tag.id}
@@ -13423,11 +10719,11 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                               return prev.replace(tag.id, '').replace(/\s\s+/g, ' ').trim();
                             }
                             // Otherwise, replace existing tags with this one (Toggle On/Switch)
-                            const clean = prev.replace(/@(诊断专家|知识专家|巡检助手)/g, '').replace(/\s\s+/g, ' ').trim();
+                            const clean = prev.replace(/@(诊断|巡检|知识专家|告警)/g, '').replace(/\s\s+/g, ' ').trim();
                             return `${tag.id} ${clean}`.trim();
                           });
                         }} 
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all text-xs font-bold font-mono ${inputValue.includes(tag.id) ? 'bg-[#9882ff]/20 border-[#9882ff]/50 text-[#9882ff]' : 'border-slate-700/50 bg-[var(--bg-alarm)]/50 text-slate-400 hover:text-[#9882ff] hover:border-[#9882ff]/30'}`}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all text-xs font-bold font-mono ${inputValue.includes(tag.id) ? 'bg-[#9882ff]/20 border-[#9882ff]/50 text-[#9882ff]' : 'border-slate-700/50 bg-[#161a29]/50 text-slate-400 hover:text-[#9882ff] hover:border-[#9882ff]/30'}`}
                       >
                         <tag.icon size={12} className={inputValue.includes(tag.id) ? 'text-[#9882ff]' : 'text-slate-500'} /> 
                         <span>{tag.id}</span>
@@ -13490,9 +10786,8 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       default:
         return (
           <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]`} />
-
-            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">SRE Copilot Ready ({ENV_LABEL})</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">SRE Copilot Ready</span>
           </div>
         );
     }
@@ -13503,18 +10798,15 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     setTaskName: setInspectionTaskName,
     frequency: inspectionFrequency,
     setFrequency: setInspectionFrequency,
-    cronValue: inspectionCronValue,
-    setCronValue: setInspectionCronValue,
     ruleDraft: inspectionRuleDraft,
-    targets: selectedInspectionTargets,
-    mode: inspectionTaskMode
+    targets: selectedInspectionTargets
   };
 
   return (
-    <div className={`flex flex-col h-screen bg-[var(--bg-app)] font-sans overflow-hidden selection:bg-indigo-500/30 ${isDarkMode ? '' : 'light'}`}>
+    <div className="flex flex-col h-screen bg-[#11121d] font-sans overflow-hidden selection:bg-indigo-500/30">
 
       {/* Global Header */}
-      <header className="h-16 border-b border-slate-800/60 flex items-center bg-[var(--bg-header)] shrink-0 z-30">
+      <header className="h-16 border-b border-slate-800/60 flex items-center bg-[#13141f] shrink-0 z-30">
         <div className="w-[180px] flex items-center px-4 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.15)]">
@@ -13530,24 +10822,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           {renderGlobalHeaderContent()}
         </div>
         <div className="flex items-center gap-4 px-6">
-          {/* 交互说明按钮 (移至顶导) */}
-          <button 
-            onClick={() => setIsGuideOpen(true)}
-            className="px-3 py-1.5 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 rounded-lg transition-all flex items-center gap-2 group cursor-pointer"
-          >
-            <HelpCircle size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[11px] font-bold text-slate-300 tracking-tight">交互说明</span>
-          </button>
-
-          <div className="w-px h-4 bg-slate-800/60 mx-1" />
-
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="text-slate-500 hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-800/50"
-            title={isDarkMode ? '切换到亮色模式' : '切换到暗色模式'}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <button className="text-slate-500 hover:text-slate-300 transition-colors"><Settings size={18} /></button>
           <div className="w-8 h-8 rounded-full bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
             <User size={16} />
@@ -13557,11 +10831,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
       <div className="flex flex-1 overflow-hidden">
         {/* Primary Navigation Bar (Sidebar) */}
-        <aside className="w-[68px] bg-[var(--bg-header)] flex flex-col shrink-0 border-r border-slate-800/60 relative z-[100] shadow-[4px_0_20px_rgba(0,0,0,0.3)]">
+        <aside className="w-[68px] bg-[#13141f] flex flex-col shrink-0 border-r border-slate-800/60 relative z-[100] shadow-[4px_0_20px_rgba(0,0,0,0.3)]">
           {/* Menu Items */}
           <div className="flex-1 pt-6 pb-2 w-[68px] flex flex-col items-center relative z-[100]">
             {MENU_ITEMS.map((item) => {
-
               const isActive = activeMenu === item.id && activeMenu !== 'logs';
               const Icon = item.icon;
 
@@ -13571,23 +10844,23 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                     onClick={() => handleMenuChange(item.id)}
                     className={`w-11 h-11 mb-5 mx-auto flex items-center justify-center relative group rounded-xl transition-all duration-200
                         ${isActive && item.id !== 'home'
-                        ? 'bg-indigo-600 shadow-lg shadow-indigo-500/20 border border-indigo-400/50'
+                        ? 'bg-[#2b2d3b] shadow-sm border border-slate-700/50'
                         : 'hover:bg-slate-800/50 border border-transparent'}
                       `}
                   >
                     <Icon size={22} strokeWidth={1.5} className={`
                         transition-colors duration-200
                         ${isActive && item.id === 'home' ? 'text-slate-200' : ''}
-                        ${isActive && item.id !== 'home' ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'}
+                        ${isActive && item.id !== 'home' ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}
                       `} />
-
+                    
                     {/* Premium Popover Tooltip */}
                     <div className="absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 pointer-events-none opacity-0 translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-[100]">
                       <div className="relative flex items-center">
                         {/* Triangle Arrow */}
-                        <div className="w-1.5 h-1.5 bg-[var(--bg-tooltip)] border-l border-b border-slate-700/50 rotate-45 transform -translate-x-1" />
+                        <div className="w-1.5 h-1.5 bg-[#1e202e] border-l border-b border-slate-700/50 rotate-45 transform -translate-x-1" />
                         {/* Label Content */}
-                        <div className="bg-[var(--bg-tooltip)]/95 backdrop-blur-md border border-slate-700/50 text-white px-3 py-1.5 rounded-lg whitespace-nowrap shadow-2xl shadow-black/40">
+                        <div className="bg-[#1e202e]/95 backdrop-blur-md border border-slate-700/50 text-slate-100 px-3 py-1.5 rounded-lg whitespace-nowrap shadow-2xl shadow-black/40">
                            <span className="text-[11px] font-bold tracking-wider uppercase">{item.label}</span>
                         </div>
                       </div>
@@ -13605,12 +10878,12 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           <div className="p-4 flex flex-col items-center gap-6 pb-6">
             <div 
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className={`w-11 h-11 flex items-center justify-center relative group rounded-xl transition-all duration-200 cursor-pointer ${isHistoryOpen ? 'bg-indigo-600 shadow-lg shadow-indigo-500/20 border border-indigo-400/50' : 'bg-[var(--bg-sidebar-btn)] border border-slate-800'}`}
+              className={`w-11 h-11 flex items-center justify-center relative group rounded-xl transition-all duration-200 cursor-pointer ${isHistoryOpen ? 'bg-indigo-600 shadow-lg shadow-indigo-500/20 border border-indigo-400/50' : 'bg-[#141624] border border-slate-800'}`}
               title="会话历史"
             >
               <History size={20} className={isHistoryOpen ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'} />
               {sessions.length > 0 && !isHistoryOpen && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-500 border border-slate-800" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-500 border border-[#0d0f1a]" />
               )}
             </div>
           </div>
@@ -13623,13 +10896,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               initial={{ x: -300, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -300, opacity: 0 }}
-              className="fixed left-[68px] top-0 bottom-0 w-[300px] bg-[var(--bg-deep)]/fb border-r border-slate-800 shadow-2xl z-30 flex flex-col backdrop-blur-xl"
+              className="fixed left-[68px] top-0 bottom-0 w-[300px] bg-[#0d0f1a]/fb border-r border-slate-800 shadow-2xl z-30 flex flex-col backdrop-blur-xl"
             >
               <div className="p-5 border-b border-slate-800 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                   <History size={16} className="text-indigo-400" /> 会话历史记录
                 </h3>
-                <button onClick={() => setIsHistoryOpen(false)} className="text-slate-500 hover:text-slate-100 transition-colors">
+                <button onClick={() => setIsHistoryOpen(false)} className="text-slate-500 hover:text-white transition-colors">
                   <X size={18} />
                 </button>
               </div>
@@ -13648,7 +10921,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                       <div
                         key={session.id}
                         onClick={() => loadSession(session)}
-                        className={`p-3 rounded-xl mb-1 cursor-pointer transition-all border ${isActive ? 'bg-indigo-600/10 border-indigo-500/30 ring-1 ring-indigo-500/10' : 'bg-transparent border-transparent hover:bg-slate-900/30 hover:border-slate-800'}`}
+                        className={`p-3 rounded-xl mb-1 cursor-pointer transition-all border ${isActive ? 'bg-indigo-600/10 border-indigo-500/30 ring-1 ring-indigo-500/10' : 'bg-transparent border-transparent hover:bg-white/[0.03] hover:border-slate-800'}`}
                       >
                         <div className="flex items-start gap-3">
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
@@ -13682,7 +10955,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
         {/* 2. Agent Card Panel (360px - hidden on most specialist tools) */}
         {activeMenu !== 'home' && activeMenu !== 'logs' && activeMenu !== 'diagnostic' && activeMenu !== 'capacity' && activeMenu !== 'inspection' && activeMenu !== 'knowledge' && activeMenu !== 'report' && activeMenu !== 'assistant' && (
-          <aside className="w-[360px] bg-[var(--bg-card)] border-r border-slate-800/50 flex flex-col shrink-0">
+          <aside className="w-[360px] bg-[#0f0f12] border-r border-slate-800/50 flex flex-col shrink-0">
             <div className="h-16 p-4 border-b border-slate-800/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-slate-200">
@@ -13711,7 +10984,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         )}
 
         {/* 3. Right Main Panel (Chat & Logs) */}
-        <main className="flex-1 flex flex-col bg-[var(--bg-app)] relative min-h-0 min-w-0">
+        <main className="flex-1 flex flex-col bg-[#11121d] relative min-h-0 min-w-0">
           {(() => {
             switch (activeMenu) {
               case 'logs':
@@ -13746,7 +11019,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 );
               case 'inspection':
                 return (
-                  <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-input)]">
+                  <div className="flex-1 flex flex-col min-h-0 bg-[#0a0b14]">
                     <div className="flex-1 flex min-h-0">
                       {!isLeftPanelCollapsed && (
                         <InspectionDashboard
@@ -13778,7 +11051,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 );
               case 'diagnostic':
                 return (
-                  <div className="flex-1 flex min-h-0 bg-[var(--bg-deepest)]">
+                  <div className="flex-1 flex min-h-0 bg-[#0a0a0c]">
                     {!isLeftPanelCollapsed && (
                       <div className="w-1/4 border-r border-slate-800 flex flex-col min-h-0 transition-all duration-300">
                         <DiagnosticAlertPanel
@@ -13808,8 +11081,8 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 );
               case 'knowledge':
                 return (
-                  <div className="flex-1 flex min-h-0 bg-[var(--bg-deepest)] relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 relative bg-slate-900/40 z-0">
+                  <div className="flex-1 flex min-h-0 bg-[#0a0a0c] relative overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 relative bg-black/40 z-0">
                       <KnowledgeChatPanel
                         messages={messages}
                         chatEndRef={chatEndRef}
@@ -13820,9 +11093,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                         onToggle={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
                         onAction={handleAction}
                         inspectionContext={inspectionContext}
-                        knowledgeTab={knowledgeTab}
-                        setKnowledgeTab={setKnowledgeTab}
-                        renderKnowledgeManagement={renderKnowledgeManagement}
                       />
                     </div>
                     <SourceTraceDrawer
@@ -13836,7 +11106,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               case 'network':
               case 'database':
                 return (
-                  <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-deepest)] relative overflow-hidden">
+                  <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0c] relative overflow-hidden">
                     <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-4 opacity-40">
                       {activeMenu === 'network' ? <Network size={64} strokeWidth={1} /> : <Database size={64} strokeWidth={1} />}
                       <div className="text-sm font-bold tracking-widest uppercase">
@@ -13875,7 +11145,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               case 'home':
               default:
                 return (
-                  <div className="flex-1 overflow-y-auto w-full no-scrollbar scroll-smooth relative">
+                  <div className="flex-1 overflow-y-auto w-full no-scrollbar scroll-smooth">
                     <div className="flex flex-col min-h-full mx-auto px-4 md:px-8">
                       <div className="my-auto w-full flex flex-col items-center py-6">
                         <div className="max-w-4xl w-full mb-8">
@@ -13884,20 +11154,20 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                           <div className="flex flex-col items-center mb-6 relative">
                             <div className="flex items-center justify-center gap-3 mb-2">
                               {/* Robot Logo Icon */}
-                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 border border-slate-700 shadow-[0_4px_20px_rgba(99,102,241,0.4)] flex items-center justify-center relative z-10 transition-transform hover:scale-105 duration-300">
+                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 border border-white/10 shadow-[0_4px_20px_rgba(99,102,241,0.4)] flex items-center justify-center relative z-10 transition-transform hover:scale-105 duration-300">
                                 <Bot size={22} className="text-white relative z-20" />
                               </div>
-                              <h2 className="text-2xl font-extrabold text-slate-100 tracking-tight">SRE 智能助手</h2>
+                              <h2 className="text-2xl font-extrabold text-white tracking-tight">SRE 智能助手</h2>
                             </div>
                             <p className="text-slate-400 text-xs font-medium max-w-xl text-center leading-relaxed">
-                            我是您的 SRE 智能助手，协助您完成智能巡检、告警治理、异常发现与故障诊断
+                              今日 <span className="text-rose-500 font-bold mx-0.5">3 条活跃告警</span>待处理。直接描述问题，或从下方场景快速发起。
                             </p>
                           </div>
 
-                          <div className="w-full relative space-y-4">
+                          <div className="w-full relative shadow-2xl space-y-4">
                             {/* Active Alert Banner - Dynamic Scrolling with Animation */}
                             <div 
-                              className="w-full bg-[var(--bg-app)]/80 border border-rose-500/20 rounded-2xl px-4 py-3 flex items-center justify-between shadow-sm relative overflow-hidden group/banner"
+                              className="w-full bg-[#1e0f15]/80 border border-rose-500/20 rounded-2xl px-4 py-3 flex items-center justify-between shadow-lg relative overflow-hidden group/banner"
                               onMouseEnter={() => setIsHoveringBanner(true)}
                               onMouseLeave={() => setIsHoveringBanner(false)}
                             >
@@ -13934,33 +11204,33 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                             {/* Quick Action Tag Bubbles matching screenshot */}
                             <div className="flex flex-wrap items-center gap-2 mt-4">
                               <button onClick={() => setInputValue(prev => {
-                                const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                                const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                                 return tagMatch ? `${tagMatch[0]} 帮我分析当前活跃告警根因` : '帮我分析当前活跃告警根因';
-                              })} className="px-3 py-1.5 bg-[var(--bg-hover)] hover:bg-[var(--bg-active-alt)] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
+                              })} className="px-3 py-1.5 bg-[#1e1e2d] hover:bg-[#2c2d3c] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                                  <Activity size={12} className="text-indigo-400" /> 分析当前活跃告警根因
                                </button>
                                <button onClick={() => setInputValue(prev => {
-                                const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                                const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                                 return tagMatch ? `${tagMatch[0]} 当前服务响应慢，帮我排查链路瓶颈` : '当前服务响应慢，帮我排查链路瓶颈';
-                              })} className="px-3 py-1.5 bg-[var(--bg-hover)] hover:bg-[var(--bg-active-alt)] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
+                              })} className="px-3 py-1.5 bg-[#1e1e2d] hover:bg-[#2c2d3c] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                                  <Network size={12} className="text-indigo-400" /> 服务响应慢，排查链路瓶颈
                                </button>
                                <button onClick={() => setInputValue(prev => {
-                                const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
-                                return tagMatch ? `${tagMatch[0]} 查询 payment 服务的故障处置 SOP` : '@知识专家 查询 payment 服务的故障处置 SOP';
-                              })} className="px-3 py-1.5 bg-[var(--bg-hover)] hover:bg-[var(--bg-active-alt)] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
+                                const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
+                                return tagMatch ? `${tagMatch[0]} 查询 payment 服务的故障处置 SOP` : '查询 payment 服务的故障处置 SOP';
+                              })} className="px-3 py-1.5 bg-[#1e1e2d] hover:bg-[#2c2d3c] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                                  <BookOpen size={12} className="text-indigo-400" /> 查询故障处​置 SOP
                                </button>
                                <button onClick={() => setInputValue(prev => {
-                                const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
-                                return tagMatch ? `${tagMatch[0]} 帮我生成今日运维巡检报告` : '@巡检助手 帮我生成今日运维巡检报告';
-                              })} className="px-3 py-1.5 bg-[var(--bg-hover)] hover:bg-[var(--bg-active-alt)] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
+                                const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
+                                return tagMatch ? `${tagMatch[0]} 帮我生成今日运维巡检报告` : '帮我生成今日运维巡检报告';
+                              })} className="px-3 py-1.5 bg-[#1e1e2d] hover:bg-[#2c2d3c] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                                  <FileText size={12} className="text-indigo-400" /> 生成今日运维巡检报告
                                </button>
                                <button onClick={() => setInputValue(prev => {
-                                const tagMatch = prev.match(/@(诊断专家|巡检助手|知识专家)/);
+                                const tagMatch = prev.match(/@(诊断|巡检|知识专家|告警)/);
                                 return tagMatch ? `${tagMatch[0]} 今日告警收效和降噪情况如何？` : '今日告警收效和降噪情况如何？';
-                              })} className="px-3 py-1.5 bg-[var(--bg-hover)] hover:bg-[var(--bg-active-alt)] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
+                              })} className="px-3 py-1.5 bg-[#1e1e2d] hover:bg-[#2c2d3c] border border-slate-700/50 rounded-lg text-[11px] text-slate-300 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                                  <Bell size={12} className="text-indigo-400" /> 今日告警收效汇总
                                </button>
                             </div>
@@ -13976,8 +11246,14 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             }
           })()}
         </main>
-
-
+        {selectedPlanForDetail !== null && (
+          <InspectionPlanDetailDrawer
+            isOpen={true}
+            onClose={() => setSelectedPlanForDetail(null)}
+            plan={selectedPlanForDetail}
+            onSave={handleSavePlan}
+          />
+        )}
 
         <DiagnosticReportDrawer
           isOpen={isReportDrawerOpen}
@@ -13985,14 +11261,23 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           data={activeReportData}
         />
 
-        <InteractionGuideDrawer 
-          isOpen={isGuideOpen}
-          onClose={() => setIsGuideOpen(false)}
-          expandedIds={expandedGuideIds}
-          setExpandedIds={setExpandedGuideIds}
-          activeSubId={activeGuideSubId}
-          setActiveSubId={setActiveGuideSubId}
-        />
+        {globalError && (
+          <div className="fixed inset-0 bg-red-950/95 border-4 border-red-500 z-[9999] overflow-auto p-10 text-white font-mono text-xs">
+            <h1 className="text-xl font-bold text-red-400 mb-4">React App 崩溃捕获器 (Runtime Error Caught)</h1>
+            <pre className="whitespace-pre-wrap leading-relaxed bg-black/40 p-5 rounded-lg border border-red-800">
+              {globalError}
+            </pre>
+            <button
+              onClick={() => {
+                setGlobalError(null);
+                window.location.reload();
+              }}
+              className="mt-6 px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all"
+            >
+              清除错误并重新加载页面
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
