@@ -1978,13 +1978,17 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   const [isScriptModalOpen, setIsScriptModalOpen] = useState(false);
   const [tempScriptData, setTempScriptData] = useState({ type: 'shell', content: '' });
 
+  const BOILERPLATE = {
+    shell: '#!/bin/bash\n\n# 在此编写您的 Shell 脚本逻辑\n',
+    python: '#!/usr/bin/env python3\n\n# 在此编写您的 Python 脚本逻辑\n'
+  };
+
   const openScriptModal = () => {
     const currentTask = tasks[activeTaskIndex];
     if (currentTask) {
-      setTempScriptData({
-        type: currentTask.scriptType || 'shell',
-        content: currentTask.scriptContent || ''
-      });
+      const type = currentTask.scriptType || 'shell';
+      const content = currentTask.scriptContent || BOILERPLATE[type as keyof typeof BOILERPLATE];
+      setTempScriptData({ type, content });
       setIsScriptModalOpen(true);
     }
   };
@@ -1995,6 +1999,32 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
     updated[activeTaskIndex].scriptContent = tempScriptData.content;
     setTasks(updated);
     setIsScriptModalOpen(false);
+  };
+
+  const handleScriptTypeChange = (newType: string) => {
+    setTempScriptData(prev => {
+      let newContent = prev.content;
+      if (!newContent.trim() || Object.values(BOILERPLATE).some(bp => prev.content.trim() === bp.trim())) {
+        newContent = BOILERPLATE[newType as keyof typeof BOILERPLATE];
+      }
+      return { type: newType, content: newContent };
+    });
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const target = e.target as HTMLTextAreaElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const value = target.value;
+      const newContent = value.substring(0, start) + '    ' + value.substring(end);
+      setTempScriptData(prev => ({ ...prev, content: newContent }));
+      
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 4;
+      }, 0);
+    }
   };
 
   const handleFieldChange = (index: number, field: string, value: any) => {
@@ -2204,7 +2234,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setTempScriptData(prev => ({ ...prev, type }))}
+                        onClick={() => handleScriptTypeChange(type)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                           isActive
                             ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/5'
@@ -2223,6 +2253,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                 <textarea
                   value={tempScriptData.content}
                   onChange={(e) => setTempScriptData(prev => ({ ...prev, content: e.target.value }))}
+                  onKeyDown={handleTextareaKeyDown}
                   placeholder="在此编写您的脚本逻辑..."
                   className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[600px] focus:outline-none transition-colors leading-relaxed"
                 />
