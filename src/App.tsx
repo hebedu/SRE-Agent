@@ -2048,28 +2048,28 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           {/* 资源对象 */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-slate-400 uppercase">资源对象 ({targetList.length})</span>
-            <div className="flex flex-wrap gap-1.5 relative">
+            <div className="flex flex-wrap gap-1.5 relative group/more-targets">
               {targetList.slice(0, 3).map((inst: string, idx: number) => (
-                <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono">
+                <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono cursor-default">
                   {inst}
                 </span>
               ))}
               {targetList.length > 3 && (
-                <div className="relative group/more-targets">
-                  <span className="px-2 py-0.5 rounded border border-dashed border-slate-600 text-slate-400 hover:text-slate-200 hover:border-slate-400 transition-colors text-[10px] font-mono cursor-default flex items-center h-full">
-                    +{targetList.length - 3} 更多...
-                  </span>
-                  
-                  {/* Hover Popover */}
-                  <div className="absolute top-full mt-2 left-0 w-[340px] hidden group-hover/more-targets:block bg-[#161622] border border-slate-700 p-3 rounded-lg shadow-2xl z-20">
-                    <div className="text-[10px] font-bold text-slate-400 mb-2 border-b border-slate-800 pb-2 uppercase tracking-wider">全部资源对象 ({targetList.length})</div>
-                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
-                      {targetList.map((inst: string, idx: number) => (
-                        <span key={idx} className="px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] font-mono hover:bg-slate-700 transition-colors cursor-pointer">
-                          {inst}
-                        </span>
-                      ))}
-                    </div>
+                <span className="px-2 py-0.5 rounded border border-dashed border-slate-600 text-slate-400 group-hover/more-targets:text-slate-200 group-hover/more-targets:border-slate-400 transition-colors text-[10px] font-mono cursor-default flex items-center h-full">
+                  +{targetList.length - 3} 更多...
+                </span>
+              )}
+              
+              {/* Hover Popover, positioned relative to the full container width */}
+              {targetList.length > 3 && (
+                <div className="absolute top-full mt-2 left-0 w-[95%] hidden group-hover/more-targets:block bg-[#161622] border border-slate-700 p-3 rounded-lg shadow-2xl z-20">
+                  <div className="text-[10px] font-bold text-slate-400 mb-2 border-b border-slate-800 pb-2 uppercase tracking-wider">全部资源对象 ({targetList.length})</div>
+                  <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+                    {targetList.map((inst: string, idx: number) => (
+                      <span key={idx} className="px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] font-mono hover:bg-slate-700 transition-colors cursor-pointer">
+                        {inst}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
