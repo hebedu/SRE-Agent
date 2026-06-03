@@ -2915,7 +2915,7 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
                     ))}
                     {selectedTargets.length > 2 && (
                       <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold border border-dashed border-slate-600 text-slate-400 bg-slate-900/50 cursor-default">
-                        +{selectedTargets.length - 2} 已选
+                        +{selectedTargets.length - 2}
                       </span>
                     )}
                   </>
