@@ -2830,11 +2830,8 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
 
             {/* 关联资源对象多选胶囊选择器 */}
             <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center w-full">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象</label>
-                <ChevronDown size={11} className="text-slate-500 mr-1" />
-              </div>
-              <div className="flex flex-wrap gap-2 p-3 bg-slate-950/40 border border-slate-800/80 rounded-xl">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象</label>
+              <div className="relative flex flex-wrap gap-2 p-3 pr-7 bg-slate-950/40 border border-slate-800/80 rounded-xl">
                 {resourceObjects.map((obj: string) => {
                   const isSelected = selectedTargets.includes(obj);
                   return (
@@ -2852,6 +2849,7 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
                     </button>
                   );
                 })}
+                <ChevronDown size={12} className="absolute right-2.5 top-3 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
