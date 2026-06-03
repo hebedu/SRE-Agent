@@ -2047,7 +2047,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
 
           {/* 资源对象 */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">资源对象 ({targetList.length})</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">资源对象 ({targetList.length})</span>
             <div className="flex flex-wrap gap-1.5">
               {targetList.map((inst: string, idx: number) => (
                 <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono">
