@@ -2034,9 +2034,20 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
       {/* Body Form */}
       {currentTask && (
         <div className="p-5 space-y-4 max-h-[380px] overflow-y-auto no-scrollbar">
-          {/* Target instances list */}
+          {/* 资源类型（只读） */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">关联资源实例 ({targetList.length})</span>
+            <label className="text-[10px] font-bold text-slate-400 uppercase">资源类型</label>
+            <input
+              type="text"
+              disabled
+              value={currentTask.resourceType || ''}
+              className="bg-slate-950/30 border border-slate-800/50 text-slate-500 rounded-lg py-2 px-3 text-xs cursor-not-allowed"
+            />
+          </div>
+
+          {/* 资源对象 */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">资源对象 ({targetList.length})</span>
             <div className="flex flex-wrap gap-1.5">
               {targetList.map((inst: string, idx: number) => (
                 <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono">
@@ -2065,17 +2076,27 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
-              <select
-                value={currentTask.scriptType || 'shell'}
-                onChange={(e) => handleFieldChange(activeTaskIndex, 'scriptType', e.target.value)}
-                className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
-              >
-                <option value="shell">Shell 脚本</option>
-                <option value="python">Python 脚本</option>
-              </select>
+          {/* 脚本类型：平铺 Tab 标签 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
+            <div className="flex gap-2">
+              {(['shell', 'python'] as const).map((type) => {
+                const isActive = (currentTask.scriptType || 'shell') === type;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => handleFieldChange(activeTaskIndex, 'scriptType', type)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      isActive
+                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/5'
+                        : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                    }`}
+                  >
+                    {type === 'shell' ? 'Shell 脚本' : 'Python 脚本'}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
