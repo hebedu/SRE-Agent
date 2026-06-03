@@ -2009,7 +2009,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           </div>
           <div>
             <h4 className="text-sm font-bold text-slate-100 uppercase tracking-tight">自定义巡检子任务</h4>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">MySQL 巡检向导 - 步骤 3 (共 {tasks.length} 个任务)</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">共 {tasks.length} 个任务</p>
           </div>
         </div>
       </div>
