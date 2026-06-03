@@ -1537,7 +1537,7 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
 
         <div className="space-y-4">
           <div>
-            <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-2">任务名称</label>
+            <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-2">计划名称</label>
             <input 
               type="text" 
               value={taskName}
