@@ -2830,7 +2830,10 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
 
             {/* 关联资源对象多选胶囊选择器 */}
             <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象（支持多选）</label>
+              <div className="flex justify-between items-center w-full">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">关联资源对象</label>
+                <ChevronDown size={11} className="text-slate-500 mr-1" />
+              </div>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-950/40 border border-slate-800/80 rounded-xl">
                 {resourceObjects.map((obj: string) => {
                   const isSelected = selectedTargets.includes(obj);
@@ -2852,17 +2855,27 @@ const InspectionTaskEditModal = React.memo(({ isOpen, onClose, task, onSave }: I
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
-                <select
-                  value={editedTask.scriptType || 'shell'}
-                  onChange={(e) => setEditedTask({ ...editedTask, scriptType: e.target.value })}
-                  className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-lg py-2 px-3 text-xs transition-all"
-                >
-                  <option value="shell">Shell 脚本</option>
-                  <option value="python">Python 脚本</option>
-                </select>
+            {/* 脚本类型：平铺 Tab 标签 */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">脚本类型</label>
+              <div className="flex gap-2">
+                {(['shell', 'python'] as const).map((type) => {
+                  const isActive = (editedTask.scriptType || 'shell') === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setEditedTask({ ...editedTask, scriptType: type })}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/5'
+                          : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      }`}
+                    >
+                      {type === 'shell' ? 'Shell 脚本' : 'Python 脚本'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
