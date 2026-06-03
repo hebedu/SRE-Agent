@@ -2056,7 +2056,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
               ))}
               {targetList.length > 3 && (
                 <span className="px-2 py-0.5 rounded border border-dashed border-slate-600 text-slate-400 group-hover/more-targets:text-slate-200 group-hover/more-targets:border-slate-400 transition-colors text-[10px] font-mono cursor-default flex items-center h-full">
-                  +{targetList.length - 3} 更多...
+                  +{targetList.length - 3}
                 </span>
               )}
               
