@@ -6345,16 +6345,22 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">当前状态</span>
               <span 
-                className={`text-[11px] font-black flex items-center gap-1 ${
+                className={`group relative text-[11px] font-black flex items-center gap-1 ${
                   execState?.status === 'running' || task.inspectionStatus === '巡检中' ? 'text-orange-400' :
                   task.inspectionStatus === '已结束' ? 'text-emerald-400' :
                   task.inspectionStatus === '未开启' ? 'text-slate-600 cursor-help' :
                   'text-slate-400'
                 }`}
-                title={task.inspectionStatus === '未开启' ? '当前计划未开启，请前往配置中开启' : undefined}
               >
                 {(execState?.status === 'running' || task.inspectionStatus === '巡检中') && <RefreshCw size={9} className="animate-spin" />}
                 {execState?.status === 'running' ? '巡检中' : (task.inspectionStatus || '待巡检')}
+                
+                {task.inspectionStatus === '未开启' && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-slate-800 text-slate-200 text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700/50 flex flex-col items-center">
+                    当前计划未开启，请前往配置中开启
+                    <div className="absolute top-full w-2 h-2 -mt-1 bg-slate-800 border-b border-r border-slate-700/50 transform rotate-45"></div>
+                  </div>
+                )}
               </span>
             </div>
             <div className="flex items-center gap-4">
