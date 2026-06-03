@@ -2185,7 +2185,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-4xl bg-[#161622] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-5xl bg-[#161622] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-white/[0.02]">
               <h3 className="text-sm font-bold text-slate-200">编辑脚本</h3>
@@ -2224,7 +2224,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                   value={tempScriptData.content}
                   onChange={(e) => setTempScriptData(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="在此编写您的脚本逻辑..."
-                  className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[500px] focus:outline-none transition-colors leading-relaxed"
+                  className="w-full bg-[#0d0f1a] border border-slate-800 focus:border-indigo-500/50 rounded-xl p-4 text-xs font-mono text-slate-300 min-h-[600px] focus:outline-none transition-colors leading-relaxed"
                 />
               </div>
             </div>
