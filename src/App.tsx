@@ -6186,15 +6186,27 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">最近执行</span>
               <span className="text-[11px] text-slate-400 font-mono tracking-tight">{task.updatedAt || '无'}</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">下次执行</span>
-              <span className="text-[11px] text-slate-400 font-mono tracking-tight">
-                {task.executionType === 'scheduled' ? (task.nextExecutionTime || '2026-06-04 00:00:00') : '—'}
-              </span>
-            </div>
+            {task.executionType !== 'immediate' && (
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] text-slate-500 font-bold uppercase w-16">下次执行</span>
+                <span className="text-[11px] text-slate-400 font-mono tracking-tight">
+                  {task.nextExecutionTime || '2026-06-04 00:00:00'}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-end items-center gap-2">
+          <div className={`flex items-center gap-2 ${task.executionType === 'immediate' ? 'justify-between' : 'justify-end'}`}>
+            {/* 立即执行类型：左下角「再次执行」按鈕 */}
+            {task.executionType === 'immediate' && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onAction?.('RUN_IMMEDIATE', { task }); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-slate-600 transition-all text-[10px] font-bold active:scale-95"
+              >
+                <Play size={10} className="text-slate-400" />
+                再次执行
+              </button>
+            )}
             {(() => {
               const currentStatus = analysisStatus?.[task.name];
               const isAnalyzing = currentStatus === 'analyzing';
@@ -6466,7 +6478,7 @@ const INITIAL_INSPECTION_TASKS = [
     target: '实例 (MySQL-Order-Primary)',
     status: '异常',
     inspectionStatus: '已结束',
-    executionType: 'scheduled',
+    executionType: 'immediate',
     riskLevel: '中',
     rules: ['查询时长 > 3s', '全表扫描检测', '索引命中率'],
     summary: '存在 12 条执行超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。',
