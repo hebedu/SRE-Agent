@@ -6024,8 +6024,14 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-slate-600 font-bold">按状态:</span>
               <div className="flex gap-1.5">
-                {['全部', '巡检中', '已结束'].map((tag, i) => (
-                  <button key={i} className={`px-2.5 py-0.5 rounded text-[9px] font-bold border transition-all ${i === 0 ? 'bg-blue-500/20 border-blue-500/40 text-blue-400 px-3' : 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300'}`}>
+                {['全部', '待巡检', '巡检中', '已结束', '未开启'].map((tag, i) => (
+                  <button key={i} className={`px-2.5 py-0.5 rounded text-[9px] font-bold border transition-all ${
+                    i === 0 ? 'bg-blue-500/20 border-blue-500/40 text-blue-400' :
+                    tag === '待巡检' ? 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300' :
+                    tag === '巡检中' ? 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300' :
+                    tag === '已结束' ? 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300' :
+                    'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300'
+                  }`}>
                     {tag}
                   </button>
                 ))}
@@ -6059,45 +6065,12 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               <div className={`w-1.5 h-1.5 rounded-full ${task.status === '健康' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
               <h4 className="text-sm font-bold text-slate-100 group-hover:text-blue-400 transition-colors uppercase tracking-tight font-mono">{task.name}</h4>
               <div className="flex items-center gap-1.5 ml-auto">
-                {task.executionType === 'scheduled' ? (
-                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">定时</span>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-amber-400 bg-amber-500/10 border border-amber-500/20">手动</span>
-                )}
-                <span className={`px-1.5 py-0.5 rounded-[4px] text-[9px] font-black border ${
-                  task.inspectionStatus === '巡检中' 
-                  ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' 
-                  : 'bg-slate-800/50 border-slate-700/50 text-slate-500'
-                }`}>
-                  {task.inspectionStatus === '巡检中' && <RefreshCw size={8} className="inline mr-1 animate-spin" />}
-                  {task.inspectionStatus}
-                </span>
-                {task.status !== '健康' ? (
-                  <div className="relative group/tooltip">
-                    <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-white bg-rose-600 cursor-help flex items-center gap-0.5">
-                      异常 ⚠️
-                    </span>
-                    <div className="absolute bottom-full right-0 mb-2 w-56 hidden group-hover/tooltip:block bg-[#161622] border border-slate-700 p-2.5 rounded-lg text-[10px] text-slate-300 shadow-xl z-20 leading-relaxed font-sans">
-                      <div className="font-bold text-rose-400 mb-1 border-b border-slate-800 pb-1">异常预警：</div>
-                      {task.name.includes('支付') 
-                        ? '支付网关 (payment-gw) 近 5 分钟 5xx 错误率突增至 15%，触发严重预警水位。' 
-                        : task.name.includes('慢查询') 
-                        ? '监测到 12 条超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。'
-                        : '检测到关键监控指标超出安全上限，系统已触发专家分析。'}
-                    </div>
-                  </div>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                    健康
-                  </span>
-                )}
-                
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onAction?.('CONFIGURE_PLAN', task);
                   }}
-                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors ml-1.5"
+                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
                   title="配置计划"
                 >
                   <Settings size={13} />
@@ -6117,7 +6090,45 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">当前状态</span>
-              <span className={`text-[11px] font-black ${task.status === '正常' || task.status === '健康' ? 'text-emerald-500' : 'text-rose-500'}`}>{task.status}</span>
+              <span className={`text-[11px] font-black flex items-center gap-1 ${
+                task.inspectionStatus === '巡检中' ? 'text-orange-400' :
+                task.inspectionStatus === '已结束' ? 'text-emerald-400' :
+                task.inspectionStatus === '未开启' ? 'text-slate-600' :
+                'text-slate-400'
+              }`}>
+                {task.inspectionStatus === '巡检中' && <RefreshCw size={9} className="animate-spin" />}
+                {task.inspectionStatus || '待巡检'}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">任务类型</span>
+              {task.executionType === 'scheduled' ? (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">定时巡检</span>
+              ) : task.executionType === 'immediate' ? (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20">立即执行</span>
+              ) : (
+                <span className="text-[11px] text-slate-600">—</span>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">任务结果</span>
+              {task.status === '健康' ? (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">🟢 健康</span>
+              ) : task.status === '异常' ? (
+                <div className="relative group/tooltip">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 cursor-help">⚠️ 异常</span>
+                  <div className="absolute bottom-full left-0 mb-2 w-56 hidden group-hover/tooltip:block bg-[#161622] border border-slate-700 p-2.5 rounded-lg text-[10px] text-slate-300 shadow-xl z-20 leading-relaxed">
+                    <div className="font-bold text-amber-400 mb-1 border-b border-slate-800 pb-1">异常预警：</div>
+                    {task.name.includes('支付') ? '支付网关 (payment-gw) 近 5 分钟 5xx 错误率突增至 15%，触发严重预警水位。'
+                      : task.name.includes('慢查询') ? '监测到 12 条超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。'
+                      : '检测到关键监控指标超出安全上限，系统已触发专家分析。'}
+                  </div>
+                </div>
+              ) : task.status === '失败' ? (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-rose-400 bg-rose-500/10 border border-rose-500/20">🔴 失败</span>
+              ) : (
+                <span className="text-[11px] text-slate-600">—</span>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">最近执行</span>
@@ -6126,7 +6137,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase w-16">下次执行</span>
               <span className="text-[11px] text-slate-400 font-mono tracking-tight">
-                {task.executionType === 'scheduled' ? (task.nextExecutionTime || '2026-06-04 00:00:00') : '无 (单次立即执行)'}
+                {task.executionType === 'scheduled' ? (task.nextExecutionTime || '2026-06-04 00:00:00') : '—'}
               </span>
             </div>
           </div>
@@ -6403,10 +6414,12 @@ const INITIAL_INSPECTION_TASKS = [
     target: '实例 (MySQL-Order-Primary)',
     status: '异常',
     inspectionStatus: '已结束',
+    executionType: 'scheduled',
     riskLevel: '中',
     rules: ['查询时长 > 3s', '全表扫描检测', '索引命中率'],
     summary: '存在 12 条执行超过 3s 的慢 SQL，主要集中在 order_info 表的全表扫描。',
     updatedAt: '2024-04-12 13:50:45',
+    nextExecutionTime: '2026-06-04 02:00:00',
     availableDates: ['2024-04-12', '2024-04-11', '2024-04-09'],
     hasReport: true
   },
@@ -6415,6 +6428,7 @@ const INITIAL_INSPECTION_TASKS = [
     target: '主机 (Slb-External-Node)',
     status: '异常',
     inspectionStatus: '已结束',
+    executionType: 'immediate',
     riskLevel: '低',
     rules: ['剩余天数 < 30', '证书链完整性', '算法强度'],
     summary: '有 2 个域名的证书即将于 15 天后过期，请及时更新。',
@@ -6426,11 +6440,13 @@ const INITIAL_INSPECTION_TASKS = [
     name: '基础架构存储空间巡检',
     target: '集群 (Ceph-Storage-01)',
     status: '健康',
-    inspectionStatus: '已结束',
+    inspectionStatus: '待巡检',
+    executionType: 'scheduled',
     riskLevel: '低',
     rules: ['分区使用率 > 80%', 'IOPS 饱和度', '持久化延迟'],
     summary: '存储系统各分区使用率均在 60% 以下，IOPS 及延时指标正常。',
     updatedAt: '2024-04-12 09:15:33',
+    nextExecutionTime: '2026-06-04 06:00:00',
     availableDates: ['2024-04-12', '2024-04-11', '2024-04-07']
   },
   {
@@ -6438,6 +6454,7 @@ const INITIAL_INSPECTION_TASKS = [
     target: '集群 (Kafka-Prod-Main)',
     status: '异常',
     inspectionStatus: '已结束',
+    executionType: 'immediate',
     riskLevel: '中',
     rules: ['落后 Offset > 100w', '分区均衡度', 'ISR 副本状态'],
     summary: '检测到 billing-topic 存在消费延迟，Offset 堆积量达 250w，疑似下游消费能力不足。',
@@ -6447,11 +6464,13 @@ const INITIAL_INSPECTION_TASKS = [
     name: '入口网关 Nginx 并发连接核查',
     target: '主机 (Nginx-LB-01)',
     status: '异常',
-    inspectionStatus: '已结束',
+    inspectionStatus: '未开启',
+    executionType: 'scheduled',
     riskLevel: '低',
     rules: ['Active Connections', 'Waiting Connections', 'Error Rate'],
     summary: '当前活动连接数接近系统限额 (80%)，建议检查连接复用配置。',
-    updatedAt: '2024-04-12 16:45:00'
+    updatedAt: '2024-04-12 16:45:00',
+    nextExecutionTime: '—'
   }
 ];
 
