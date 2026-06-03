@@ -6121,10 +6121,10 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
                 {task.executionType === 'immediate' && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onAction?.('RUN_IMMEDIATE', { task }); }}
-                    className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-blue-400 transition-colors"
-                    title="再次执行"
+                    className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+                    title="点击后将再次执行该计划"
                   >
-                    <Play size={13} fill="currentColor" />
+                    <Play size={13} />
                   </button>
                 )}
                 <button
