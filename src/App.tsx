@@ -7767,13 +7767,21 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.map(plan => {
+          return parsed.map((plan: any) => {
+            // 从默认数据中找到对应项，用于补全新增字段
+            const matched = INITIAL_INSPECTION_TASKS.find(p => p.name === plan.name);
+            const base = matched ? {
+              executionType: matched.executionType,
+              inspectionStatus: matched.inspectionStatus,
+              nextExecutionTime: matched.nextExecutionTime,
+            } : {};
+
             if (!plan.tasks || plan.tasks.length === 0) {
-              const matched = INITIAL_INSPECTION_TASKS.find(p => p.name === plan.name);
               if (matched) {
                 return {
                   ...matched,
                   ...plan,
+                  ...base,
                   tasks: matched.tasks
                 };
               } else {
@@ -7803,10 +7811,10 @@ export default function App() {
                     ]
                   };
                 });
-                return { ...plan, tasks: generatedTasks };
+                return { ...plan, ...base, tasks: generatedTasks };
               }
             }
-            return plan;
+            return { ...plan, ...base };
           });
         }
       } catch (e) {
