@@ -619,7 +619,7 @@ const ScheduleReviewCard: React.FC<{ data: any, onAction: any }> = ({ data, onAc
       >
         修改
       </button>
-      <button onClick={() => onAction('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow-lg shadow-blue-500/20">创建巡检任务</button>
+      <button onClick={() => onAction('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow-lg shadow-blue-500/20">创建巡检计划</button>
     </div>
   </div>
 );
@@ -977,12 +977,12 @@ const InspectionTaskSelectCard: React.FC<{ onAction: any }> = ({ onAction }) => 
     <div className="bg-[#141418] border border-slate-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[360px] animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="p-3 border-b border-slate-800 bg-white/[0.02] flex items-center gap-2">
         <Search size={14} className="text-slate-500" />
-        <input type="text" placeholder="搜索或选择任务..." className="bg-transparent border-none text-[11px] text-slate-300 focus:outline-none w-full" />
+        <input type="text" placeholder="搜索或选择计划..." className="bg-transparent border-none text-[11px] text-slate-300 focus:outline-none w-full" />
       </div>
       <div className="p-3 space-y-4 max-h-[400px] overflow-y-auto no-scrollbar">
         <div className="space-y-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> 最近有异常的任务 (2个)
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> 最近有异常的计划 (2个)
           </div>
           {tasks.filter(t => t.type === 'abnormal').map(task => (
             <div key={task.name} className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/50 hover:border-slate-700 transition-all group flex items-center justify-between">
@@ -994,14 +994,14 @@ const InspectionTaskSelectCard: React.FC<{ onAction: any }> = ({ onAction }) => 
                 onClick={() => onAction('START_DIAGNOSTIC', { taskName: task.name })}
                 className="text-[10px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded transition-colors"
               >
-                诊断此任务
+                诊断此计划
               </button>
             </div>
           ))}
         </div>
         <div className="space-y-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 全部任务
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 全部计划
           </div>
           {tasks.filter(t => t.type === 'all').map(task => (
             <div key={task.name} className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/50 hover:border-slate-700 transition-all group flex items-center justify-between">
@@ -1013,7 +1013,7 @@ const InspectionTaskSelectCard: React.FC<{ onAction: any }> = ({ onAction }) => 
                 onClick={() => onAction('START_DIAGNOSTIC', { taskName: task.name })}
                 className="text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 px-2.5 py-1 rounded transition-colors"
               >
-                诊断此任务
+                诊断此计划
               </button>
             </div>
           ))}
@@ -1196,7 +1196,7 @@ const InspectionConclusionCard: React.FC<{ data: any, onAction: any }> = ({ data
           <div className="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-orange-400 font-bold">[⏸️]</span>
-              <span className="text-slate-300 text-xs">临时暂停该巡检任务</span>
+              <span className="text-slate-300 text-xs">临时暂停该巡检计划</span>
             </div>
             <button className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 text-[10px] font-bold px-3 py-1 rounded transition-colors" onClick={() => onAction('PAUSE_TASK')}>一键暂停</button>
           </div>
@@ -1288,7 +1288,7 @@ const InspectionClosureCard: React.FC<{ onAction: any }> = ({ onAction }) => (
         本次诊断记录已存入知识库。下次遇到类似问题时，系统将自动提示参考本次解决方案。
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => onAction('RESUME_TASK')} className="py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold rounded-lg transition-all shadow-lg shadow-emerald-600/20">▶️ 恢复任务</button>
+        <button onClick={() => onAction('RESUME_TASK')} className="py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold rounded-lg transition-all shadow-lg shadow-emerald-600/20">▶️ 恢复计划</button>
         <button onClick={() => onAction('GO_HOME')} className="py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg border border-slate-700 transition-all">🏠 回到首页</button>
       </div>
     </div>
@@ -1350,7 +1350,7 @@ const CronConfirmCard = ({ data, onAction }: any) => (
       </div>
     </div>
     <div className="flex gap-3">
-      <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded transition-all">确认创建任务</button>
+      <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded transition-all">确认创建计划</button>
       <button className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded transition-all">修改</button>
     </div>
   </motion.div>
@@ -1557,7 +1557,7 @@ const FrequencySettingCard = ({ onAction, taskName, setTaskName, frequency, setF
 
       <div className="p-5 bg-black/40 border-t border-slate-800/60 flex gap-3">
         <button onClick={() => onAction?.('STEP_RULE_BACK')} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-all">上一步</button>
-        <button onClick={() => onAction?.('STEP_CONFIRMATION')} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black rounded-lg transition-all shadow-lg shadow-indigo-500/20 active:scale-95">生成任务预览</button>
+        <button onClick={() => onAction?.('STEP_CONFIRMATION')} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black rounded-lg transition-all shadow-lg shadow-indigo-500/20 active:scale-95">生成计划预览</button>
       </div>
     </motion.div>
   );
@@ -1613,7 +1613,7 @@ const TaskConfirmationCard = ({ onAction, data }: any) => {
   
       <div className="p-5 bg-white/[0.02] border-t border-white/[0.05] flex gap-3">
          <button onClick={() => onAction?.('STEP_SCHEDULE_BACK')} className="flex-1 py-1.5 bg-slate-800/50 hover:bg-slate-800 text-slate-500 hover:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-all uppercase tracking-widest">返回修改</button>
-         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">确认创建任务</button>
+         <button onClick={() => onAction?.('STEP_FINISH')} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-95 uppercase tracking-widest">确认创建计划</button>
       </div>
     </motion.div>
   );
@@ -1663,7 +1663,7 @@ const InspectionResultGrid = ({ data, onAction }: any) => (
     <div className="bg-emerald-500/10 p-4 border-b border-slate-800 flex justify-between items-center relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-full bg-emerald-500/5 -skew-x-12 translate-x-16 pointer-events-none" />
       <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 z-10">
-        <CheckCircle2 size={16} className="text-emerald-500" /> 巡检任务执行报告
+        <CheckCircle2 size={16} className="text-emerald-500" /> 巡检计划执行报告
       </h4>
       <span className="text-[9px] text-slate-500 font-mono z-10 px-2 py-0.5 bg-black/40 rounded border border-slate-800 uppercase tracking-widest">Done</span>
     </div>
@@ -1708,7 +1708,7 @@ const InspectionResultGrid = ({ data, onAction }: any) => (
 
       <div className="flex gap-3 pt-5 border-t border-slate-800/80">
         <button onClick={() => onAction?.('STEP_SCHEDULE')} className="flex-1 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-[11px] font-bold rounded-lg border border-blue-500/20 flex items-center justify-center gap-2 transition-all group">
-          <Clock size={14} className="group-hover:rotate-12 transition-transform" /> 转为定时任务
+          <Clock size={14} className="group-hover:rotate-12 transition-transform" /> 转为定时计划
         </button>
         <button className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-all flex items-center justify-center gap-2">
           <FileText size={14} /> 查看报告
@@ -5418,7 +5418,7 @@ const InspectionTaskContextBanner = ({ task, onClose, isAnalyzing }: { task: any
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
               <span className={`text-[9px] font-black px-1.5 py-0.5 rounded leading-none ${task.riskLevel === '高' ? 'bg-rose-500 text-white' : 'bg-orange-500 text-white'
-                }`}>巡检任务: {task.riskLevel}风险</span>
+                }`}>巡检计划: {task.riskLevel}风险</span>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{task.target}</span>
             </div>
             <h3 className="text-sm font-black text-slate-100 truncate group-hover/banner:text-indigo-400 transition-colors uppercase tracking-tight">{task.name}</h3>
@@ -5893,9 +5893,9 @@ const InspectionOverview = ({ onAction }: { onAction?: any }) => (
   <div className="space-y-6">
     <div className="grid grid-cols-4 gap-4">
       {[
-        { label: '总任务数', val: '24', change: '↑2 较昨日', color: 'text-blue-400', icon: <ClipboardList size={20} /> },
+        { label: '总计划数', val: '24', change: '↑2 较昨日', color: 'text-blue-400', icon: <ClipboardList size={20} /> },
         { label: '今日成功率', val: '95.8%', change: '↓1.2%', color: 'text-emerald-400', icon: <CheckCircle2 size={20} /> },
-        { label: '异常任务', val: '3', change: '⚠️ 需优先处理', color: 'text-rose-400', icon: <AlertCircle size={20} /> },
+        { label: '异常计划', val: '3', change: '⚠️ 需优先处理', color: 'text-rose-400', icon: <AlertCircle size={20} /> },
         { label: '覆盖实例数', val: '156', change: '🟢 正常', color: 'text-purple-400', icon: <Server size={20} /> }
       ].map((card, idx) => (
         <div key={idx} onClick={(e) => e.stopPropagation()} className="bg-[#141418] border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all group">
@@ -6140,7 +6140,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
         <div className="flex items-center gap-3">
           <div className="relative group">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input type="text" placeholder="搜索任务名称/摘要..." className="bg-black/30 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-blue-500/50 w-64 transition-all" />
+            <input type="text" placeholder="搜索计划名称/摘要..." className="bg-black/30 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-blue-500/50 w-64 transition-all" />
           </div>
         </div>
       </div>
@@ -6238,7 +6238,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">任务类型</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">计划类型</span>
               {task.executionType === 'scheduled' ? (
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">定时巡检</span>
               ) : task.executionType === 'immediate' ? (
@@ -6248,7 +6248,7 @@ const InspectionTaskList: React.FC<{ tasks: any[], onAction?: any, setShowBanner
               )}
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">任务结果</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase w-16">计划结果</span>
               {task.status === '健康' ? (
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">🟢 健康</span>
               ) : task.status === '异常' ? (
@@ -6390,7 +6390,7 @@ const InspectionDetailReport = ({ analysisStatus, onAction }: any) => (
   <div className="space-y-6">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <div className="text-xs font-bold text-slate-400 uppercase">当前任务:</div>
+        <div className="text-xs font-bold text-slate-400 uppercase">当前计划:</div>
         <div className="px-3 py-1.5 bg-[#1e1e24] border border-slate-700 rounded-lg flex items-center gap-4 cursor-pointer hover:border-blue-500 transition-all">
           <span className="text-xs text-slate-200">CPU巡检-生产环境</span>
           <ChevronDown size={14} className="text-slate-500" />
@@ -7589,7 +7589,7 @@ const InspectionDashboard = ({ tasks, activeTab, setActiveTab, onAction, setShow
          <div className="pt-8 border-t border-slate-800/80">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest flex items-center gap-2">
-                <ListTodo size={18} className="text-blue-500" /> 巡检任务列表
+                <ListTodo size={18} className="text-blue-500" /> 巡检计划列表
               </h3>
               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Tasks: 24</div>
             </div>
@@ -7666,7 +7666,7 @@ const InspectionChat = ({ messages, chatEndRef, onAction, renderInput, isCollaps
 
     <div className="h-[44px] px-3 border-t border-slate-800/50 flex items-center gap-2 bg-[#0d0f1a] shrink-0 overflow-x-auto no-scrollbar">
       {[
-        { id: 'NEW_TASK', icon: <PlusCircle size={12} />, label: '新建任务', color: 'text-blue-400' },
+        { id: 'NEW_TASK', icon: <PlusCircle size={12} />, label: '新建计划', color: 'text-blue-400' },
         { id: 'REPORT', icon: <FilePieChart size={12} />, label: '今日报告', color: 'text-emerald-400' },
         { id: 'DIAG', icon: <Search size={12} />, label: '诊断任务', color: 'text-purple-400' }
       ].map(cmd => (
