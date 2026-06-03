@@ -2133,7 +2133,7 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
                 </span>
               </div>
               <div className="flex items-center gap-1.5 shrink-0 mx-1">
-                <span className="text-[10px] font-bold text-slate-500 group-hover/script:text-indigo-400 transition-colors">展开编辑</span>
+                <span className="text-xs font-medium leading-none text-slate-500 group-hover/script:text-indigo-400 transition-colors">展开编辑</span>
                 <Maximize2 size={14} className="text-slate-500 group-hover/script:text-indigo-400 transition-colors" />
               </div>
             </div>
