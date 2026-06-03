@@ -6012,7 +6012,7 @@ const InspectionOverview = ({ onAction }: { onAction?: any }) => (
       {[
         { label: '总计划数', val: '24', change: '↑2 较昨日', color: 'text-blue-400', icon: <ClipboardList size={20} /> },
         { label: '今日成功率', val: '95.8%', change: '↓1.2%', color: 'text-emerald-400', icon: <CheckCircle2 size={20} /> },
-        { label: '异常计划', val: '3', change: '⚠️ 需优先处理', color: 'text-rose-400', icon: <AlertCircle size={20} /> },
+        { label: '异常/失败', val: '3', change: '⚠️ 需优先处理', color: 'text-rose-400', icon: <AlertCircle size={20} /> },
         { label: '覆盖实例数', val: '156', change: '🟢 正常', color: 'text-purple-400', icon: <Server size={20} /> }
       ].map((card, idx) => (
         <div key={idx} onClick={(e) => e.stopPropagation()} className="bg-[#141418] border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all group">
