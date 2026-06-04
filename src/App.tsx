@@ -4,7 +4,7 @@ import {
   Bot, User, CheckCircle2, Clock, Zap, MoreHorizontal, Terminal, Activity,
   ShieldAlert, Settings, ClipboardList, BarChart2, BookOpen, HeartPulse,
   FileText, Download, Play, Check, ChevronDown, ChevronRight, Home,
-  Plus, Bell, Network, CheckSquare, Database, Shield, ChevronLeft, ChevronUp, Paperclip, X, Save, Lock, Edit,
+  Plus, Bell, Network, CheckSquare, Database, Shield, ChevronLeft, ChevronUp, Paperclip, X, Save, Lock, Edit, HelpCircle,
   AlertTriangle, Box, Filter, SlidersHorizontal, ArrowUpDown, Cpu, Server, Layers, HardDrive, Brain, Flame, Sparkles, Minus, Maximize,
   PlusCircle, BarChart3, LayoutDashboard, ListTodo, FilePieChart, ArrowUpRight, ArrowDownRight, RefreshCw, History, Maximize2, Folder, PanelLeft, PanelLeftClose, ShieldCheck,
   Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2
@@ -11115,6 +11115,8 @@ const InteractionGuideDrawer = ({ isOpen, onClose, expandedIds, setExpandedIds, 
 export default function App() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [expandedGuideIds, setExpandedGuideIds] = useState<string[]>(['home', 'diagnostic', 'knowledge', 'inspection']);
+  const [activeGuideSubId, setActiveGuideSubId] = useState('home-rules');
 
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
@@ -14843,7 +14845,14 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           </div>
         )}
 
-        <InteractiveGuide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
+        <InteractionGuideDrawer 
+          isOpen={isGuideOpen}
+          onClose={() => setIsGuideOpen(false)}
+          expandedIds={expandedGuideIds}
+          setExpandedIds={setExpandedGuideIds}
+          activeSubId={activeGuideSubId}
+          setActiveSubId={setActiveGuideSubId}
+        />
       </div>
     </div>
   );
