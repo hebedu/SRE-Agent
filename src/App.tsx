@@ -3886,10 +3886,10 @@ const AnalysisTrendChart = ({ title, labels, data, events }: { title: string, la
   return (
     <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 overflow-visible">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+        <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
           <Activity size={12} className="text-blue-500" /> {title}
         </h4>
-        <div className="text-[9px] text-slate-600 font-mono italic">UNIT: %</div>
+        <div className="text-[9px] text-slate-600 font-mono italic">单位: %</div>
       </div>
 
       <div className="relative h-24 w-full">
@@ -12554,13 +12554,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             stage2: {
               charts: [
                 {
-                  title: 'CPU Usage Trend (Last 30 min)',
+                  title: 'CPU 使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [65, 70, 75, 82, 88, 90, 92],
                   events: [{ time: '10:15', label: '异常开始' }]
                 },
                 {
-                  title: 'Memory Usage Trend (Last 30 min)',
+                  title: '内存使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [60, 65, 70, 75, 80, 85, 88]
                 }
@@ -12612,13 +12612,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             stage2: {
               charts: [
                 {
-                  title: 'CPU Usage Trend (Last 30 min)',
+                  title: 'CPU 使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [65, 70, 75, 82, 88, 90, 92],
                   events: [{ time: '10:15', label: '异常开始' }]
                 },
                 {
-                  title: 'Memory Usage Trend (Last 30 min)',
+                  title: '内存使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [60, 65, 70, 75, 80, 85, 88]
                 }
@@ -12676,13 +12676,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             stage2: {
               charts: [
                 {
-                  title: 'CPU Usage Trend (Last 30 min)',
+                  title: 'CPU 使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [65, 70, 75, 82, 88, 90, 92],
                   events: [{ time: '10:15', label: '异常开始' }]
                 },
                 {
-                  title: 'Memory Usage Trend (Last 30 min)',
+                  title: '内存使用率趋势 (近30分钟)',
                   labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
                   data: [60, 65, 70, 75, 80, 85, 88]
                 }
