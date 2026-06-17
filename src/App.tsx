@@ -2371,18 +2371,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   {data.stage1?.metricsTable && (
                     <AnalysisTable title="（3）异常指标表" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
                   )}
-                  {data.stage1?.anomalies && (
-                    <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4">
-                      <div className="text-[10px] font-black text-rose-400 uppercase mb-2">（4）异常指标列表</div>
-                      <ul className="space-y-1.5">
-                        {data.stage1.anomalies.map((item: string, idx: number) => (
-                          <li key={idx} className="text-[11px] text-rose-300/90 font-medium flex items-center gap-2">
-                            <div className="w-1 h-1 rounded-full bg-rose-500 shrink-0" /> {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+
                 </motion.div>
               )}
             </div>
@@ -12507,10 +12496,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
                 ['错误率', '3.2%', '1%', '异常']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
               ]
             }
           }
@@ -12552,10 +12537,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
                 ['错误率', '3.2%', '1%', '异常']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
@@ -12614,10 +12595,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
                 ['错误率', '3.2%', '1%', '异常']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
@@ -12682,10 +12659,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
                 ['错误率', '3.2%', '1%', '异常']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
