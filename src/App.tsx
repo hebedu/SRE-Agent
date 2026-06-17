@@ -2370,6 +2370,9 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       )}
                     </div>
                   )}
+                  {data.stage1?.objectTable && (
+                    <AnalysisTable title="巡检对象概要" columns={['字段', '内容']} data={data.stage1.objectTable} />
+                  )}
                   {data.stage1?.metricsTable && (
                     <AnalysisTable title="异常判定指标表" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
                   )}
@@ -2483,6 +2486,15 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+                  {data.stage4?.judgment && (
+                    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">诊断最终结论</span>
+                      </div>
+                      <p className="text-xs text-slate-300 font-bold leading-relaxed">{data.stage4.judgment}</p>
                     </div>
                   )}
                   <button
@@ -12455,6 +12467,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
       setIsAIProcessing(true);
       setInspectionAnalysisStatus(prev => ({ ...prev, [task.name]: 'analyzing' }));
+      const isFirstInspectionTask = task.name.includes('python_comprehensive_inspection_python');
 
       // Add user message (Context Injection)
       addMessage({
@@ -12476,7 +12489,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           contentType: 'analysis',
           content: `正在识别巡检对象 [${task.target}] 并加载指标快照...`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          data: {
+          data: isFirstInspectionTask ? {
             format: '0412_phased',
             currentStep: 1,
             stage1: {
@@ -12510,6 +12523,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['错误率', '3.2%', '1%', '异常']
               ]
             }
+          } : {
+            format: '0412_phased',
+            currentStep: 1,
+            stage1: {
+              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
+              metricsTable: [['CPU使用率', '92%', '80%', '异常'], ['内存使用率', '88%', '80%', '偏高'], ['错误率', '3.2%', '1%', '异常']]
+            }
           }
         });
       }, 1000);
@@ -12517,7 +12537,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       // Step 2: Exploration (3.5s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
-          data: {
+          data: isFirstInspectionTask ? {
             format: '0412_phased',
             currentStep: 2,
             stage1: {
@@ -12568,6 +12588,21 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
               correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
             }
+          } : {
+            format: '0412_phased',
+            currentStep: 2,
+            stage1: {
+              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
+              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
+            },
+            stage2: {
+              charts: [
+                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
+                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
+              ],
+              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
+              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
+            }
           }
         });
       }, 3500);
@@ -12575,7 +12610,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       // Step 3: Diagnosis (6s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
-          data: {
+          data: isFirstInspectionTask ? {
             format: '0412_phased',
             currentStep: 3,
             stage1: {
@@ -12630,6 +12665,25 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
               evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
             }
+          } : {
+            format: '0412_phased',
+            currentStep: 3,
+            stage1: {
+              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
+              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
+            },
+            stage2: {
+              charts: [
+                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
+                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
+              ],
+              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
+              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
+            },
+            stage3: {
+              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加']],
+              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为']
+            }
           }
         });
       }, 6000);
@@ -12639,7 +12693,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         setIsAIProcessing(false);
         setInspectionAnalysisStatus(prev => ({ ...prev, [task.name]: 'completed' }));
         updateMessage(aiMsgId, {
-          data: {
+          data: isFirstInspectionTask ? {
             format: '0412_phased',
             currentStep: 4,
             stage1: {
@@ -12705,6 +12759,29 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
                 '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
               ]
+            }
+          } : {
+            format: '0412_phased',
+            currentStep: 4,
+            stage1: {
+              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
+              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
+            },
+            stage2: {
+              charts: [
+                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
+                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
+              ],
+              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
+              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
+            },
+            stage3: {
+              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加']],
+              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为']
+            },
+            stage4: {
+              summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
+              judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。'
             }
           }
         });
