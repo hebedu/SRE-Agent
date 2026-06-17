@@ -2359,10 +2359,17 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           <span className="font-mono text-slate-300 font-medium bg-slate-950/40 px-2.5 py-1.5 rounded">{data.stage1.taskDetail.summary}</span>
                         </div>
                       </div>
+                      
+                      {data.stage1?.runtimeMetrics && (
+                        <div className="mt-4 border-t border-white/[0.03] pt-3">
+                          <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">指标</div>
+                          <AnalysisTable title="运行时基础指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
+                        </div>
+                      )}
                     </div>
                   )}
                   {data.stage1?.metricsTable && (
-                    <AnalysisTable title="（3）关键指标状态" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
+                    <AnalysisTable title="（3）异常指标表" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
                   )}
                   {data.stage1?.anomalies && (
                     <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4">
@@ -3839,11 +3846,22 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
           {data.map((row, i) => (
             <tr key={i} className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.01]">
               {row.map((cell, j) => (
-                <td key={j} className={`px-3 py-2 text-[11px] font-medium whitespace-nowrap ${cell === '异常' ? 'text-rose-500' :
-                    cell === '偏高' ? 'text-orange-500' :
-                      cell === '正常' ? 'text-emerald-500' : 'text-slate-300'
-                  }`}>
-                  {cell}
+                <td key={j} className="px-3 py-2 text-[11px] font-medium whitespace-nowrap text-slate-300">
+                  {cell === '异常' || cell === '未存活' ? (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      {cell}
+                    </span>
+                  ) : cell === '偏高' ? (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                      {cell}
+                    </span>
+                  ) : cell === '正常' || cell === '存活' ? (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {cell}
+                    </span>
+                  ) : (
+                    cell
+                  )}
                 </td>
               ))}
             </tr>
@@ -12478,6 +12496,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 severity: 'warning',
                 summary: 'Python: RSS=1821MB threads=7 fd=19'
               },
+              runtimeMetrics: [
+                ['FD 数', 'fd_count', '19', '个'],
+                ['进程 ID', 'pid', '1', '-'],
+                ['进程存活状态', 'process_alive', 'true', '存活'],
+                ['RSS 内存', 'rss_mb', '1821', 'MB'],
+                ['线程数', 'threads', '7', '个']
+              ],
               metricsTable: [
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
@@ -12516,6 +12541,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 severity: 'warning',
                 summary: 'Python: RSS=1821MB threads=7 fd=19'
               },
+              runtimeMetrics: [
+                ['FD 数', 'fd_count', '19', '个'],
+                ['进程 ID', 'pid', '1', '-'],
+                ['进程存活状态', 'process_alive', 'true', '存活'],
+                ['RSS 内存', 'rss_mb', '1821', 'MB'],
+                ['线程数', 'threads', '7', '个']
+              ],
               metricsTable: [
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
@@ -12571,6 +12603,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 severity: 'warning',
                 summary: 'Python: RSS=1821MB threads=7 fd=19'
               },
+              runtimeMetrics: [
+                ['FD 数', 'fd_count', '19', '个'],
+                ['进程 ID', 'pid', '1', '-'],
+                ['进程存活状态', 'process_alive', 'true', '存活'],
+                ['RSS 内存', 'rss_mb', '1821', 'MB'],
+                ['线程数', 'threads', '7', '个']
+              ],
               metricsTable: [
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
@@ -12632,6 +12671,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 severity: 'warning',
                 summary: 'Python: RSS=1821MB threads=7 fd=19'
               },
+              runtimeMetrics: [
+                ['FD 数', 'fd_count', '19', '个'],
+                ['进程 ID', 'pid', '1', '-'],
+                ['进程存活状态', 'process_alive', 'true', '存活'],
+                ['RSS 内存', 'rss_mb', '1821', 'MB'],
+                ['线程数', 'threads', '7', '个']
+              ],
               metricsTable: [
                 ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
