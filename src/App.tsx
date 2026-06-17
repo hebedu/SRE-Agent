@@ -2662,7 +2662,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
                   >
                     <Zap size={14} fill="currentColor" />
-                    建议执行自愈
+                    生成推荐自愈方案
                   </button>
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
