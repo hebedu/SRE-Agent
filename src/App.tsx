@@ -2301,7 +2301,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <Brain size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI 巡检分析报告 · 分阶段可视化版</h3>
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI巡检分析</h3>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Phase: {currentStep}/4 · 深度巡检诊断</p>
             </div>
           </div>
