@@ -1835,8 +1835,8 @@ export function assess(cand: any, known: string[]) {
 
 const SelfHealRecommendationCard = ({ data, onAction }: any) => {
   const { alertTitle, rootCauseText, knownEntities, candidates, adoptedId, archived } = data;
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(candidates && candidates.length === 1 ? candidates[0].id : null);
+  const [selected, setSelected] = useState<string | null>(candidates && candidates.length === 1 ? candidates[0].id : null);
   const [confirm, setConfirm] = useState<any>(null);
   const [ack1, setAck1] = useState(false);
   const [ack2, setAck2] = useState(false);
@@ -1867,7 +1867,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
   const sorted = useMemo(() => {
     const arr = [...items];
     if (sortBy === 'risk') {
-      arr.sort((a, b) => ORD[b.ev.effective] - ORD[a.ev.effective]);
+      arr.sort((a, b) => ORD[a.ev.effective] - ORD[b.ev.effective]);
     } else {
       const t: Record<string, number> = { high: 0, mid: 1, low: 2 };
       arr.sort((a, b) => t[a.ev.trust] - t[b.ev.trust]);
@@ -1909,17 +1909,21 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
           <span className="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-0.5 ml-1 font-bold">仅推荐 · 系统不执行</span>
         </div>
         <div className="text-[11px] text-rose-200 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2.5 mt-3 mb-4 leading-relaxed font-bold shadow-inner">
-          ⚠ 本方案的脚本及其风险、适用范围、推荐原因，<span className="text-rose-100 border-b border-rose-500/50">全部由模型生成，可能存在幻觉</span>。系统对每条方案做了独立静态核验，可自动上调模型的风险自评——请以<span className="text-rose-100">核验结果</span>为准，并在采纳前人工复核。
+          ⚠ 本方案及其脚本、风险与适用范围<span className="text-rose-100 border-b border-rose-500/50">全部由 AI 模型生成，可能存在幻觉</span>。
+          <strong className="text-rose-100 block mt-1">系统仅作参考推荐，绝不会自动执行任何脚本。</strong> 
+          系统已对每条方案完成独立静态核验并可能上调风险评级——请以<span className="text-rose-100">核验结果</span>为准，务必人工充分评估后再在受控环境中落地。
         </div>
 
-        <div className="flex items-center gap-3 mb-3 text-[11px]">
-          <span className="text-slate-400 font-bold">{sorted.length} 个 AI 候选</span>
-          <div className="ml-auto flex items-center gap-1.5 font-bold">
-            <span className="text-slate-500">排序</span>
-            <button onClick={() => setSortBy("trust")} className={`px-2 py-1 rounded border transition-colors ${sortBy === "trust" ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-slate-700/50 text-slate-400 hover:bg-slate-800/50"}`}>按可信度</button>
-            <button onClick={() => setSortBy("risk")} className={`px-2 py-1 rounded border transition-colors ${sortBy === "risk" ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-slate-700/50 text-slate-400 hover:bg-slate-800/50"}`}>高风险优先</button>
+        {sorted.length > 1 && (
+          <div className="flex items-center gap-3 mb-3 text-[11px]">
+            <span className="text-slate-400 font-bold">{sorted.length} 个 AI 生成方案</span>
+            <div className="ml-auto flex items-center gap-1.5 font-bold">
+              <span className="text-slate-500">排序</span>
+              <button onClick={() => setSortBy("trust")} className={`px-2 py-1 rounded border transition-colors ${sortBy === "trust" ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-slate-700/50 text-slate-400 hover:bg-slate-800/50"}`}>按可信度</button>
+              <button onClick={() => setSortBy("risk")} className={`px-2 py-1 rounded border transition-colors ${sortBy === "risk" ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-slate-700/50 text-slate-400 hover:bg-slate-800/50"}`}>低风险优先</button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className={`space-y-3 transition-opacity duration-300 ${isRegenerating ? "opacity-30 pointer-events-none" : ""}`}>
           {sorted.map((it: any) => {
@@ -1946,7 +1950,18 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
                   {adopted && <span className="text-[9px] font-black text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded px-1.5 py-0.5 uppercase tracking-wider">✓ 已采纳</span>}
                 </div>
                 <div className="flex justify-between items-start gap-4 mb-1.5">
-                  <div className="text-sm font-bold text-slate-200">{cand.title}</div>
+                  <div className="flex-1">
+                    {/* 方案主标题 */}
+                    <div className="text-sm font-bold text-slate-200">{cand.title}</div>
+                    
+                    {/* 新增：高危警告标签（仅在高风险时显示） */}
+                    {hi && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded px-2.5 py-1">
+                        <ShieldAlert size={12} className="text-rose-500 animate-pulse" /> 
+                        极高风险动作，建议寻求资深 SRE 协助评估后再执行。
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1 shrink-0 text-slate-500 font-bold text-[11px] hover:text-indigo-400 transition-colors">
                     <span>{open ? "收起详情" : "查看详情"}</span>
                     <ChevronDown size={14} className={`transform transition-transform duration-200 ${open ? "rotate-180 text-indigo-400" : "text-slate-500"}`} />
@@ -1956,27 +1971,22 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
                 {open && (
                   <div className="mt-4 pt-3 border-t border-slate-800/60 space-y-3" onClick={e => e.stopPropagation()}>
                     {ev.flags.length > 0 && (
-                      <div className="rounded-lg border border-rose-500/20 bg-gradient-to-r from-rose-500/[0.04] to-transparent p-3.5 space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs font-black text-rose-450">
-                          <ShieldAlert size={14} className="text-rose-500 animate-pulse" />
-                          <span>AI 静态安全核验警告报告 ({ev.flags.length} 项异常)</span>
+                      <div>
+                        <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">
+                          异常提示
                         </div>
-                        <ul className="space-y-1.5 pl-0.5">
+                        <div className="space-y-1.5 mt-1">
                           {ev.flags.map((f: any, i: number) => (
-                            <li key={i} className="text-[11px] leading-relaxed text-slate-300">
-                              <span className={`inline-block mr-1 font-black ${f.sev === 'high' ? 'text-rose-400' : 'text-amber-400'}`}>
-                                {f.sev === 'high' ? '🔴' : '⚠️'} 【{f.title}】
+                            <div key={i} className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                              <span className="mr-1.5">
+                                [{f.title}]
                               </span>
-                              {f.desc}
-                            </li>
+                              <span>{f.desc}</span>
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
-                    
-                    <div className={`text-[10px] font-bold rounded-lg px-3 py-2 border ${hi ? "text-rose-200 bg-rose-500/10 border-rose-500/30" : "text-amber-200 bg-amber-500/8 border-amber-500/20"}`}>
-                      {hi ? "⚠ 有效风险高 · 系统不会执行，请人工充分评估后在受控环境落地" : "仅供参考 · 系统不执行，请人工在受控环境落地"}
-                    </div>
                     <div>
                       <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">推荐原因</div>
                       <div className="text-[11px] text-slate-300 font-medium leading-relaxed">{cand.reason}</div>
@@ -2065,8 +2075,8 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
         <div className="fixed inset-0 bg-black/35 grid place-items-center z-50 p-4" onClick={() => setConfirm(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#10131e] border border-slate-700 rounded-2xl p-6 w-[480px] max-w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className={confirm.needAck2 ? "text-rose-500" : "text-amber-500"} size={20} />
-              <h4 className={`text-sm font-black tracking-wide ${confirm.needAck2 ? "text-rose-400" : "text-slate-100"}`}>在采纳方案前请先确认免责与风险</h4>
+              <AlertTriangle className="text-amber-500" size={20} />
+              <h4 className="text-sm font-black tracking-wide text-slate-100">采纳方案确认</h4>
             </div>
             <p className="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed mt-2">
               方案「{confirm.it.cand.title}」有效风险为 <b className={`${RISK[confirm.it.ev.effective].cls.split(" ")[0]}`}>{RISK[confirm.it.ev.effective].label}</b>。此处的采纳只代表您选定它用于后续人工核验与落地，<b className="text-slate-200">系统完全不会向目标执行此脚本或发生任何变更动作</b>。
@@ -2082,21 +2092,14 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
               <span className="text-[11px] font-bold text-slate-300 leading-relaxed group-hover:text-slate-200">我已经独立核对过该推荐方案的脚本内容，知晓它全部由大模型生成并可能包含幻觉或不准确推断。</span>
             </label>
 
-            {confirm.needAck2 && (
-              <label className="flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 mb-3 cursor-pointer hover:bg-rose-500/20 transition-colors group">
-                <input type="checkbox" checked={ack2} onChange={e => setAck2(e.target.checked)} className="mt-0.5 rounded border-rose-500 text-rose-500 focus:ring-rose-500/20 focus:ring-offset-0 bg-rose-950" />
-                <span className="text-[11px] font-black text-rose-200 leading-relaxed group-hover:text-rose-100">我已知悉这是一个高风险或存在破坏性指令的方案操作，并且我清楚在此点击“确认采纳”系统也不会代替我执行它。</span>
-              </label>
-            )}
-
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setConfirm(null)} className="text-xs font-bold border border-slate-700 rounded-lg px-5 py-2 hover:bg-slate-800 text-slate-300 transition-colors">放弃采纳</button>
               <button 
-                disabled={!ack1 || (confirm.needAck2 && !ack2)} 
+                disabled={!ack1} 
                 onClick={() => { setConfirm(null); onAction?.('ADOPT_HEAL_SCHEME', confirm.it.cand.id); }} 
-                className={`text-xs font-black rounded-lg px-6 py-2 flex items-center gap-2 transition-all shadow-lg ${(!ack1 || (confirm.needAck2 && !ack2)) ? "bg-slate-800/50 text-slate-500 cursor-not-allowed border border-slate-800" : (confirm.needAck2 ? "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/20" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20")}`}
+                className={`text-xs font-black rounded-lg px-6 py-2 flex items-center gap-2 transition-all shadow-lg ${!ack1 ? "bg-slate-800/50 text-slate-500 cursor-not-allowed border border-slate-800" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20"}`}
               >
-                {(!ack1 || (confirm.needAck2 && !ack2)) && <Lock size={12} />} 签署并留痕
+                {!ack1 && <Lock size={12} />} 确认
               </button>
             </div>
           </motion.div>
@@ -5166,12 +5169,6 @@ const ChatBubble: React.FC<{
 
   return (
     <div className={`flex flex-col mb-6 group ${isAI ? 'items-start' : 'items-end'} w-full`}>
-      {message.threadContext && (
-        <div className={`flex items-center gap-1.5 mb-1.5 text-[10px] font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/25 rounded-md px-2 py-0.5 tracking-wide ${isAI ? 'ml-11' : 'mr-11'}`}>
-          <MessageSquare size={10} />
-          <span>↳ 针对方案：{message.threadContext.schemeTitle}</span>
-        </div>
-      )}
       <div className={`flex ${isAI ? 'justify-start' : 'justify-end'} w-full`}>
         <div className={`flex gap-3 max-w-[85%] ${isAI ? 'flex-row' : 'flex-row-reverse'} w-full`}>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isAI ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700 text-slate-300'}`}>
@@ -12020,34 +12017,85 @@ export default function App() {
     let targetSessionId: string | null = activeSessionId;
 
     if (activeThread) {
+      const currentThread = { ...activeThread };
       const userMsg: Message = {
         id: `user-thread-${Date.now()}`,
         type: 'user',
         contentType: 'text',
-        content: finalContent,
+        content: `针对方案【${currentThread.schemeTitle}】的提问：${finalContent}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        threadContext: { ...activeThread }
+        threadContext: currentThread
       };
       
       addMessage(userMsg);
       setInputValue('');
       setAttachments([]);
       setIsAIProcessing(true);
+      setActiveThread(null); // 清除附在输入框上的状态，实现点击发送后立即清除
 
       setTimeout(() => {
         setIsAIProcessing(false);
         const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        let reply = `针对自愈方案「${activeThread.schemeTitle}」的追问：*"${finalContent}"*\n\n`;
         const q = finalContent.toLowerCase();
+
+        const isModifyRequest = /(修改|改下|加|去掉|调整|更新|换成)/.test(q);
+
+        if (isModifyRequest) {
+          const reply = `收到您的建议，正在针对您的要求修改方案【${currentThread.schemeTitle}】的代码脚本和执行参数，请稍候...`;
+          addMessage({
+            id: `ai-thread-${Date.now()}-1`,
+            type: 'ai',
+            contentType: 'text',
+            content: reply,
+            timestamp: ts,
+            threadContext: currentThread
+          });
+          
+          setIsAIProcessing(true);
+          setTimeout(() => {
+            setIsAIProcessing(false);
+            const ts2 = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            addMessage({
+              id: `ai-thread-${Date.now()}-2`,
+              type: 'ai',
+              contentType: 'self_heal_recommendation',
+              content: `已为您生成修改后的自愈方案，请重新核验与评估：`,
+              timestamp: ts2,
+              threadContext: currentThread,
+              data: {
+                alertTitle: '基于对话反馈更新',
+                rootCauseText: '用户多轮对谈要求进行方案调优',
+                knownEntities: ['user-specified-target', 'kubernetes'],
+                candidates: [
+                  {
+                    id: `C_MOD_${Date.now()}`,
+                    title: `${currentThread.schemeTitle} (用户优化版)`,
+                    reason: `根据用户诉求："${finalContent}" 进行针对性修改。已增加相关参数并更新执行脚本逻辑。`,
+                    scope: '当前操作作用域',
+                    declaredRisk: 'low',
+                    script: `# 修改自原方案：${currentThread.schemeTitle}\n# 用户调整要求：${finalContent}\n\necho "[Info] 执行前置安全检查..."\n# 加入您的自定义参数配置\necho "[Info] 应用新配置并重启组件..."\nkubectl rollout restart deploy/target-app -n default --force\necho "[Success] 操作完成."`,
+                    confidence: 0.95,
+                    reasonConsistent: true,
+                    scopeVerified: true,
+                    entities: ['target-app']
+                  }
+                ]
+              }
+            });
+          }, 1500);
+          return;
+        }
+
+        let reply = `关于方案【${currentThread.schemeTitle}】的答复：\n\n`;
 
         if (q.includes('锁') || q.includes('lock')) {
           reply += `### 🔒 锁表与一致性核验分析\n1. **当前操作性质**：该扩容修改为 MySQL 级别的动态系统变量调整（参数修改），**完全不涉及对特定物理数据表的 DDL 或 DML 改动**，因而 **100% 不会产生物理数据锁表**。\n2. **连接池建立开销**：扩容后新连接的建立会带来微弱的 CPU 握手开销。建议在非核心业务高峰期平滑扩容连接池。\n3. **回滚方案**：可通过 \`SET GLOBAL max_connections = 151;\` (默认值) 随时即时回滚，无需重启数据库服务。`;
-        } else if (q.includes('风险') || q.includes('性能') || q.includes('影响') || q.includes('cpu') || q.includes('内存')) {
-          reply += `### ⚡ 性能与系统开销评估\n1. **CPU/内存影响**：最大连接数提升会允许更多并发活跃线程。每个连接在 MySQL 中约占 2-5MB 缓冲区，最大并发下内存预计上浮 **150MB - 300MB**，当前实例剩余内存充足 (62%)，完全在安全水位内。\n2. **连接上限安全核验**：底层容器的 File Descriptors (文件句柄数) 限制为 65535，完全能支撑起 500 个并发文件连接。\n3. **副作用评估**：仅调大参数不会对现有连接执行强制断开或阻断。`;
+        } else if (q.includes('风险') || q.includes('可靠') || q.includes('性能') || q.includes('影响') || q.includes('cpu') || q.includes('内存')) {
+          reply += `### ⚡ 性能与系统开销评估\n此操作相对可靠，可帮助解决资源争抢导致的无响应问题。但在操作期间需要注意以下几点：\n1. **CPU/内存影响**：提升并发上限会允许更多活跃线程。每个连接约占 2-5MB 缓冲区，最大并发下内存预计上浮 **150MB - 300MB**，当前实例剩余内存充足 (62%)，完全在安全水位内。\n2. **连接上限安全核验**：底层容器的 File Descriptors (文件句柄数) 限制为 65535，完全能支撑起对应并发文件连接。\n3. **副作用评估**：仅调大参数不会对现有连接执行强制断开或阻断。`;
         } else if (q.includes('回滚') || q.includes('撤销') || q.includes('还原')) {
           reply += `### 🔄 方案回滚与安全防线说明\n1. **即时撤销指令**：若需还原，执行以下 SQL 即可秒级恢复：\n   \`\`\`sql\n   SET GLOBAL max_connections = 151; -- 恢复为默认最大连接数\n   \`\`\`\n2. **重启持久化声明**：当前脚本推荐的修改为 \`SET GLOBAL\`，其在 MySQL 重启后会自动失效（不会写入 my.cnf）。如果需要永久生效，应在核验稳定后写入配置文件。`;
         } else {
-          reply += `由于这是 AI 生成的推荐方案，针对您的疑问，系统进行了进一步验证：\n1. **静态分析**：该语句不含具备破坏性的指令（如 \`DROP\`, \`DELETE\`, \`TRUNCATE\`）。\n2. **影响面**：变更仅作用于并发上限参数，不会锁表或中断现有进程。\n3. **多轮问答建议**：您可以继续针对该脚本细节、执行前置条件进行追问或模拟仿真评估。`;
+          reply += `针对您的疑问，系统基于历史运维经验进行了快速验证：\n1. **静态分析**：该方案步骤清晰，不含具备不可逆破坏性的指令。\n2. **影响面**：变更影响可控，不会引发雪崩或中断无关服务进程。\n3. **建议**：如果您对特定参数不放心，可以回复“请帮我修改下这个方案的 XXX 配置”，AI 将立刻为您生成新版本。`;
         }
 
         const aiMsg: Message = {
@@ -12056,7 +12104,7 @@ export default function App() {
           contentType: 'text',
           content: reply,
           timestamp: ts,
-          threadContext: { ...activeThread }
+          threadContext: currentThread
         };
         addMessage(aiMsg);
       }, 1000);
@@ -12645,7 +12693,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         id: `user-thread-${Date.now()}`,
         type: 'user',
         contentType: 'text',
-        content: question,
+        content: `针对方案【${schemeTitle}】的提问：${question}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         threadContext: { schemeId, schemeTitle }
       };
@@ -12656,17 +12704,66 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       setTimeout(() => {
         setIsAIProcessing(false);
         const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        let reply = `针对自愈方案「${schemeTitle}」的追问：*"${question}"*\n\n`;
         const q = question.toLowerCase();
+        
+        const isModifyRequest = /(修改|改下|加|去掉|调整|更新|换成)/.test(q);
+        
+        if (isModifyRequest) {
+          const reply = `收到您的建议，正在针对您的要求修改方案【${schemeTitle}】的代码脚本和执行参数，请稍候...`;
+          addMessage({
+            id: `ai-thread-${Date.now()}-1`,
+            type: 'ai',
+            contentType: 'text',
+            content: reply,
+            timestamp: ts,
+            threadContext: { schemeId, schemeTitle }
+          });
+          
+          setIsAIProcessing(true);
+          setTimeout(() => {
+            setIsAIProcessing(false);
+            const ts2 = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            addMessage({
+              id: `ai-thread-${Date.now()}-2`,
+              type: 'ai',
+              contentType: 'self_heal_recommendation',
+              content: `已为您生成修改后的自愈方案，请重新核验与评估：`,
+              timestamp: ts2,
+              threadContext: { schemeId, schemeTitle },
+              data: {
+                alertTitle: '基于对话反馈更新',
+                rootCauseText: '用户多轮对谈要求进行方案调优',
+                knownEntities: ['user-specified-target', 'kubernetes'],
+                candidates: [
+                  {
+                    id: `C_MOD_${Date.now()}`,
+                    title: `${schemeTitle} (用户优化版)`,
+                    reason: `根据用户诉求："${question}" 进行针对性修改。已增加相关参数并更新执行脚本逻辑。`,
+                    scope: '当前操作作用域',
+                    declaredRisk: 'low',
+                    script: `# 修改自原方案：${schemeTitle}\n# 用户调整要求：${question}\n\necho "[Info] 执行前置安全检查..."\n# 加入您的自定义参数配置\necho "[Info] 应用新配置并重启组件..."\nkubectl rollout restart deploy/target-app -n default --force\necho "[Success] 操作完成."`,
+                    confidence: 0.95,
+                    reasonConsistent: true,
+                    scopeVerified: true,
+                    entities: ['target-app']
+                  }
+                ]
+              }
+            });
+          }, 1500);
+          return;
+        }
+
+        let reply = `关于方案【${schemeTitle}】的分析：\n\n`;
 
         if (q.includes('锁') || q.includes('lock')) {
           reply += `### 🔒 锁表与一致性核验分析\n1. **当前操作性质**：该扩容修改为 MySQL 级别的动态系统变量调整（参数修改），**完全不涉及对特定物理数据表的 DDL 或 DML 改动**，因而 **100% 不会产生物理数据锁表**。\n2. **连接池建立开销**：扩容后新连接的建立会带来微弱的 CPU 握手开销。建议在非核心业务高峰期平滑扩容连接池。\n3. **回滚方案**：可通过 \`SET GLOBAL max_connections = 151;\` (默认值) 随时即时回滚，无需重启数据库服务。`;
-        } else if (q.includes('风险') || q.includes('性能') || q.includes('影响') || q.includes('cpu') || q.includes('内存')) {
-          reply += `### ⚡ 性能与系统开销评估\n1. **CPU/内存影响**：最大连接数提升会允许更多并发活跃线程。每个连接在 MySQL 中约占 2-5MB 缓冲区，最大并发下内存预计上浮 **150MB - 300MB**，当前实例剩余内存充足 (62%)，完全在安全水位内。\n2. **连接上限安全核验**：底层容器的 File Descriptors (文件句柄数) 限制为 65535，完全能支撑起 500 个并发文件连接。\n3. **副作用评估**：仅调大参数不会对现有连接执行强制断开或阻断。`;
+        } else if (q.includes('风险') || q.includes('可靠') || q.includes('性能') || q.includes('影响') || q.includes('cpu') || q.includes('内存')) {
+          reply += `### ⚡ 性能与系统开销评估\n此操作相对可靠，可帮助解决资源争抢导致的无响应问题。但在操作期间需要注意以下几点：\n1. **CPU/内存影响**：提升并发上限会允许更多活跃线程。每个连接约占 2-5MB 缓冲区，最大并发下内存预计上浮 **150MB - 300MB**，当前实例剩余内存充足 (62%)，完全在安全水位内。\n2. **连接上限安全核验**：底层容器的 File Descriptors (文件句柄数) 限制为 65535，完全能支撑起对应并发文件连接。\n3. **副作用评估**：仅调大参数不会对现有连接执行强制断开或阻断。`;
         } else if (q.includes('回滚') || q.includes('撤销') || q.includes('还原')) {
-          reply += `### 🔄 方案回滚与安全防线说明\n1. **即时撤销指令**：若需还原，执行以下 SQL 即可秒级恢复：\n   \`\`\`sql\n   SET GLOBAL max_connections = 151; -- 恢复为默认最大连接数\n   \`\`\`\n2. **重启持久化声明**：当前脚本推荐的修改为 \`SET GLOBAL\`，其在 MySQL 重启后会自动失效（不会写入 my.cnf）。如果需要永久生效，应在核验稳定后写入配置文件。`;
+          reply += `### 🔄 方案回滚与安全防线说明\n1. **即时撤销指令**：若需还原，执行以下语句即可秒级恢复：\n   \`\`\`sql\n   SET GLOBAL max_connections = 151; -- 恢复为默认最大连接数\n   \`\`\`\n2. **重启持久化声明**：当前脚本推荐的修改为动态应用，其在重启后会自动失效。如果需要永久生效，应在核验稳定后写入配置文件。`;
         } else {
-          reply += `由于这是 AI 生成 of 推荐方案，针对您的疑问，系统进行了进一步验证：\n1. **静态分析**：该语句不含具备破坏性的指令（如 \`DROP\`, \`DELETE\`, \`TRUNCATE\`）。\n2. **影响面**：变更仅作用于并发上限参数，不会锁表或中断现有进程。\n3. **多轮问答建议**：您可以继续针对该脚本细节、执行前置条件进行追问或模拟仿真评估。`;
+          reply += `针对您的疑问，系统基于历史运维经验进行了快速验证：\n1. **静态分析**：该方案步骤清晰，不含具备不可逆破坏性的指令。\n2. **影响面**：变更影响可控，不会引发雪崩或中断无关服务进程。\n3. **建议**：如果您对特定参数不放心，可以回复“请帮我修改下这个方案的 XXX 配置”，AI 将立刻为您生成新版本。`;
         }
 
         const aiMsg: Message = {
@@ -15051,19 +15148,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
     return (
       <div className="flex flex-col w-full gap-2 relative">
-        {activeThread && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-950/70 border border-indigo-500/30 rounded-xl text-[11px] font-bold text-indigo-300 shadow-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            <span>当前正在针对自愈推荐方案「{activeThread.schemeTitle}」进行深度追问讨论...</span>
-            <button 
-              onClick={() => setActiveThread(null)}
-              className="ml-auto flex items-center justify-center p-0.5 rounded-md hover:bg-indigo-900/50 text-indigo-400 hover:text-indigo-200 transition-colors"
-              title="退出分支讨论"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        )}
 
         <div className={`rounded-2xl p-3 transition-all w-full flex flex-col ${
           isListening 
