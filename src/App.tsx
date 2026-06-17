@@ -2294,8 +2294,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   // 如果是0412分阶段可视化模式
   if (isPhased) {
     return (
-      <div className="bg-[#111118] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
-        <div className="p-4 border-b border-white/[0.05] bg-[#16161d] flex items-center justify-between">
+      <div className="bg-[var(--bg-surface)] border border-slate-800/80 rounded-xl overflow-hidden shadow-2xl max-w-4xl font-sans">
+        <div className="p-4 border-b border-slate-800/50 bg-[var(--bg-panel-alt)] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
               <Brain size={18} />
@@ -2325,12 +2325,12 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
                   )}
                   {data.stage1?.taskDetail && (
-                    <div className="bg-slate-900/40 border border-white/[0.03] rounded-xl p-4 space-y-2.5">
+                    <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-2.5">
                       <div className="text-[10px] font-black text-slate-500 uppercase">（2）详细分析 (任务明细)</div>
                       <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
                         <div className="col-span-2 flex flex-col gap-1">
                           <span className="text-[10px] text-slate-500 font-bold uppercase">任务名称</span>
-                          <span className="font-mono text-slate-300 font-bold break-all bg-black/20 px-2 py-1.5 rounded border border-white/[0.02]">{data.stage1.taskDetail.name}</span>
+                          <span className="font-mono text-slate-300 font-bold break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
                         </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-[10px] text-slate-500 font-bold uppercase">巡检对象</span>
@@ -2356,12 +2356,12 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         </div>
                         <div className="col-span-2 flex flex-col gap-1">
                           <span className="text-[10px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
-                          <span className="font-mono text-slate-300 font-medium bg-slate-950/40 px-2.5 py-1.5 rounded">{data.stage1.taskDetail.summary}</span>
+                          <span className="font-mono text-slate-300 font-medium bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
                         </div>
                       </div>
                       
                       {data.stage1?.runtimeMetrics && (
-                        <div className="mt-4 border-t border-white/[0.03] pt-3">
+                        <div className="mt-4 border-t border-slate-800/50 pt-3">
                           <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">指标</div>
                           <AnalysisTable title="运行时基础指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
                         </div>
@@ -2419,7 +2419,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   {data.stage3?.candidateTable && (
                     <AnalysisTable title="（1）根因推导关联表" columns={['可能原因', '支撑证据', '说明']} data={data.stage3.candidateTable} />
                   )}
-                  <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
+                  <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                     <div className="text-[10px] font-black text-slate-500 uppercase mb-2">（2）关键证据总结</div>
                     <ul className="space-y-1.5">{data.stage3?.evidenceList?.map((e: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2">
@@ -2455,7 +2455,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       <div className="text-[10px] font-black text-amber-500 uppercase mb-2">（2）建议措施 (Recommendations)</div>
                       <ul className="space-y-1.5">
                         {data.stage4.recommendations.map((item: string, idx: number) => (
-                          <li key={idx} className="text-[12px] text-amber-50/90 font-bold leading-relaxed flex items-center gap-2">
+                          <li key={idx} className="text-[12px] text-slate-300 font-bold leading-relaxed flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {item}
                           </li>
                         ))}
@@ -2463,12 +2463,12 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
                   {data.stage4?.generalSuggestions && (
-                    <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
+                    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                       <div className="text-[10px] font-black text-slate-500 uppercase mb-2">（3）总体建议 (General Suggestions)</div>
                       <ul className="space-y-1.5">
                         {data.stage4.generalSuggestions.map((item: string, idx: number) => (
                           <li key={idx} className="text-[11px] text-slate-300 font-bold leading-relaxed flex items-center gap-2">
-                            <div className="w-1 h-1 bg-blue-500 rounded-full shrink-0" /> {item}
+                            <div className="w-1 h-1 bg-indigo-500 rounded-full shrink-0" /> {item}
                           </li>
                         ))}
                       </ul>
@@ -2476,7 +2476,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   )}
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
-                    className="w-full py-3 border border-slate-700 hover:border-blue-500/50 text-slate-400 hover:text-blue-400 text-xs font-black rounded-xl transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2"
+                    className="w-full py-3 border border-slate-700 hover:border-indigo-500/50 text-slate-400 hover:text-indigo-400 text-xs font-black rounded-md transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2"
                   >
                     <FileText size={14} /> 查看完整深度报告
                   </button>
@@ -3816,9 +3816,9 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
 };
 
 const AnalysisTable = ({ title, columns, data }: { title?: string, columns: string[], data: any[][] }) => (
-  <div className="bg-black/20 border border-slate-800 rounded-xl overflow-hidden my-3">
+  <div className="bg-slate-950/10 border border-slate-800 rounded-xl overflow-hidden my-3">
     {title && (
-      <div className="px-3 py-1.5 bg-white/[0.03] border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+      <div className="px-3 py-1.5 bg-slate-800/20 border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
         {title}
       </div>
     )}
