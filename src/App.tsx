@@ -2318,7 +2318,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className={`w-px flex-1 ${currentStep > 1 ? 'bg-blue-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">01 / 开始分析</div>
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">01 / 开始分析</div>
               {currentStep >= 1 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage1?.planInfo && (
@@ -2328,38 +2328,38 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                       <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">详细分析任务明细</span>
+                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">详细分析任务明细</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                      <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs">
                         <div className="col-span-2 flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">任务名称</span>
-                          <span className="font-mono text-slate-300 font-bold break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">任务名称</span>
+                          <span className="font-mono text-slate-300 font-bold text-[13px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">巡检对象</span>
-                          <span className="font-mono text-slate-300 font-bold">{data.stage1.taskDetail.target}</span>
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">巡检对象</span>
+                          <span className="font-mono text-slate-300 font-bold text-sm">{data.stage1.taskDetail.target}</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
-                          <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">状态</span>
+                          <span className="text-emerald-400 font-bold text-sm flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {data.stage1.taskDetail.status}
                           </span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
-                          <span className="text-rose-400 font-bold flex items-center gap-1.5">
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">结果</span>
+                          <span className="text-rose-400 font-bold text-sm flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> {data.stage1.taskDetail.result}
                           </span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
-                          <span className="text-amber-400 font-bold flex items-center gap-1.5">
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">严重级别</span>
+                          <span className="text-amber-400 font-bold text-sm flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {data.stage1.taskDetail.severity}
                           </span>
                         </div>
                         <div className="col-span-2 flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
-                          <span className="font-mono text-slate-300 font-medium bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
+                          <span className="text-[11px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
+                          <span className="font-mono text-slate-300 font-medium text-[13px] bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
                         </div>
                       </div>
                       
@@ -2386,7 +2386,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className={`w-px flex-1 ${currentStep > 2 ? 'bg-indigo-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">02 / 路径与证据探索</div>
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">02 / 路径与证据探索</div>
               {currentStep >= 2 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage2?.charts?.map((chart: any, i: number) => (
@@ -2401,7 +2401,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                 </motion.div>
               )}
               {currentStep === 1 && (
-                <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
+                <div className="flex items-center gap-2 text-xs text-slate-500 uppercase font-black animate-pulse">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 分析指标发展路径中...
                 </div>
               )}
@@ -2415,7 +2415,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className={`w-px flex-1 ${currentStep > 3 ? 'bg-purple-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">03 / 根因分析</div>
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">03 / 根因分析</div>
               {currentStep >= 3 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage3?.candidateTable && (
@@ -2424,10 +2424,10 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">排查诊断关键证据</span>
+                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">排查诊断关键证据</span>
                     </div>
                     <ul className="space-y-1.5">{data.stage3?.evidenceList?.map((e: string, i: number) => (
-                      <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2">
+                      <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
                         <div className="w-1 h-1 rounded-full bg-purple-500" /> {e}
                       </li>
                     ))}</ul>
@@ -2435,7 +2435,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                 </motion.div>
               )}
               {currentStep === 2 && (
-                <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
+                <div className="flex items-center gap-2 text-xs text-slate-500 uppercase font-black animate-pulse">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 筛查推演根因模式中...
                 </div>
               )}
@@ -2448,7 +2448,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className={`w-6 h-6 rounded-full ${currentStep >= 4 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>4</div>
             </div>
             <div className="flex-1">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">04 / 最终建议</div>
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">04 / 最终建议</div>
               {currentStep >= 4 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage4?.summaryTable && (
@@ -2459,11 +2459,11 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-wider">处置建议与防范措施</span>
+                        <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider">处置建议与防范措施</span>
                       </div>
                       <ul className="space-y-1.5">
                         {data.stage4.recommendations.map((item: string, idx: number) => (
-                          <li key={idx} className="text-[12px] text-slate-300 font-bold leading-relaxed flex items-center gap-2">
+                          <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {item}
                           </li>
                         ))}
@@ -2474,11 +2474,11 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">系统持续改善总体建议</span>
+                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">系统持续改善总体建议</span>
                       </div>
                       <ul className="space-y-1.5">
                         {data.stage4.generalSuggestions.map((item: string, idx: number) => (
-                          <li key={idx} className="text-[11px] text-slate-300 font-bold leading-relaxed flex items-center gap-2">
+                          <li key={idx} className="text-xs text-slate-200 font-bold leading-relaxed flex items-center gap-2">
                             <div className="w-1 h-1 bg-indigo-500 rounded-full shrink-0" /> {item}
                           </li>
                         ))}
@@ -2494,7 +2494,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                 </motion.div>
               )}
               {currentStep === 3 && (
-                <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
+                <div className="flex items-center gap-2 text-xs text-slate-500 uppercase font-black animate-pulse">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 总结并生成排查建议中...
                 </div>
               )}
@@ -3831,7 +3831,7 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
     {title && (
       <div className="flex items-center gap-2 mb-2">
         <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{title}</span>
+        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">{title}</span>
       </div>
     )}
     <div className="overflow-x-auto no-scrollbar border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
@@ -3839,7 +3839,7 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
         <thead>
           <tr className="border-b border-slate-800/80 bg-slate-900/30">
             {columns.map((col, i) => (
-              <th key={i} className="px-3.5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{col}</th>
+              <th key={i} className="px-3.5 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{col}</th>
             ))}
           </tr>
         </thead>
@@ -3847,17 +3847,17 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
           {data.map((row, i) => (
             <tr key={i} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
               {row.map((cell, j) => (
-                <td key={j} className="px-3.5 py-2 text-[11px] font-medium whitespace-nowrap text-slate-300">
+                <td key={j} className="px-3.5 py-2 text-xs font-medium whitespace-nowrap text-slate-300">
                   {cell === '异常' || cell === '未存活' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[9px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
+                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
                       {cell}
                     </span>
                   ) : cell === '偏高' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[9px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
+                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
                       {cell}
                     </span>
                   ) : cell === '正常' || cell === '存活' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
+                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
                       {cell}
                     </span>
                   ) : (
