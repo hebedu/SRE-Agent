@@ -2455,16 +2455,16 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     <AnalysisTable title="诊断问题概览" columns={['维度', '内容']} data={data.stage4.summaryTable} />
                   )}
                   {data.stage4?.recommendations && (
-                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
+                    <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider">处置建议与防范措施</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500/40" />
+                        <span className="text-[11px] font-black text-amber-200/80 uppercase tracking-wider">处置建议与防范措施</span>
                       </div>
                       <ul className="space-y-1.5">
                         {data.stage4.recommendations.map((item: string, idx: number) => (
                           <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {item}
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
                           </li>
                         ))}
                       </ul>
