@@ -19,12 +19,15 @@ fi
 echo "正在编译最新前端代码..."
 npm run build
 
-echo "正在后台启动局域网服务..."
-# 使用 nohup 后台运行并重定向输出，同时断开终端关联
-nohup node server.js > server.log 2>&1 &
+echo "正在后台启动局域网服务 (使用 screen 托管)..."
+# 停止旧的 screen 会话以防冲突
+screen -S sre_app -X quit >/dev/null 2>&1
+# 启动新的 screen 会话运行 node 服务
+screen -dmS sre_app /Users/admin/Downloads/SRE-Agent-main/run-server.sh
 
-# 等待一秒检查是否成功启动
-sleep 1
+
+# 等待三秒检查是否成功启动
+sleep 3
 NEW_PID=$(lsof -t -i:$PORT)
 
 if [ ! -z "$NEW_PID" ]; then

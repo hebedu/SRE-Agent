@@ -2301,7 +2301,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <Brain size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI 分析报告 · 分阶段可视化版</h3>
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI 巡检分析报告 · 分阶段可视化版</h3>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Phase: {currentStep}/4 · 深度巡检诊断</p>
             </div>
           </div>
@@ -2311,68 +2311,117 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
         </div>
 
         <div className="p-6 space-y-8">
-          {/* Phase 1: Initialization */}
+          {/* Phase 1: 开始分析 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
               <div className={`w-6 h-6 rounded-full ${currentStep >= 1 ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>1</div>
               <div className={`w-px flex-1 ${currentStep > 1 ? 'bg-blue-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段1：启动调查 (Initialization)</div>
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段1：开始分析</div>
               {currentStep >= 1 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  {data.stage1?.objectTable && (
-                    <AnalysisTable title="（1）巡检对象信息" columns={['字段', '内容']} data={data.stage1.objectTable} />
+                  {data.stage1?.planInfo && (
+                    <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
+                  )}
+                  {data.stage1?.taskDetail && (
+                    <div className="bg-slate-900/40 border border-white/[0.03] rounded-xl p-4 space-y-2.5">
+                      <div className="text-[10px] font-black text-slate-500 uppercase">（2）详细分析 (任务明细)</div>
+                      <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                        <div className="col-span-2 flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">任务名称</span>
+                          <span className="font-mono text-slate-300 font-bold break-all bg-black/20 px-2 py-1.5 rounded border border-white/[0.02]">{data.stage1.taskDetail.name}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">巡检对象</span>
+                          <span className="font-mono text-slate-300 font-bold">{data.stage1.taskDetail.target}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
+                          <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {data.stage1.taskDetail.status}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
+                          <span className="text-rose-400 font-bold flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> {data.stage1.taskDetail.result}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
+                          <span className="text-amber-400 font-bold flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {data.stage1.taskDetail.severity}
+                          </span>
+                        </div>
+                        <div className="col-span-2 flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
+                          <span className="font-mono text-slate-300 font-medium bg-slate-950/40 px-2.5 py-1.5 rounded">{data.stage1.taskDetail.summary}</span>
+                        </div>
+                      </div>
+                    </div>
                   )}
                   {data.stage1?.metricsTable && (
-                    <AnalysisTable title="（2）关键指标快照" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
+                    <AnalysisTable title="（3）关键指标状态" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
+                  )}
+                  {data.stage1?.anomalies && (
+                    <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4">
+                      <div className="text-[10px] font-black text-rose-400 uppercase mb-2">（4）异常指标列表</div>
+                      <ul className="space-y-1.5">
+                        {data.stage1.anomalies.map((item: string, idx: number) => (
+                          <li key={idx} className="text-[11px] text-rose-300/90 font-medium flex items-center gap-2">
+                            <div className="w-1 h-1 rounded-full bg-rose-500 shrink-0" /> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </motion.div>
               )}
             </div>
           </div>
 
-          {/* Phase 2: Exploration */}
+          {/* Phase 2: 路径与证据探索 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
               <div className={`w-6 h-6 rounded-full ${currentStep >= 2 ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>2</div>
               <div className={`w-px flex-1 ${currentStep > 2 ? 'bg-indigo-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段2：证据探索 (Exploration)</div>
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段2：路径与证据探索</div>
               {currentStep >= 2 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage2?.charts?.map((chart: any, i: number) => (
                     <AnalysisTrendChart key={i} {...chart} />
                   ))}
                   {data.stage2?.comparisonTable && (
-                    <AnalysisTable title="（3）历史对比表" columns={['指标', '当前值', '昨日同时间', '阈值']} data={data.stage2.comparisonTable} />
+                    <AnalysisTable title="（2）历史对比表" columns={['指标', '当前值', '昨日同时间', '阈值']} data={data.stage2.comparisonTable} />
                   )}
                   {data.stage2?.correlationTable && (
-                    <AnalysisTable title="（4）多指标关联分析" columns={['指标', '当前状态', '趋势', '关联关系']} data={data.stage2.correlationTable} />
+                    <AnalysisTable title="（3）多指标关联分析" columns={['指标', '当前状态', '趋势', '关联关系']} data={data.stage2.correlationTable} />
                   )}
                 </motion.div>
               )}
               {currentStep === 1 && (
                 <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 分析趋势中...
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 分析指标发展路径中...
                 </div>
               )}
             </div>
           </div>
 
-          {/* Phase 3: Diagnosis */}
+          {/* Phase 3: 根因分析 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
               <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>3</div>
               <div className={`w-px flex-1 ${currentStep > 3 ? 'bg-purple-600' : 'bg-slate-800/50'}`} />
             </div>
             <div className="flex-1 pb-4">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段3：确认原因 (Diagnosis)</div>
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段3：根因分析</div>
               {currentStep >= 3 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage3?.candidateTable && (
-                    <AnalysisTable title="（1）可能原因（候选）" columns={['可能原因', '支撑证据', '说明']} data={data.stage3.candidateTable} />
+                    <AnalysisTable title="（1）根因推导关联表" columns={['可能原因', '支撑证据', '说明']} data={data.stage3.candidateTable} />
                   )}
                   <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
                     <div className="text-[10px] font-black text-slate-500 uppercase mb-2">（2）关键证据总结</div>
@@ -2386,29 +2435,49 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               )}
               {currentStep === 2 && (
                 <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 匹配异常模型中...
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 筛查推演根因模式中...
                 </div>
               )}
             </div>
           </div>
 
-          {/* Phase 4: Conclusion */}
+          {/* Phase 4: 最终建议 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
               <div className={`w-6 h-6 rounded-full ${currentStep >= 4 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>4</div>
             </div>
             <div className="flex-1">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段4：最终结论 (Conclusion)</div>
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">阶段4：最终建议</div>
               {currentStep >= 4 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                   {data.stage4?.summaryTable && (
-                    <AnalysisTable columns={['维度', '内容']} data={data.stage4.summaryTable} />
+                    <AnalysisTable title="（1）问题概览" columns={['维度', '内容']} data={data.stage4.summaryTable} />
                   )}
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
-                    <div className="text-[10px] font-black text-emerald-500 uppercase mb-2">最终判断 (Final Report)</div>
-                    <p className="text-[12px] text-emerald-50/80 font-bold leading-relaxed">{data.stage4?.judgment}</p>
-                  </div>
+                  {data.stage4?.recommendations && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
+                      <div className="text-[10px] font-black text-amber-500 uppercase mb-2">（2）建议措施 (Recommendations)</div>
+                      <ul className="space-y-1.5">
+                        {data.stage4.recommendations.map((item: string, idx: number) => (
+                          <li key={idx} className="text-[12px] text-amber-50/90 font-bold leading-relaxed flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {data.stage4?.generalSuggestions && (
+                    <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4">
+                      <div className="text-[10px] font-black text-slate-500 uppercase mb-2">（3）总体建议 (General Suggestions)</div>
+                      <ul className="space-y-1.5">
+                        {data.stage4.generalSuggestions.map((item: string, idx: number) => (
+                          <li key={idx} className="text-[11px] text-slate-300 font-bold leading-relaxed flex items-center gap-2">
+                            <div className="w-1 h-1 bg-blue-500 rounded-full shrink-0" /> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
                     className="w-full py-3 border border-slate-700 hover:border-blue-500/50 text-slate-400 hover:text-blue-400 text-xs font-black rounded-xl transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2"
@@ -2419,7 +2488,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               )}
               {currentStep === 3 && (
                 <div className="flex items-center gap-2 text-[10px] text-slate-600 uppercase font-black animate-pulse">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 撰写分析结论中...
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 总结并生成排查建议中...
                 </div>
               )}
             </div>
@@ -12392,16 +12461,31 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             format: '0412_phased',
             currentStep: 1,
             stage1: {
-              objectTable: [
-                ['对象名称', task.target],
-                ['类型', 'Service'],
-                ['环境', 'prod'],
-                ['集群', 'cluster-A']
+              planInfo: [
+                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
+                ['执行结果', 'abnormal'],
+                ['执行时间', 'warning'],
+                ['总任务数', '1'],
+                ['正常任务数', '0'],
+                ['异常任务数', '1'],
+                ['失败任务数', '0']
               ],
+              taskDetail: {
+                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
+                target: task.target,
+                status: 'completed',
+                result: 'abnormal',
+                severity: 'warning',
+                summary: 'Python: RSS=1821MB threads=7 fd=19'
+              },
               metricsTable: [
-                ['CPU使用率', '92%', '80%', '异常'],
+                ['CPU 使用率', '92%', '80%', '异常'],
                 ['内存使用率', '88%', '80%', '偏高'],
                 ['错误率', '3.2%', '1%', '异常']
+              ],
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
               ]
             }
           }
@@ -12415,8 +12499,32 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             format: '0412_phased',
             currentStep: 2,
             stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', '异常'], ['内存使用率', '88%', '80%', '偏高'], ['错误率', '3.2%', '1%', '异常']]
+              planInfo: [
+                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
+                ['执行结果', 'abnormal'],
+                ['执行时间', 'warning'],
+                ['总任务数', '1'],
+                ['正常任务数', '0'],
+                ['异常任务数', '1'],
+                ['失败任务数', '0']
+              ],
+              taskDetail: {
+                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
+                target: task.target,
+                status: 'completed',
+                result: 'abnormal',
+                severity: 'warning',
+                summary: 'Python: RSS=1821MB threads=7 fd=19'
+              },
+              metricsTable: [
+                ['CPU 使用率', '92%', '80%', '异常'],
+                ['内存使用率', '88%', '80%', '偏高'],
+                ['错误率', '3.2%', '1%', '异常']
+              ],
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
+              ]
             },
             stage2: {
               charts: [
@@ -12446,16 +12554,49 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             format: '0412_phased',
             currentStep: 3,
             stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
+              planInfo: [
+                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
+                ['执行结果', 'abnormal'],
+                ['执行时间', 'warning'],
+                ['总任务数', '1'],
+                ['正常任务数', '0'],
+                ['异常任务数', '1'],
+                ['失败任务数', '0']
+              ],
+              taskDetail: {
+                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
+                target: task.target,
+                status: 'completed',
+                result: 'abnormal',
+                severity: 'warning',
+                summary: 'Python: RSS=1821MB threads=7 fd=19'
+              },
+              metricsTable: [
+                ['CPU 使用率', '92%', '80%', '异常'],
+                ['内存使用率', '88%', '80%', '偏高'],
+                ['错误率', '3.2%', '1%', '异常']
+              ],
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
+              ]
             },
             stage2: {
               charts: [
-                { title: 'CPU Usage Trend', labels: ['10:00', '10:30'], data: [65, 92] },
-                { title: 'Memory Usage Trend', labels: ['10:00', '10:30'], data: [60, 88] }
+                {
+                  title: 'CPU Usage Trend (Last 30 min)',
+                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+                  data: [65, 70, 75, 82, 88, 90, 92],
+                  events: [{ time: '10:15', label: '异常开始' }]
+                },
+                {
+                  title: 'Memory Usage Trend (Last 30 min)',
+                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+                  data: [60, 65, 70, 75, 80, 85, 88]
+                }
               ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
+              comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
+              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
             },
             stage3: {
               candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
@@ -12474,21 +12615,65 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             format: '0412_phased',
             currentStep: 4,
             stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
+              planInfo: [
+                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
+                ['执行结果', 'abnormal'],
+                ['执行时间', 'warning'],
+                ['总任务数', '1'],
+                ['正常任务数', '0'],
+                ['异常任务数', '1'],
+                ['失败任务数', '0']
+              ],
+              taskDetail: {
+                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
+                target: task.target,
+                status: 'completed',
+                result: 'abnormal',
+                severity: 'warning',
+                summary: 'Python: RSS=1821MB threads=7 fd=19'
+              },
+              metricsTable: [
+                ['CPU 使用率', '92%', '80%', '异常'],
+                ['内存使用率', '88%', '80%', '偏高'],
+                ['错误率', '3.2%', '1%', '异常']
+              ],
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
+              ]
             },
             stage2: {
-              charts: [{ title: 'CPU Usage Trend', labels: ['10:00', '10:30'], data: [65, 92] }],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
+              charts: [
+                {
+                  title: 'CPU Usage Trend (Last 30 min)',
+                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+                  data: [65, 70, 75, 82, 88, 90, 92],
+                  events: [{ time: '10:15', label: '异常开始' }]
+                },
+                {
+                  title: 'Memory Usage Trend (Last 30 min)',
+                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+                  data: [60, 65, 70, 75, 80, 85, 88]
+                }
+              ],
+              comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
+              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
             },
             stage3: {
-              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加']],
-              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为']
+              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
+              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
             },
             stage4: {
               summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
-              judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。',
+              recommendations: [
+                '由于内存持续上涨且无 GC 迹象，可能存在内存泄漏，建议人工介入 Dump 堆内存进行分析',
+                'CPU 负载已超 90% 并伴随大量错误，建议临时扩容或重启服务以保证可用性'
+              ],
+              generalSuggestions: [
+                '检查近期是否上线了新的代码版本，尤其是涉及缓存或线程池的相关改动',
+                '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
+                '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
+              ]
             }
           }
         });
