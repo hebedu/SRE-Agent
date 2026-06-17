@@ -2658,7 +2658,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
 
                 <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={() => onAction?.('ACT_SELF_HEAL')}
+                    onClick={() => onAction?.('ACT_SELF_HEAL', data)}
                     className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
                   >
                     <Zap size={14} fill="currentColor" />
@@ -12790,6 +12790,17 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }
 
     if (action === 'ACT_SELF_HEAL') {
+      if (data?.id === 'A001') {
+        addMessage({
+          id: Date.now().toString(),
+          type: 'ai',
+          contentType: 'text',
+          content: '🔄 **故障自愈引擎分流成功**\n\n您已触发第一个告警卡片 `order-service 错误率飙升` 的自愈操作。\n\n根据系统配置，旧版的 `监控插件重启` 自愈流水线已成功下线并隔离。此处占位已生效，正等待换入全新的自愈流程设计。',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        return;
+      }
+
       addMessage({
         id: Date.now().toString(),
         type: 'ai',
