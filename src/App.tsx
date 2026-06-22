@@ -1032,7 +1032,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
   const steps = [
     { id: 1, title: '告警解析与拓扑发现', status: currentStep >= 1 ? 'done' : 'waiting' },
     { id: 2, title: '多智能体并行诊断', status: currentStep >= 2 ? 'done' : 'waiting' },
-    { id: 3, title: '结果汇总与自愈方案', status: currentStep >= 3 ? 'done' : 'waiting' },
+    { id: 3, title: '结果汇总与修复方案', status: currentStep >= 3 ? 'done' : 'waiting' },
   ];
 
   return (
@@ -1124,7 +1124,7 @@ const InspectionDiagnosticReportCard: React.FC<{ data: any, onAction: any }> = (
                   onClick={() => onAction('EXECUTE_HEAL')}
                   className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-lg shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Zap size={12} /> 一键执行自愈
+                  <Zap size={12} /> 一键执行修复
                 </button>
                 <button
                   onClick={() => onAction('VIEW_RCA_REPORT')}
@@ -1820,8 +1820,8 @@ export function assess(cand: any, known: string[]) {
   }
   if (!cand.scopeVerified) {
     flags.push({ 
-      title: "适用条件未核验", 
-      desc: "该自愈方案的适用范围纯属大模型自我声明，系统未能通过物理网络及配置拓扑对其完成合规性物理校对。", 
+      title: "影响范围未核验", 
+      desc: "该修复方案的影响范围纯属大模型自我声明，系统未能通过物理网络及配置拓扑对其完成合规性物理校对。", 
       sev: 'mid' 
     });
   }
@@ -1834,35 +1834,11 @@ export function assess(cand: any, known: string[]) {
 }
 
 const SelfHealRecommendationCard = ({ data, onAction }: any) => {
-  const [versions, setVersions] = useState<any[]>([]);
-  const [currentVerIndex, setCurrentVerIndex] = useState<number>(-1);
-
-  useEffect(() => {
-    if (!data) return;
-    setVersions(prev => {
-      const currentIds = (data.candidates || []).map((c: any) => c.id).join(",");
-      const matchIndex = prev.findIndex(v => (v.candidates || []).map((c: any) => c.id).join(",") === currentIds);
-      
-      if (matchIndex !== -1) {
-        const next = [...prev];
-        next[matchIndex] = data;
-        return next;
-      } else {
-        const next = [...prev, data];
-        setCurrentVerIndex(next.length - 1);
-        return next;
-      }
-    });
-  }, [data]);
-
-  const currentData = versions[currentVerIndex] || data;
-  const { alertTitle, rootCauseText, knownEntities, candidates = [], adoptedId, archived } = currentData;
+  const currentData = data;
+  const { alertTitle, rootCauseText, knownEntities, candidates = [], regenerated } = currentData;
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<any>(null);
-  const [ack1, setAck1] = useState(false);
-  const [ack2, setAck2] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [question, setQuestion] = useState("");
 
@@ -1876,7 +1852,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
       setDetailId(null);
       setSelected(null);
     }
-  }, [currentVerIndex, currentData]);
+  }, [currentData]);
 
   const handleAsk = (schemeId: string, schemeTitle: string) => {
     if (!question.trim()) return;
@@ -1898,6 +1874,10 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
     return candidates.map((c: any) => ({ cand: c, ev: assess(c, knownEntities) }));
   }, [candidates, knownEntities]);
 
+  const isUserOptimized = useMemo(() => {
+    return candidates.some((c: any) => c.title?.includes('(用户优化版)'));
+  }, [candidates]);
+
   const [sortBy, setSortBy] = useState<'trust' | 'risk'>('trust');
   const sorted = useMemo(() => {
     const arr = [...items];
@@ -1910,24 +1890,20 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
     return arr;
   }, [items, sortBy]);
 
-  const tryAdopt = (it: any) => {
-    setAck1(false);
-    setAck2(false);
-    setConfirm({ it, needAck2: it.ev.effective === 'high' || it.ev.destructive });
-  };
+
 
   const copyScript = (it: any) => {
     navigator.clipboard?.writeText(DISCLAIMER + "\n" + it.cand.script).catch(() => {});
   };
 
   const exportPlan = (it: any) => {
-    const head = `# 全 AI 生成推荐自愈方案（仅供参考，系统不执行）\n# 告警：${alertTitle}\n# 根因：${rootCauseText}\n# 方案：${it.cand.title}\n# 模型声明风险：${RISK[it.cand.declaredRisk].label} · 核验推导：${RISK[it.ev.derived].label} · 有效风险：${RISK[it.ev.effective].label}\n# 核验告警：${it.ev.flags.map((f:any)=>f.t).join(" | ")||"无"}\n${DISCLAIMER}\n\n`;
+    const head = `# 全 AI 生成推荐修复方案（仅供参考，系统不执行）\n# 告警：${alertTitle}\n# 根因：${rootCauseText}\n# 方案：${it.cand.title}\n# 模型声明风险：${RISK[it.cand.declaredRisk].label} · 核验推导：${RISK[it.ev.derived].label} · 操作风险：${RISK[it.ev.effective].label}\n# 核验告警：${it.ev.flags.map((f:any)=>f.t).join(" | ")||"无"}\n${DISCLAIMER}\n\n`;
     try {
       const b = new Blob([head + it.cand.script], { type: "text/plain" });
       const u = URL.createObjectURL(b);
       const a = document.createElement("a");
       a.href = u;
-      a.download = `AI自愈方案_${it.cand.title}.txt`;
+      a.download = `AI修复方案_${it.cand.title}.txt`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1940,30 +1916,13 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
       <div className="rounded-2xl border border-white/8 bg-[#161c2e] p-5 shadow-2xl">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className="text-violet-400">✦</span>
-          <h3 className="font-bold text-slate-100 text-sm">AI推荐自愈方案</h3>
-          <span className="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-0.5 ml-1 font-bold">仅推荐 · 系统不执行</span>
-          
-          {versions.length > 1 && (
-            <div className="ml-auto flex items-center gap-1.5 bg-slate-950/40 border border-slate-850 rounded-lg p-0.5 text-[10px] font-bold">
-              <span className="text-slate-500 px-1.5 py-0.5">历史版本</span>
-              {versions.map((_: any, idx: number) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentVerIndex(idx)}
-                  className={`px-2 py-0.5 rounded transition-all ${currentVerIndex === idx ? "bg-indigo-600 text-white shadow-md shadow-indigo-900/30" : "text-slate-400 hover:text-slate-350"}`}
-                >
-                  V{idx + 1}
-                  {idx === versions.length - 1 && <span className="text-[8px] opacity-75 ml-0.5">(最新)</span>}
-                </button>
-              ))}
-            </div>
-          )}
+          <h3 className="font-bold text-slate-100 text-sm">AI推荐修复方案</h3>
         </div>
         <div className="text-[11px] text-rose-200 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2.5 mt-3 mb-4 leading-relaxed font-bold shadow-inner">
-          ⚠ 本方案及其脚本、风险与适用范围<span className="text-rose-100 border-b border-rose-500/50">全部由 AI 模型生成，可能存在幻觉</span>。
-          <strong className="text-rose-100 block mt-1">系统仅作参考推荐，绝不会自动执行任何脚本。</strong> 
-          系统已对每条方案完成独立静态核验并可能上调风险评级——请以<span className="text-rose-100">核验结果</span>为准，务必人工充分评估后再在受控环境中落地。
+          ⚠ 本方案由 AI 生成,其脚本与风险评级、适用范围、推荐原因均为模型产出,可能存在幻觉。<span className="text-rose-100">系统不会自动执行任何脚本</span>，请务必人工充分评估后,再在受控环境中落地。
         </div>
+
+
 
         {sorted.length > 1 && (
           <div className="flex items-center gap-3 mb-3 text-[11px]">
@@ -1981,24 +1940,22 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
             const { cand, ev } = it;
             const open = detailId === cand.id;
             const sel = selected === cand.id;
-            const adopted = adoptedId === cand.id;
+
             const mismatch = ev.derived !== cand.declaredRisk;
             const hi = ev.effective === "high";
 
             return (
               <div key={cand.id} className={`rounded-xl border p-3.5 transition-all duration-200 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.3)] ${sel ? "border-indigo-500 bg-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.15)]" : "border-slate-600 bg-[#0d101d] hover:border-indigo-500/50 hover:bg-[#0d101d]/80"}`} onClick={() => { setSelected(cand.id); setDetailId(p => p === cand.id ? null : cand.id); }}>
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-[9px] font-black border rounded px-1.5 py-0.5 text-violet-300 bg-violet-500/10 border-violet-500/30 uppercase">AI 生成</span>
-                  <span className={`text-[9px] font-black border rounded px-1.5 py-0.5 uppercase ${RISK[ev.effective].cls}`}>有效风险 {RISK[ev.effective].label}</span>
-                  {mismatch && <span className="text-[9px] font-black text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded px-1.5 py-0.5 uppercase tracking-wide">模型评 {RISK[cand.declaredRisk].label} · 核验 {RISK[ev.derived].label}</span>}
-                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 transition-all ${TRUST[ev.trust].cls}`}>
+                  <span className={`text-[9px] font-black border rounded px-1.5 py-0.5 uppercase ${RISK[ev.effective].cls}`}>操作风险 {RISK[ev.effective].label}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border inline-flex items-center gap-1 transition-all ${TRUST[ev.trust].cls}`}>
                     <span className={`w-1 h-1 rounded-full ${
                       ev.trust === 'high' ? 'bg-emerald-400 animate-pulse' :
                       ev.trust === 'mid' ? 'bg-amber-400' : 'bg-rose-400'
                     }`} />
                     {TRUST[ev.trust].label}
                   </span>
-                  {adopted && <span className="text-[9px] font-black text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded px-1.5 py-0.5 uppercase tracking-wider">✓ 已采纳</span>}
+
                 </div>
                 <div className="flex justify-between items-start gap-4 mb-1.5">
                   <div className="flex-1">
@@ -2024,7 +1981,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
                     {ev.flags.length > 0 && (
                       <div>
                         <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">
-                          异常提示
+                          风险提示
                         </div>
                         <div className="space-y-1.5 mt-1">
                           {ev.flags.map((f: any, i: number) => (
@@ -2043,7 +2000,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
                       <div className="text-[11px] text-slate-300 font-medium leading-relaxed">{cand.reason}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">适用范围</div>
+                      <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">影响范围</div>
                       <div className="text-[11px] text-slate-300 font-medium leading-relaxed">{cand.scope}</div>
                     </div>
                     <div>
@@ -2059,7 +2016,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
                         <MessageSquare size={13} className="text-slate-500" />
                         <input
                           type="text"
-                          placeholder="针对该自愈方案向 AI 提问并讨论..."
+                          placeholder="针对该修复方案向 AI 提问并讨论..."
                           className="bg-transparent text-[11px] text-slate-300 placeholder-slate-600 outline-none flex-1 font-bold"
                           value={question}
                           onChange={(e) => setQuestion(e.target.value)}
@@ -2091,65 +2048,20 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
           })}
         </div>
         
-        <div className="flex items-center gap-2 mt-5 pt-4 border-t border-slate-800/80">
-          {archived ? (
-            <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1"><CheckCircle size={14}/> 已归档并锁定，采纳记录不可再变更</span>
-          ) : !adoptedId ? (
-            <div className="flex items-center gap-2">
-              <button 
-                disabled={!selected || isRegenerating} 
-                onClick={() => tryAdopt(items.find(i => i.cand.id === selected))} 
-                className={`text-xs font-black rounded-lg px-5 py-2.5 flex items-center gap-2 transition-all ${(!selected || isRegenerating) ? "bg-slate-800/50 text-slate-500 cursor-not-allowed border border-slate-800" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20 active:scale-95"}`}
-              >
-                采纳当前选中方案
-              </button>
-              <button
-                disabled={isRegenerating}
-                onClick={handleRegenerate}
-                className={`text-xs font-bold border rounded-lg px-4 py-2.5 flex items-center gap-2 transition-all ${isRegenerating ? "border-slate-800 text-slate-600 bg-slate-800/20 cursor-not-allowed" : "border-slate-700 hover:bg-slate-800 text-slate-300 active:scale-95"}`}
-              >
-                <RefreshCw size={14} className={isRegenerating ? "animate-spin text-slate-500" : "text-slate-400"} />
-                {isRegenerating ? "重新生成中..." : "重新生成推荐方案"}
-              </button>
-            </div>
-          ) : (
-            <>
-              <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1"><CheckCircle size={14}/> 方案采纳留痕成功，系统已自动隔离拦截，不执行任何变更</span>
-              <button onClick={() => onAction?.('REVOKE_HEAL_SCHEME')} className="text-[11px] font-bold border border-slate-700 rounded-lg px-3 py-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800/50 transition-colors ml-2">撤销采纳</button>
-            </>
-          )}
-          <span className="ml-auto text-[10px] font-bold text-slate-500 tracking-wider">仅供安全决策留痕 · 操作全链路留痕</span>
-        </div>
+        {!isUserOptimized && (
+          <div className="flex items-center gap-2 mt-5 pt-4 border-t border-slate-800/80">
+            <button
+              disabled={isRegenerating || regenerated}
+              onClick={handleRegenerate}
+              className={`text-xs font-bold border rounded-lg px-4 py-2.5 flex items-center gap-2 transition-all ${(isRegenerating || regenerated) ? "border-slate-800 text-slate-600 bg-slate-800/20 cursor-not-allowed" : "border-slate-700 hover:bg-slate-800 text-slate-300 active:scale-95"}`}
+            >
+              <RefreshCw size={14} className={isRegenerating ? "animate-spin text-slate-500" : "text-slate-400"} />
+              {isRegenerating ? "重新生成中..." : regenerated ? "已重新生成" : "重新生成推荐方案"}
+            </button>
+          </div>
+        )}
       </div>
 
-      {confirm && (
-        <div className="fixed inset-0 bg-black/35 grid place-items-center z-50 p-4" onClick={() => setConfirm(null)}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#10131e] border border-slate-700 rounded-2xl p-6 w-[480px] max-w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="text-amber-500" size={20} />
-              <h4 className="text-sm font-black tracking-wide text-slate-100">采纳方案确认</h4>
-            </div>
-            <div className="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed mt-2 space-y-2">
-              <p>
-                方案「{confirm.it.cand.title}」有效风险为 <b className={`${RISK[confirm.it.ev.effective].cls.split(" ")[0]}`}>{RISK[confirm.it.ev.effective].label}</b>。此处的采纳只代表您选定它用于后续人工核验与落地，<b className="text-slate-200">系统完全不会向目标执行此脚本或发生任何变更动作</b>。
-              </p>
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 text-slate-350 text-[10.5px]">
-                💡 该推荐方案全部由大模型生成并可能包含幻觉或不准确推断，请您在落地前务必独立核对脚本内容。
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setConfirm(null)} className="text-xs font-bold border border-slate-700 rounded-lg px-5 py-2 hover:bg-slate-800 text-slate-300 transition-colors">放弃采纳</button>
-              <button 
-                onClick={() => { setConfirm(null); onAction?.('ADOPT_HEAL_SCHEME', confirm.it.cand.id); }} 
-                className="text-xs font-black rounded-lg px-6 py-2 flex items-center gap-2 transition-all shadow-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20"
-              >
-                确认
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 };
@@ -2267,7 +2179,7 @@ const ActionExecutionCard = ({ data }: any) => {
           <div className="pt-2">
             <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Check size={12} strokeWidth={4} /></div>
-              <span className="text-[10px] text-emerald-400 font-bold tracking-tight">自愈执行成功，监控采集已恢复正常。</span>
+              <span className="text-[10px] text-emerald-400 font-bold tracking-tight">修复执行成功，监控采集已恢复正常。</span>
             </div>
           </div>
         )}
@@ -3054,7 +2966,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
             <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`}>3</div>
           </div>
           <div className="flex-1">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">环节三：诊断结论与自愈方案</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">环节三：诊断结论与修复方案</div>
             {currentStep >= 3 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 mb-5 relative overflow-hidden group">
@@ -3068,12 +2980,12 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   </p>
                 </div>
 
-                {/* 隐藏诊断分析环节3中的静态“推荐自愈方案”预览列表 */}
+                {/* 隐藏诊断分析环节3中的静态“推荐修复方案”预览列表 */}
                 {/* 
                 data.recommendations && (
                   <div className="mb-5 space-y-3">
                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <Zap size={12} className="text-purple-400" /> 推荐自愈方案
+                      <Zap size={12} className="text-purple-400" /> 推荐修复方案
                     </div>
                     <div className="grid grid-cols-1 gap-2">
                       {data.recommendations.map((rec: any, i: number) => (
@@ -3101,7 +3013,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
                   >
                     <Zap size={14} fill="currentColor" />
-                    生成推荐自愈方案
+                    生成推荐修复方案
                   </button>
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
@@ -4246,7 +4158,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                   <section className="pb-20">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                      <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">4. 处理建议与自愈方案 (Actionable Plans)</h3>
+                      <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">4. 处理建议与修复方案 (Actionable Plans)</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {(data.recommendations || [
@@ -4703,7 +4615,7 @@ const SourceTraceDrawer: React.FC<{ isOpen: boolean, onClose: () => void, data: 
           ${doc.fragment}
         </div>
         
-        <p>针对上述提到的关键指标，我们建议 SRE 团队采用自动化的监控策略。特别是当 P99 延迟超过 2s 或错误率突增时，应立即触发预警并调用相应的自愈脚本。</p>
+        <p>针对上述提到的关键指标，我们建议 SRE 团队采用自动化的监控策略。特别是当 P99 延迟超过 2s 或错误率突增时，应立即触发预警并调用相应的修复脚本。</p>
         
         <p>该文档的部署架构应充分考虑高可用性（HA）。建议跨可用区部署，并配置合理的 Pod 阻断策略。此外，针对大规模集群，引入 Service Mesh（如 Istio）可以极大地提升链路的可观测性。</p>
       </div>
@@ -9392,7 +9304,7 @@ SRE Agent 首页作为平台统一入口，承载以下能力：
 
 ## 2. 页面定位
 
-AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故障诊断，并基于 AI 完成根因分析、自愈建议查看、报告查阅与知识归档。
+AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故障诊断，并基于 AI 完成根因分析、修复建议查看、报告查阅与知识归档。
 
 页面由两部分组成：
 
@@ -9615,7 +9527,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 
 ---
 
-### Step 3：结果汇总与自愈方案
+### Step 3：结果汇总与修复方案
 对应阶段：根因确认、结论输出与操作落地。
 
 #### 系统动作
@@ -9623,7 +9535,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 - 输出结构化根因结论
 - 输出推荐操作建议
 - 提供三个核心操作入口：
-  - \`一键执行自愈\`
+  - \`一键执行修复\`
   - \`根因分析报告\`
   - \`归档\`
 
@@ -9636,7 +9548,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 
 ## 8. 结果区后续交互
 
-### 8.1 点击「一键执行自愈」
+### 8.1 点击「一键执行修复」
 
 点击后不弹窗，而是在 AI 对话流中插入一张“操作授权卡片”。
 
@@ -9720,7 +9632,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 → \`已选中未诊断\`
 → \`诊断进行中\`
 → \`诊断完成\`
-→ \`自愈执行中 / 报告查看 / 归档展开\`
+→ \`修复执行中 / 报告查看 / 归档展开\`
 
 ---
 
@@ -9778,7 +9690,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 
 ---
 
-### 10.4 自愈相关
+### 10.4 修复相关
 
 #### 场景 9：执行授权后日志中断
 预期：
@@ -9824,7 +9736,7 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 2. 卡片点击与一键诊断两类动作语义清晰且不混淆
 3. 右侧吸附机制稳定，仅单条存在
 4. 根因分析流程可完整执行并正确展示状态
-5. 分析结果后的自愈、报告、归档入口完整可用
+5. 分析结果后的修复、报告、归档入口完整可用
 6. 异常场景下有明确反馈，不出现静默失败或状态错乱` },
       { id: 'diag-archive', title: '归档交互流程', content: `# AI SRE - 根因分析报告归档交互方案
 
@@ -9849,13 +9761,13 @@ AI 诊断助手页面用于帮助运维人员从告警列表中快速发起故�
 层级关系（从上到下）：
 1. 根因结论（ROOT CAUSE）
 2. 推荐操作（RECOMMENDED PLANS）
-3. 主操作按钮（建议执行自愈 / 根因分析报告）
+3. 主操作按钮（建议执行修复 / 根因分析报告）
 4. ↓（新增按钮）
 5. [归档到知识库]
 
 界面结构：
 
-[建议执行自愈]   [根因分析报告]  
+[建议执行修复]   [根因分析报告]  
 ↓  
 [归档到知识库]
 
@@ -12107,7 +12019,7 @@ export default function App() {
               id: `ai-thread-${Date.now()}-2`,
               type: 'ai',
               contentType: 'self_heal_recommendation',
-              content: `已为您生成修改后的自愈方案，请重新核验与评估：`,
+              content: `已为您生成修改后的修复方案，请重新核验与评估：`,
               timestamp: ts2,
               threadContext: currentThread,
               data: {
@@ -12642,7 +12554,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       }, targetMenu, targetSessionId);
     }, 2500);
 
-    // Step 3: Summary & Conclusion (汇总与自愈方案)
+    // Step 3: Summary & Conclusion (汇总与修复方案)
     setTimeout(() => {
       setIsAIProcessing(false);
       const reportData = {
@@ -12654,7 +12566,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           { name: 'Analyzer-01 (全链路响应分析)', status: 'success', detail: '已确认链路延迟在合理范围 (P99 < 50ms)' },
           { name: 'Analyzer-02 (监控指标核查)', status: 'warning', detail: '检测到 vserver 监控数据缺失断点', error: true }
         ],
-        conclusion: '诊断结论：由于 vserver 节点监控采集插件挂起，导致 Prometheus 无法拉取指标，触发误报。建议执行自愈操作以恢复采集。',
+        conclusion: '诊断结论：由于 vserver 节点监控采集插件挂起，导致 Prometheus 无法拉取指标，触发误报。建议执行修复操作以恢复采集。',
         recommendations: [
           { title: '重启监控采集插件', description: '执行脚本：/usr/local/bin/restart_exporter.sh', risk: '低', effect: '恢复 Prometheus 指标采集' },
           { title: '清理僵尸进程', description: '扫描并清理 node-exporter 相关的僵尸进程', risk: '极低', effect: '释放系统资源' }
@@ -12775,7 +12687,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               id: `ai-thread-${Date.now()}-2`,
               type: 'ai',
               contentType: 'self_heal_recommendation',
-              content: `已为您生成修改后的自愈方案，请重新核验与评估：`,
+              content: `已为您生成修改后的修复方案，请重新核验与评估：`,
               timestamp: ts2,
               threadContext: { schemeId, schemeTitle },
               data: {
@@ -12828,43 +12740,81 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }
 
     if (action === 'REGENERATE_HEAL_SCHEMES') {
-      setMessages(prev => prev.map(m => {
-        if (m.contentType === 'self_heal_recommendation') {
-          return {
-            ...m,
+      setMessages(prev => {
+        const arr = [...prev];
+        const lastIdx = [...arr].reverse().findIndex(m => m.contentType === 'self_heal_recommendation');
+        if (lastIdx !== -1) {
+          const actualIndex = arr.length - 1 - lastIdx;
+          arr[actualIndex] = {
+            ...arr[actualIndex],
             data: {
-              ...m.data,
-              candidates: [
-                {
-                  id: `C_REGEN_${Date.now()}_1`,
-                  title: '自适应数据库代理(Proxy)降级方案',
-                  reason: '暂时切断所有非核心读写流量，为核心 `order-service` 留出 80% 连接库带宽。该方案具有中度风险，但对恢复交易链路最为立竿见影。',
-                  scope: 'DB-Proxy 中间件路由组',
-                  declaredRisk: 'mid',
-                  script: `# 动态应用流量隔离策略\necho "[Info] 载入中间件路由规则..."\necho "[Info] 标记非交易流量组件为降级状态..."\n# 降级非核心查询接口\ncurl -X POST http://db-proxy.infra:8080/admin/degrade -d "target=report-service,query-service"\necho "[Success] 流量熔断降级操作已下发！"`,
-                  entities: ['db-proxy'],
-                  confidence: 0.9,
-                  reasonConsistent: true,
-                  scopeVerified: true
-                },
-                {
-                  id: `C_REGEN_${Date.now()}_2`,
-                  title: '动态断连并调整连接池回收超时',
-                  reason: '临时将连接池中空闲回收时间 `idleTimeout` 调低至 10s，强制断开所有已失联或空转的线程。',
-                  scope: '应用端连接池属性',
-                  declaredRisk: 'low',
-                  script: `# 下调连接池回收时间并释放失效连接\necho "[Info] 扫描应用端 JVM 内的 Hikari 线程池..."\n# 修改 JVM 参数或通过管理端热调小空闲超时\ncurl -X POST http://order-service:8080/actuator/env -d "spring.datasource.hikari.idle-timeout=10000"\ncurl -X POST http://order-service:8080/actuator/refresh\necho "[Success] 动态修改已应用，空转线程将快速自动断连释放！"`,
-                  entities: ['order-service'],
-                  confidence: 0.95,
-                  reasonConsistent: true,
-                  scopeVerified: true
-                }
-              ]
+              ...arr[actualIndex].data,
+              regenerated: true
             }
           };
         }
-        return m;
-      }));
+        return arr;
+      });
+
+      const lastRecMsg = [...messages].reverse().find(m => m.contentType === 'self_heal_recommendation');
+      const meta = lastRecMsg?.data || {
+        alertTitle: '连接池占满告警',
+        rootCauseText: '当前活动连接数接近阈值限制',
+        knownEntities: ['order-service', 'kubernetes']
+      };
+
+      const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      addMessage({
+        id: `ai-regen-status-${Date.now()}`,
+        type: 'ai',
+        contentType: 'text',
+        content: '收到要求，正在重新生成修复方案，请稍候...',
+        timestamp: ts
+      });
+
+      setIsAIProcessing(true);
+      setTimeout(() => {
+        setIsAIProcessing(false);
+        const ts2 = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        addMessage({
+          id: `ai-regen-rec-${Date.now()}`,
+          type: 'ai',
+          contentType: 'self_heal_recommendation',
+          content: '已为您重新生成备选推荐修复方案：',
+          timestamp: ts2,
+          data: {
+            alertTitle: meta.alertTitle,
+            rootCauseText: meta.rootCauseText,
+            knownEntities: meta.knownEntities,
+            candidates: [
+              {
+                id: `C_REGEN_${Date.now()}_1`,
+                title: '自适应数据库代理(Proxy)降级方案',
+                reason: '暂时切断所有非核心读写流量，为核心 `order-service` 留出 80% 连接库带宽。该方案具有中度风险，但对恢复交易链路最为立竿见影。',
+                scope: 'DB-Proxy 中间件路由组',
+                declaredRisk: 'mid',
+                script: `# 动态应用流量隔离策略\necho "[Info] 载入中间件路由规则..."\necho "[Info] 标记非交易流量组件为降级状态..."\n# 降级非核心查询接口\ncurl -X POST http://db-proxy.infra:8080/admin/degrade -d "target=report-service,query-service"\necho "[Success] 流量熔断降级操作已下发！"`,
+                entities: ['db-proxy'],
+                confidence: 0.9,
+                reasonConsistent: true,
+                scopeVerified: true
+              },
+              {
+                id: `C_REGEN_${Date.now()}_2`,
+                title: '动态断连并调整连接池回收超时',
+                reason: '临时将连接池中空闲回收时间 `idleTimeout` 调低至 10s，强制断开所有已失联或空转的线程。',
+                scope: '应用端连接池属性',
+                declaredRisk: 'low',
+                script: `# 下调连接池回收时间并释放失效连接\necho "[Info] 扫描应用端 JVM 内的 Hikari 线程池..."\n# 修改 JVM 参数或通过管理端热调小空闲超时\ncurl -X POST http://order-service:8080/actuator/env -d "spring.datasource.hikari.idle-timeout=10000"\ncurl -X POST http://order-service:8080/actuator/refresh\necho "[Success] 动态修改已应用，空转线程将快速自动断连释放！"`,
+                entities: ['order-service'],
+                confidence: 0.95,
+                reasonConsistent: true,
+                scopeVerified: true
+              }
+            ]
+          }
+        });
+      }, 1000);
       return;
     }
 
@@ -13159,7 +13109,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       setSelectedKDocId(null);
       return;
     }
-    // === 自愈与授权子工作流 ===
+    // === 修复与授权子工作流 ===
     if (action === 'START_INSPECTION_ANALYSIS') {
       const task = data.task;
       if (!task) return;
@@ -13494,7 +13444,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           id: Date.now().toString(),
           type: 'ai',
           contentType: 'self_heal_recommendation',
-          content: '我已经为您生成了关于 `order-service` 连接池耗尽问题的自愈候选方案。这些方案完全由模型生成，请您务必参考核验结果进行独立评审，当前系统不会执行任何脚本。',
+          content: '我已经为您生成了关于 `order-service` 连接池耗尽问题的修复候选方案。这些方案完全由模型生成，请您务必参考核验结果进行独立评审，当前系统不会执行任何脚本。',
           data: {
             alertTitle: 'order-service 错误率飙升',
             rootCauseText: 'HikariCP 连接池耗尽 (maxLifetime 配置与 DB 超时时间不匹配)',
@@ -13559,7 +13509,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         id: Date.now().toString(),
         type: 'ai',
         contentType: 'action_confirm',
-        content: '基于诊断结论，系统已生成针对性自愈方案。该操作属于高危指令，请在核对 Dry-run 预览后进行最终授权执行。',
+        content: '基于诊断结论，系统已生成针对性修复方案。该操作属于高危指令，请在核对 Dry-run 预览后进行最终授权执行。',
         data: {
           title: '重置并重启监控采集插件 (OTel)',
           risk: '⚠️ CRITICAL / 核心中间件变更',
@@ -13583,7 +13533,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         id: executionId,
         type: 'ai',
         contentType: 'action_execution',
-        content: '自愈执行流水线已启动，正在实时同步执行日志...',
+        content: '修复执行流水线已启动，正在实时同步执行日志...',
         data: initialData,
         timestamp: new Date().toLocaleTimeString()
       });
