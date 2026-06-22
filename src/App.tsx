@@ -3023,7 +3023,9 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   </p>
                 </div>
 
-                {data.recommendations && (
+                {/* 隐藏诊断分析环节3中的静态“推荐自愈方案”预览列表 */}
+                {/* 
+                data.recommendations && (
                   <div className="mb-5 space-y-3">
                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                       <Zap size={12} className="text-purple-400" /> 推荐自愈方案
@@ -3045,7 +3047,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       ))}
                     </div>
                   </div>
-                )}
+                )
+                */}
 
                 <div className="flex flex-wrap gap-3">
                   <button
