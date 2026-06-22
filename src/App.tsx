@@ -1905,7 +1905,7 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
       <div className="rounded-2xl border border-white/8 bg-[#161c2e] p-5 shadow-2xl">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-violet-400">✦</span>
-          <h3 className="font-bold text-slate-100 text-sm">推荐自愈方案（全部由 AI 生成）</h3>
+          <h3 className="font-bold text-slate-100 text-sm">AI推荐自愈方案</h3>
           <span className="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-0.5 ml-1 font-bold">仅推荐 · 系统不执行</span>
         </div>
         <div className="text-[11px] text-rose-200 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2.5 mt-3 mb-4 leading-relaxed font-bold shadow-inner">
