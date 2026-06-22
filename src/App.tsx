@@ -1834,14 +1834,49 @@ export function assess(cand: any, known: string[]) {
 }
 
 const SelfHealRecommendationCard = ({ data, onAction }: any) => {
-  const { alertTitle, rootCauseText, knownEntities, candidates, adoptedId, archived } = data;
-  const [detailId, setDetailId] = useState<string | null>(candidates && candidates.length === 1 ? candidates[0].id : null);
-  const [selected, setSelected] = useState<string | null>(candidates && candidates.length === 1 ? candidates[0].id : null);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [currentVerIndex, setCurrentVerIndex] = useState<number>(-1);
+
+  useEffect(() => {
+    if (!data) return;
+    setVersions(prev => {
+      const currentIds = (data.candidates || []).map((c: any) => c.id).join(",");
+      const matchIndex = prev.findIndex(v => (v.candidates || []).map((c: any) => c.id).join(",") === currentIds);
+      
+      if (matchIndex !== -1) {
+        const next = [...prev];
+        next[matchIndex] = data;
+        return next;
+      } else {
+        const next = [...prev, data];
+        setCurrentVerIndex(next.length - 1);
+        return next;
+      }
+    });
+  }, [data]);
+
+  const currentData = versions[currentVerIndex] || data;
+  const { alertTitle, rootCauseText, knownEntities, candidates = [], adoptedId, archived } = currentData;
+
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<any>(null);
   const [ack1, setAck1] = useState(false);
   const [ack2, setAck2] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [question, setQuestion] = useState("");
+
+  useEffect(() => {
+    if (!currentData) return;
+    const currentCandidates = currentData.candidates || [];
+    if (currentCandidates.length === 1) {
+      setDetailId(currentCandidates[0].id);
+      setSelected(currentCandidates[0].id);
+    } else {
+      setDetailId(null);
+      setSelected(null);
+    }
+  }, [currentVerIndex, currentData]);
 
   const handleAsk = (schemeId: string, schemeTitle: string) => {
     if (!question.trim()) return;
@@ -1903,10 +1938,26 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
   return (
     <div className="w-full max-w-4xl font-sans mt-3">
       <div className="rounded-2xl border border-white/8 bg-[#161c2e] p-5 shadow-2xl">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className="text-violet-400">✦</span>
           <h3 className="font-bold text-slate-100 text-sm">AI推荐自愈方案</h3>
           <span className="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-0.5 ml-1 font-bold">仅推荐 · 系统不执行</span>
+          
+          {versions.length > 1 && (
+            <div className="ml-auto flex items-center gap-1.5 bg-slate-950/40 border border-slate-850 rounded-lg p-0.5 text-[10px] font-bold">
+              <span className="text-slate-500 px-1.5 py-0.5">历史版本</span>
+              {versions.map((_: any, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentVerIndex(idx)}
+                  className={`px-2 py-0.5 rounded transition-all ${currentVerIndex === idx ? "bg-indigo-600 text-white shadow-md shadow-indigo-900/30" : "text-slate-400 hover:text-slate-350"}`}
+                >
+                  V{idx + 1}
+                  {idx === versions.length - 1 && <span className="text-[8px] opacity-75 ml-0.5">(最新)</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="text-[11px] text-rose-200 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2.5 mt-3 mb-4 leading-relaxed font-bold shadow-inner">
           ⚠ 本方案及其脚本、风险与适用范围<span className="text-rose-100 border-b border-rose-500/50">全部由 AI 模型生成，可能存在幻觉</span>。
