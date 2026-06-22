@@ -12827,6 +12827,39 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       return;
     }
 
+    if (action === 'REGENERATE_HEAL_SCHEMES') {
+      setMessages(prev => prev.map(m => {
+        if (m.contentType === 'self_heal_recommendation') {
+          return {
+            ...m,
+            data: {
+              ...m.data,
+              candidates: [
+                {
+                  id: `C_REGEN_${Date.now()}_1`,
+                  title: '自适应数据库代理(Proxy)降级方案',
+                  reason: '暂时切断所有非核心读写流量，为核心 `order-service` 留出 80% 连接库带宽。该方案具有中度风险，但对恢复交易链路最为立竿见影。',
+                  scope: 'DB-Proxy 中间件路由组',
+                  declaredRisk: 'mid',
+                  script: `# 动态应用流量隔离策略\necho "[Info] 载入中间件路由规则..."\necho "[Info] 标记非交易流量组件为降级状态..."\n# 降级非核心查询接口\ncurl -X POST http://db-proxy.infra:8080/admin/degrade -d "target=report-service,query-service"\necho "[Success] 流量熔断降级操作已下发！"`
+                },
+                {
+                  id: `C_REGEN_${Date.now()}_2`,
+                  title: '动态断连并调整连接池回收超时',
+                  reason: '临时将连接池中空闲回收时间 `idleTimeout` 调低至 10s，强制断开所有已失联或空转的线程。',
+                  scope: '应用端连接池属性',
+                  declaredRisk: 'low',
+                  script: `# 下调连接池回收时间并释放失效连接\necho "[Info] 扫描应用端 JVM 内的 Hikari 线程池..."\n# 修改 JVM 参数或通过管理端热调小空闲超时\ncurl -X POST http://order-service:8080/actuator/env -d "spring.datasource.hikari.idle-timeout=10000"\ncurl -X POST http://order-service:8080/actuator/refresh\necho "[Success] 动态修改已应用，空转线程将快速自动断连释放！"`
+                }
+              ]
+            }
+          };
+        }
+        return m;
+      }));
+      return;
+    }
+
     if (action === 'ADOPT_HEAL_SCHEME') {
       setMessages(prev => prev.map(m => 
         m.contentType === 'self_heal_recommendation' 
