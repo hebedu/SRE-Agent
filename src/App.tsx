@@ -13402,7 +13402,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           id: Date.now().toString(),
           type: 'ai',
           contentType: 'self_heal_recommendation',
-          content: '我已经为您生成了关于 `order-service` 连接池耗尽问题的自愈候选方案。这些方案**完全由模型生成**，请您**务必参考核验结果**进行独立评审，当前系统**不会执行**任何脚本。',
+          content: '我已经为您生成了关于 `order-service` 连接池耗尽问题的自愈候选方案。这些方案完全由模型生成，请您务必参考核验结果进行独立评审，当前系统不会执行任何脚本。',
           data: {
             alertTitle: 'order-service 错误率飙升',
             rootCauseText: 'HikariCP 连接池耗尽 (maxLifetime 配置与 DB 超时时间不匹配)',
