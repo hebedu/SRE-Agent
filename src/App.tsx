@@ -2078,28 +2078,22 @@ const SelfHealRecommendationCard = ({ data, onAction }: any) => {
               <AlertTriangle className="text-amber-500" size={20} />
               <h4 className="text-sm font-black tracking-wide text-slate-100">采纳方案确认</h4>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed mt-2">
-              方案「{confirm.it.cand.title}」有效风险为 <b className={`${RISK[confirm.it.ev.effective].cls.split(" ")[0]}`}>{RISK[confirm.it.ev.effective].label}</b>。此处的采纳只代表您选定它用于后续人工核验与落地，<b className="text-slate-200">系统完全不会向目标执行此脚本或发生任何变更动作</b>。
-            </p>
-            {confirm.it.ev.flags.length > 0 && (
-               <div className="text-[10px] text-amber-300 font-bold bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 mb-4 leading-relaxed">
-                 核验提示：{confirm.it.ev.flags.map((f:any) => f.t).join("；")}
-               </div>
-            )}
-            
-            <label className="flex items-start gap-3 bg-slate-950/50 border border-slate-800/60 rounded-xl p-3 mb-3 cursor-pointer hover:bg-slate-900/50 transition-colors group">
-              <input type="checkbox" checked={ack1} onChange={e => setAck1(e.target.checked)} className="mt-0.5 rounded border-slate-700 text-indigo-500 focus:ring-indigo-500/20 focus:ring-offset-0 bg-slate-900" />
-              <span className="text-[11px] font-bold text-slate-300 leading-relaxed group-hover:text-slate-200">我已经独立核对过该推荐方案的脚本内容，知晓它全部由大模型生成并可能包含幻觉或不准确推断。</span>
-            </label>
+            <div className="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed mt-2 space-y-2">
+              <p>
+                方案「{confirm.it.cand.title}」有效风险为 <b className={`${RISK[confirm.it.ev.effective].cls.split(" ")[0]}`}>{RISK[confirm.it.ev.effective].label}</b>。此处的采纳只代表您选定它用于后续人工核验与落地，<b className="text-slate-200">系统完全不会向目标执行此脚本或发生任何变更动作</b>。
+              </p>
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 text-slate-350 text-[10.5px]">
+                💡 该推荐方案全部由大模型生成并可能包含幻觉或不准确推断，请您在落地前务必独立核对脚本内容。
+              </div>
+            </div>
 
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setConfirm(null)} className="text-xs font-bold border border-slate-700 rounded-lg px-5 py-2 hover:bg-slate-800 text-slate-300 transition-colors">放弃采纳</button>
               <button 
-                disabled={!ack1} 
                 onClick={() => { setConfirm(null); onAction?.('ADOPT_HEAL_SCHEME', confirm.it.cand.id); }} 
-                className={`text-xs font-black rounded-lg px-6 py-2 flex items-center gap-2 transition-all shadow-lg ${!ack1 ? "bg-slate-800/50 text-slate-500 cursor-not-allowed border border-slate-800" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20"}`}
+                className="text-xs font-black rounded-lg px-6 py-2 flex items-center gap-2 transition-all shadow-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20"
               >
-                {!ack1 && <Lock size={12} />} 确认
+                确认
               </button>
             </div>
           </motion.div>
