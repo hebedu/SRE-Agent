@@ -2717,117 +2717,148 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   const archived = initialArchived || localArchived;
 
   return (
-    <div className={`bg-[#0d0d12] border ${status === 'success' ? 'border-emerald-500/40' : status === 'aborted' ? 'border-rose-500/20' : 'border-blue-500/20'} rounded-2xl overflow-hidden shadow-2xl max-w-xl w-full font-mono mt-3`}>
-      <div className={`p-4 ${status === 'success' ? 'bg-emerald-500/5' : status === 'aborted' ? 'bg-rose-500/5' : 'bg-blue-500/5'} border-b border-white/[0.05] flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg ${status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : status === 'aborted' ? 'bg-rose-500/20 text-rose-400' : 'bg-blue-500/20 text-blue-400'} flex items-center justify-center`}>
-            {status === 'success' ? <CheckCircle2 size={18} /> : status === 'aborted' ? <ShieldAlert size={18} className="text-rose-400" /> : <Terminal size={18} className="animate-pulse" />}
+    <div className="w-full max-w-xl mt-4 font-sans relative pl-8 text-slate-300">
+      {/* 左侧垂直实线 */}
+      <div className="absolute left-[14px] top-2 bottom-2 w-0.5 bg-indigo-500/20" />
+
+      {/* ================= 环节一：自动化自愈执行 ================= */}
+      <div className="relative mb-8">
+        {/* 步骤 1 圆圈标号 (中心点在 left-14px 与时间线完美重合) */}
+        <div className={`absolute left-0 top-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-lg ${
+          status === 'success' 
+            ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+            : status === 'aborted'
+              ? 'bg-rose-500 text-white shadow-rose-500/20'
+              : 'bg-indigo-600 text-white animate-pulse shadow-indigo-600/20'
+        }`}>
+          {status === 'success' ? '✓' : status === 'aborted' ? '✕' : '1'}
+        </div>
+
+        <div className="pl-9">
+          <div className="text-xs font-black text-slate-300 mb-3 tracking-wide flex items-center gap-2">
+            <span>环节一：自动化自愈执行</span>
+            {status === 'running' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />}
           </div>
-          <div>
-            <h4 className="text-xs font-black text-slate-200 tracking-tight">{status === 'success' ? '✓ TASK COMPLETED' : status === 'aborted' ? '■ TASK ABORTED' : '⚡ EXECUTING...'}</h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <div className="h-1 w-20 bg-slate-800 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className={`h-full ${status === 'success' ? 'bg-emerald-500' : status === 'aborted' ? 'bg-rose-500' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
+
+          {/* 环节一卡片内容区域 */}
+          <div className="bg-[#0b0c16] border border-white/[0.05] rounded-xl p-4 space-y-3.5">
+            {/* 简易拓扑节点流 */}
+            <div className="flex items-center gap-2 text-[10.5px] bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/40">
+              <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono flex items-center gap-1 font-bold">
+                <span>自愈引擎</span>
+                <Zap size={10} className="fill-blue-400/20" />
+              </span>
+              <span className="text-slate-600">➔</span>
+              <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono font-bold">清理 binlog & 重置指针</span>
+              <span className="text-slate-600">➔</span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono font-bold">重启复制线程</span>
+            </div>
+
+            {/* 控制台终端日志 */}
+            <div className="bg-black/50 border border-white/[0.02] p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 h-36 overflow-y-auto no-scrollbar scroll-smooth">
+              {logs?.map((log: string, i: number) => (
+                <div key={i} className="flex gap-2.5">
+                  <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                  <span className={log.includes('✓') || log.includes('SUCCESS') || log.includes('✅') ? 'text-emerald-400 font-bold' : log.includes('■') || log.includes('ER') ? 'text-rose-400 font-bold' : 'text-slate-300'}>{log}</span>
+                </div>
+              ))}
+              {status !== 'success' && status !== 'aborted' && <div className="animate-pulse text-blue-400 inline-block">_</div>}
+            </div>
+
+            {/* 进度控制与中止按钮 */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <div className="h-1 w-20 bg-slate-800 rounded-full overflow-hidden">
+                  <div style={{ width: `${progress}%` }} className="h-full bg-blue-500 transition-all duration-300" />
+                </div>
+                <span className="text-[10px] text-slate-500 font-bold">{progress}%</span>
               </div>
-              <span className="text-[10px] text-slate-500 font-bold">{progress}%</span>
+              {status === 'running' && (
+                <button
+                  onClick={() => onAction?.('ABORT_HEAL_EXECUTION', data)}
+                  className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-[10px] font-bold text-white rounded transition-colors active:scale-95"
+                >
+                  ■ 中止自愈执行
+                </button>
+              )}
+              {status === 'aborted' && (
+                <span className="text-[10px] text-rose-400 font-bold">✕ 自愈已中止</span>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-3">
-        <div className="bg-black/40 rounded-xl border border-white/[0.03] p-3.5 font-mono text-[11px] space-y-1.5 h-44 overflow-y-auto no-scrollbar scroll-smooth">
-          {logs?.map((log: string, i: number) => (
-            <div key={i} className="flex gap-2.5">
-              <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
-              <span className={log.includes('✓') || log.includes('SUCCESS') || log.includes('✅') ? 'text-emerald-400 font-bold' : log.includes('■') || log.includes('ER') ? 'text-rose-400 font-bold' : 'text-slate-300'}>{log}</span>
-            </div>
-          ))}
-          {status !== 'success' && status !== 'aborted' && <div className="animate-pulse text-blue-400">_</div>}
-        </div>
-        
-        {status === 'success' && !audit && (
-          <div className="pt-2">
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Check size={12} strokeWidth={4} /></div>
-              <span className="text-xs text-emerald-400 font-bold tracking-tight">自愈操作已成功闭环，原告警已自动关闭。</span>
-            </div>
+      {/* ================= 环节二：自愈效果复核与审计归档 ================= */}
+      {status === 'success' && audit && (
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="relative mb-2"
+        >
+          {/* 步骤 2 圆圈标号 */}
+          <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-indigo-600/20">
+            2
           </div>
-        )}
 
-        {status === 'success' && audit && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="pt-2 border-t border-white/[0.05] mt-4 space-y-4 overflow-hidden"
-          >
-            <div className="flex items-center gap-2 text-xs font-black text-slate-200 mt-2 mb-3">
-              <span>📈</span>
-              <span>阶段二：自愈效果复核与审计归档</span>
+          <div className="pl-9">
+            <div className="text-xs font-black text-slate-300 mb-3 tracking-wide">
+              环节二：自愈效果复核与审计归档
             </div>
 
             {isRolledBack ? (
-              <div className="text-xs text-slate-400 leading-relaxed font-sans bg-indigo-500/5 p-3 rounded-lg border border-indigo-500/10">
+              <div className="text-xs text-slate-400 bg-indigo-500/5 border border-indigo-500/10 p-3.5 rounded-xl leading-relaxed">
                 已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。
               </div>
             ) : (
-              <>
-                <div className="text-xs text-slate-300 font-bold font-sans">
-                  AI 专家自愈后指标核对看板 (Before vs After) ：
+              <div className="space-y-4">
+                {/* 并排双卡片展示 */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* 看板卡片 */}
+                  <div className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-emerald-400">📈 指标对比复核</span>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1 py-0.2 rounded font-bold">已核对</span>
+                    </div>
+                    <div className="space-y-1.5 text-[10.5px]">
+                      <div className="flex justify-between"><span className="text-slate-400">磁盘空间</span><span className="font-mono text-slate-200 font-bold">95% ➔ <span className="text-emerald-400">41%</span></span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">复制延迟</span><span className="font-mono text-slate-200 font-bold">320s ➔ <span className="text-emerald-400">0.2s</span></span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">异常告警</span><span className="text-emerald-400 font-bold">已消除 ✓</span></div>
+                    </div>
+                  </div>
+
+                  {/* 审计日志卡片 */}
+                  <div className="border border-indigo-500/20 bg-indigo-500/[0.02] rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-indigo-400">📋 自愈审计记录</span>
+                      <span className="text-[9px] bg-indigo-500/20 text-indigo-400 px-1 py-0.2 rounded font-bold">已就绪</span>
+                    </div>
+                    <div className="space-y-1.5 text-[10.5px]">
+                      <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">审批人</span><span className="text-slate-200 font-medium">— (免批)</span></div>
+                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit.time}>时间: {audit.time.split(' ')[1] || audit.time}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit.script}>CLEAN-v2.1</span></div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 text-xs font-sans">
-                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
-                    <span className="text-slate-400 font-medium">磁盘空间使用率</span>
-                    <span className="font-bold text-slate-300 font-mono">95% ➔ <span className="text-emerald-400">41%</span></span>
-                  </div>
-                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
-                    <span className="text-slate-400 font-medium">Seconds_Behind_Master</span>
-                    <span className="font-bold text-slate-300 font-mono">320s ➔ <span className="text-emerald-400">0.2s</span></span>
-                  </div>
-                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
-                    <span className="text-slate-400 font-medium">主从复制异常告警</span>
-                    <span className="font-bold text-emerald-400 flex items-center gap-1">已消除 ✓</span>
-                  </div>
-                </div>
-
-                <div className="bg-[#0a0a0f] border border-slate-800/80 rounded-xl p-3 space-y-2 font-sans">
-                  <h5 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">📋 自愈审计与特征归档</h5>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                    <div className="flex justify-between"><span className="text-slate-500 font-bold">操作人</span><span className="text-slate-300 font-medium">{audit.operator}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500 font-bold">审批人</span><span className="text-slate-300 font-medium">{audit.approver}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500 font-bold">执行时间</span><span className="text-slate-300 font-medium">{audit.time}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500 font-bold">所用脚本</span><span className="text-indigo-400 font-medium">{audit.script}</span></div>
-                    <div className="col-span-2 flex justify-between pt-1 border-t border-slate-800/40"><span className="text-slate-500 font-black">执行结果</span><span className="text-emerald-400 font-bold">{audit.result}</span></div>
-                  </div>
-                </div>
-
-                <div className="text-xs text-slate-400 leading-relaxed bg-emerald-500/5 p-2.5 rounded border border-emerald-500/10 font-sans">
+                {/* 指标状态及说明 */}
+                <div className="text-xs text-slate-400 bg-emerald-500/[0.03] border border-emerald-500/10 p-2.5 rounded-lg">
                   💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
                 </div>
-              </>
-            )}
 
-            <div className="flex gap-2 border-t border-slate-800/40 pt-3">
-              {isRolledBack ? (
-                <button
-                  onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', { alarmId: data?.alarmId })}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all font-sans"
-                >
-                  升级为人工高优工单
-                </button>
-              ) : (
-                <>
+                {/* 动作按钮栏 */}
+                <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setLocalArchived(true);
                       onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId: data?.alarmId });
                     }}
                     disabled={archived}
-                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 font-sans ${
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                       archived 
-                        ? 'bg-slate-800/60 text-slate-500 cursor-not-allowed border border-slate-850' 
+                        ? 'bg-slate-800/60 text-slate-500 border border-slate-850 cursor-not-allowed' 
                         : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20'
                     }`}
                   >
@@ -2835,49 +2866,27 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                   </button>
                   <button
                     onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId: data?.alarmId })}
-                    className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all font-sans"
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all active:scale-95"
                   >
                     申请回滚撤销
                   </button>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
+                </div>
+              </div>
+            )}
 
-        {status === 'running' && (
-          <div className="pt-1 flex gap-2">
-            <button
-              onClick={() => onAction?.('ABORT_HEAL_EXECUTION', data)}
-              className="w-full py-2.5 bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1 shadow-md shadow-rose-950/10"
-            >
-              ■ 中止自愈执行
-            </button>
+            {isRolledBack && (
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', { alarmId: data?.alarmId })}
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all active:scale-95"
+                >
+                  升级为人工高优工单
+                </button>
+              </div>
+            )}
           </div>
-        )}
-
-        {status === 'aborted' && (
-          <div className="pt-1 space-y-2.5">
-            <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg flex items-center gap-2">
-              <span className="text-xs text-rose-400 font-bold tracking-tight">⚠ 运行已被用户中止，部分变更挂起。</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', data)}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-md shadow-indigo-950/20"
-              >
-                ↺ 回滚已执行部分
-              </button>
-              <button
-                onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', data)}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
-              >
-                转人工
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        </motion.div>
+      )}
     </div>
   );
 };
