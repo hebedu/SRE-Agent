@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom';
 
 // --- Types ---
 type MessageType = 'user' | 'ai' | 'system';
-type ContentType = 'text' | 'voice' | 'image' | 'confirm' | 'analysis' | 'sop' | 'report' | 'target_select' | 'rule_draft' | 'frequency_select' | 'task_summary' | 'rule_review' | 'schedule_review' | 'task_success' | 'incident_report' | 'change_list' | 'recovery_action' | 'inspection_type' | 'inspection_cron_confirm' | 'inspection_progress' | 'inspection_result_table' | 'action_confirm' | 'action_execution' | 'alarm_context' | 'inspection_task_select' | 'log_cluster_selection' | 'inspection_diagnostic_report' | 'inspection_conclusion' | 'inspection_deep_dive' | 'inspection_closure' | 'log_analysis_init' | 'log_analysis_retrieval' | 'log_analysis_correlation' | 'log_analysis_evidence' | 'log_analysis_diagnosis' | 'log_analysis_action' | 'mysql_task_edit_list';
+type ContentType = 'text' | 'voice' | 'image' | 'confirm' | 'analysis' | 'sop' | 'report' | 'target_select' | 'rule_draft' | 'frequency_select' | 'task_summary' | 'rule_review' | 'schedule_review' | 'task_success' | 'incident_report' | 'change_list' | 'recovery_action' | 'inspection_type' | 'inspection_cron_confirm' | 'inspection_progress' | 'inspection_result_table' | 'action_confirm' | 'action_execution' | 'alarm_context' | 'inspection_task_select' | 'log_cluster_selection' | 'inspection_diagnostic_report' | 'inspection_conclusion' | 'inspection_deep_dive' | 'inspection_closure' | 'log_analysis_init' | 'log_analysis_retrieval' | 'log_analysis_correlation' | 'log_analysis_evidence' | 'log_analysis_diagnosis' | 'log_analysis_action' | 'mysql_task_edit_list' | 'self_heal_recommendation' | 'remediation_offer' | 'remediation_review' | 'remediation_confirm';
 type MenuKey = 'home' | 'diagnostic' | 'logs' | 'capacity' | 'knowledge' | 'inspection' | 'report' | 'alerts' | 'network' | 'settings' | 'tasks' | 'assistant';
 
 interface InspectionTarget {
@@ -1833,9 +1833,576 @@ export function assess(cand: any, known: string[]) {
   return { ...sc, ungrounded, flags, effective, trust };
 }
 
+const getRemediationMockData = (id: string) => {
+  return {
+    name: "清理临时归档日志并重启 mysql-user-slave-01 复制线程",
+    risk: "中",
+    confidence: "94%",
+    sourceId: "SCRIPT-MYSQL-CLEANUP-v2.1",
+    script: `#!/bin/bash
+echo "[INFO] Checking replica status on mysql-user-slave-01..."
+mysql -u root -e "SHOW SLAVE STATUS" | grep "Seconds_Behind_Master"
+echo "[WARN] Disk space critical (95%). Executing safe binlog truncation..."
+rm -rf /var/log/mysql/mysql-bin.000*
+echo "[SUCCESS] Disk space freed. Current usage: 41%."`,
+    steps: [
+      { id: 1, desc: "检查从库节点 SSH 可达性与只读状态", duration: 1200 },
+      { id: 2, desc: "执行临时 binlog 日志安全截断与磁盘清理", duration: 1800 },
+      { id: 3, desc: "向主库重新对齐 binlog 指针并重启复制服务", duration: 1500 }
+    ],
+    riskTips: {
+      type: "磁盘清理与复制线程重置",
+      reversible: "是 (已配套回滚脚本)",
+      dependency: "SSH 及 MySQL 复制端口就绪",
+      sideEffects: "重置期间可能发生 5-10s 复制延迟短暂上升",
+      rollback: "SCR-MYSQL-CLEANUP-RB-v2.1 (重新挂载并同步 binlog)"
+    },
+    blastRadius: {
+      targets: ["mysql-user-slave-01", "mysql-pay-db-01"],
+      impactServices: ["user-service-backend", "payment-service-api"]
+    }
+  };
+};
+
+const RemediationOfferCard = ({ data, onAction }: any) => {
+  const { title = '', risk = '', confidence = '', targetCount = 0, remediation } = data || {};
+
+  return (
+    <div className="w-full max-w-xl rounded-xl border border-white/[0.08] bg-[#131622] overflow-hidden shadow-xl mt-3">
+      <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-5 h-5 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-[11px]">⚡</div>
+          <span className="text-xs font-black text-slate-200 uppercase tracking-wider">推荐自愈处理方案</span>
+        </div>
+        <span className="text-[10px] font-black text-emerald-400 px-2 py-0.5 bg-emerald-500/10 rounded-md font-mono">置信度: {confidence}</span>
+      </div>
+      
+      <div className="p-5 space-y-4">
+        <div className="space-y-1.5">
+          <h4 className="text-sm font-bold text-slate-200 leading-normal">{title}</h4>
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-bold uppercase tracking-tight">
+            <span>操作风险: <span className={risk === '高' ? 'text-rose-400' : 'text-amber-400'}>{risk}</span></span>
+            <span>·</span>
+            <span>影响: {targetCount} 个对象</span>
+          </div>
+        </div>
+
+
+
+        {/* ① 脚本预览 */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">① 脚本预览 (Shell)</span>
+          <pre className="p-3.5 bg-black/60 border border-slate-800/80 rounded-xl font-mono text-xs text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
+            {remediation?.script || ''}
+          </pre>
+        </div>
+
+        {/* ② 风险提示 */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">② 风险提示</span>
+          <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3.5 text-xs space-y-3">
+            <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <span className="text-slate-500 font-bold">操作类型</span>
+              <span className="text-slate-300 font-medium">{remediation?.riskTips?.type || '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <span className="text-slate-500 font-bold">是否可逆</span>
+              <span className="text-slate-300 font-medium">{remediation?.riskTips?.reversible || '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <span className="text-slate-500 font-bold">前置条件</span>
+              <span className="text-slate-300 font-medium">{remediation?.riskTips?.dependency || '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <span className="text-slate-500 font-bold">已知副作用</span>
+              <span className="text-rose-400 font-bold">{remediation?.riskTips?.sideEffects || '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500 font-bold">回滚方案</span>
+              <span className="text-indigo-400 font-bold">{remediation?.riskTips?.rollback || '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ③ 影响范围 */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">③ 影响范围 & 爆炸半径</span>
+          <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3.5 text-xs space-y-3.5">
+            <div>
+              <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">受影响对象</div>
+              <div className="flex flex-wrap gap-2">
+                {remediation?.blastRadius?.targets?.map((t: string, i: number) => (
+                  <span key={i} className="px-2.5 py-0.5 bg-slate-950 border border-slate-800/80 rounded text-[10.5px] text-slate-300 font-mono">{t}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">波及应用与微服务</div>
+              <div className="flex flex-wrap gap-2">
+                {remediation?.blastRadius?.impactServices?.map((s: string, i: number) => (
+                  <span key={i} className="px-2.5 py-0.5 bg-rose-500/5 border border-rose-500/10 rounded text-[10.5px] text-rose-400 font-mono font-bold">{s}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2.5 pt-1.5 border-t border-white/[0.08]">
+          <button
+            onClick={() => onAction?.('TRIGGER_HEAL_FLOW', data)}
+            className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md shadow-amber-900/10"
+          >
+            确认执行
+          </button>
+          <button
+            onClick={() => onAction?.('NOT_EXECUTE_HEAL_FLOW', data)}
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
+          >
+            不执行
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
+  const [activeTab, setActiveTab] = useState<'script' | 'risk' | 'blast'>('script');
+  const { title = '', risk = '', confidence = '', targetCount = 0, remediation } = data || {};
+  const { script = '', riskTips, blastRadius, sourceId = '' } = remediation || {};
+
+  return (
+    <div className="fixed inset-0 z-[100] flex justify-end">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="relative w-full max-w-xl h-full bg-[#0d0d12] border-l border-slate-800 shadow-2xl flex flex-col font-sans"
+      >
+        <div className="p-5 border-b border-slate-800 bg-[#14141a] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+              <Zap size={18} fill="currentColor" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-100 uppercase tracking-tighter">自愈处理方案详情</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">置信度: {confidence} · 风险系数: {risk}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+
+            <button onClick={onClose} className="p-1.5 hover:bg-slate-850 rounded-md text-slate-500 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-5 border-b border-slate-800/60 bg-[#0d0d12] flex gap-6 text-xs shrink-0">
+          {(['script', 'risk', 'blast'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`py-3.5 font-bold transition-all relative border-b-2 ${
+                activeTab === tab 
+                  ? 'text-amber-400 border-amber-400' 
+                  : 'text-slate-500 border-transparent hover:text-slate-300'
+              }`}
+            >
+              {tab === 'script' ? '① 脚本内容' : tab === 'risk' ? '② 风险评估' : '③ 影响范围'}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+          {activeTab === 'script' && (
+            <div className="space-y-3 h-full flex flex-col">
+              <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase shrink-0">
+                <span>只读代码视图 ({sourceId || 'DEFAULT'})</span>
+                <span className="text-amber-500/70 font-mono">★ sandbox executable</span>
+              </div>
+              <div className="flex-1 bg-black/60 border border-slate-800/80 rounded-xl p-4 font-mono text-[11px] text-emerald-400 overflow-auto whitespace-pre no-scrollbar leading-relaxed">
+                {script}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'risk' && (
+            <div className="space-y-4">
+              <div className="bg-[#161c2e] border border-amber-500/10 rounded-xl p-4 flex gap-3">
+                <AlertTriangle size={18} className="text-amber-400 shrink-0" />
+                <div className="text-[11px] text-slate-400 leading-normal">
+                  <span className="font-bold text-slate-200">操作影响通知：</span>
+                  该脚本会执行磁盘归档安全截断并重启 slave 线程，存在瞬时延迟毛刺风险，已预置回滚脚本防范突发错误。
+                </div>
+              </div>
+
+              <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl overflow-hidden text-xs">
+                <div className="grid grid-cols-3 border-b border-slate-800/60 bg-white/[0.02] p-3 text-[10px] text-slate-500 font-bold uppercase">
+                  <div>核验维度</div>
+                  <div className="col-span-2">核验值 / 说明</div>
+                </div>
+                <div className="p-3 grid grid-cols-3 border-b border-slate-800/40">
+                  <div className="text-slate-500 font-bold">变更类型</div>
+                  <div className="col-span-2 text-slate-200 font-medium">{riskTips?.type}</div>
+                </div>
+                <div className="p-3 grid grid-cols-3 border-b border-slate-800/40">
+                  <div className="text-slate-500 font-bold">操作可逆性</div>
+                  <div className="col-span-2 text-slate-200 font-medium">{riskTips?.reversible}</div>
+                </div>
+                <div className="p-3 grid grid-cols-3 border-b border-slate-800/40">
+                  <div className="text-slate-500 font-bold">依赖前置条件</div>
+                  <div className="col-span-2 text-slate-200 font-medium">{riskTips?.dependency}</div>
+                </div>
+                <div className="p-3 grid grid-cols-3">
+                  <div className="text-slate-500 font-bold">已知副作用</div>
+                  <div className="col-span-2 text-rose-400 font-bold">{riskTips?.sideEffects}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'blast' && (
+            <div className="space-y-4">
+              <div className="text-xs text-slate-400">
+                系统通过拓扑与依赖链推导出的 <span className="font-bold text-slate-200">Blast Radius (爆炸半径)</span> 关联对象：
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">直接影响资源</div>
+                  <div className="flex flex-wrap gap-2">
+                    {blastRadius?.targets?.map((t: string, i: number) => (
+                      <span key={i} className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono italic">{t}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">波及应用与微服务</div>
+                  <div className="flex flex-wrap gap-2">
+                    {blastRadius?.impactServices?.map((s: string, i: number) => (
+                      <span key={i} className="px-2.5 py-1 bg-rose-500/5 border border-rose-500/10 rounded-lg text-[10px] text-rose-400 font-mono font-bold">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-5 border-t border-slate-800 bg-[#14141a] flex gap-3 shrink-0">
+          <button
+            onClick={() => onConfirm(data)}
+            className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-amber-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
+          >
+            <Zap size={14} fill="currentColor" /> 确认执行
+          </button>
+          <button
+            onClick={onClose}
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
+          >
+            不执行
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const SelfHealNotExecuteDialog = ({ data, onClose, onAction }: any) => {
+  const [ignoreReason, setIgnoreReason] = useState('');
+  
+  const handleConfirmIgnore = () => {
+    if (!ignoreReason.trim()) {
+      alert('请填写忽略原因');
+      return;
+    }
+    onAction('CLOSE_REMEDIATION_TASK_WITH_IGNORE', { alarmId: data?.alarmId, reason: ignoreReason });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 transition-opacity duration-200"
+      />
+      <div
+        className="relative w-full max-w-md bg-[#161622] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl p-6 text-slate-200 z-10 font-sans"
+      >
+        <div className="flex justify-between items-center pb-4 border-b border-slate-800/80 mb-5">
+          <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+            暂不执行自愈
+          </h3>
+          <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-md text-slate-400 hover:text-slate-200 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="sub text-xs text-slate-400 mb-4 leading-relaxed">
+          选择一个出口，本次推荐不会丢失。
+        </div>
+
+        <div className="flex flex-col gap-2.5 mb-4">
+          <button
+            onClick={() => onAction('SAVE_REMEDIATION_PLAN', data)}
+            className="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-850 border border-slate-700/50 hover:border-slate-600 text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center justify-start gap-2"
+          >
+            💾 保存方案待用（挂在该告警上，稍后可再发起）
+          </button>
+          <button
+            onClick={() => onAction('FORCE_UPGRADE_MANUAL', { alarmId: data?.alarmId })}
+            className="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-850 border border-slate-700/50 hover:border-slate-600 text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center justify-start gap-2"
+          >
+            👤 转人工处理（生成工单，带上根因与方案）
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2 mb-5">
+          <label className="text-[10px] font-bold text-slate-400 uppercase">或：忽略本次推荐（需填写原因，用于优化匹配）</label>
+          <textarea
+            value={ignoreReason}
+            onChange={(e) => setIgnoreReason(e.target.value)}
+            rows={2}
+            placeholder="例如：该实例计划内维护中，无需自愈"
+            className="bg-slate-950/60 border border-slate-800 focus:border-indigo-500/80 focus:outline-none text-slate-200 rounded-xl py-2 px-3 text-xs min-h-[60px] transition-all"
+          />
+        </div>
+
+        <div className="flex gap-2 justify-end border-t border-slate-800 pt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
+          >
+            返回
+          </button>
+          <button
+            onClick={handleConfirmIgnore}
+            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
+          >
+            确认忽略
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+const RemediationConfirmCard = ({ data, onAction }: any) => {
+  const [agreed, setAgreed] = useState(false);
+  const [confirmed, setConfirmed] = useState(data?.confirmed || false);
+  const [cancelled, setCancelled] = useState(data?.cancelled || false);
+  const { title = '', risk = '' } = data || {};
+
+  const handleConfirm = () => {
+    setConfirmed(true);
+    onAction('AUTHORIZE_HEAL_EXECUTION_FROM_BUBBLE', data);
+  };
+
+  const handleCancel = () => {
+    setCancelled(true);
+    onAction('CANCEL_HEAL_FLOW_FROM_BUBBLE', data);
+  };
+
+  if (cancelled) {
+    return (
+      <div className="w-full max-w-xl rounded-xl border border-white/[0.04] bg-slate-950/20 p-4 text-xs text-slate-500 italic mt-3 animate-in fade-in slide-in-from-top-1 duration-250">
+        ✕ 自愈授权操作已取消
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xl rounded-xl border border-white/[0.08] bg-[#131622] overflow-hidden shadow-xl mt-3 font-sans animate-in fade-in slide-in-from-top-1 duration-250">
+      <div className="p-4 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500">
+          <ShieldAlert size={18} />
+        </div>
+        <div>
+          <h4 className="text-xs font-bold text-slate-200">中风险自愈操作二次确认</h4>
+          <p className="text-[10px] text-amber-500 font-black uppercase tracking-widest">⚠️ RISK LEVEL: {risk}</p>
+        </div>
+      </div>
+
+      <div className="p-5 space-y-4">
+        <div className="space-y-1">
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">准备执行自愈操作:</div>
+          <div className="text-xs font-bold text-slate-200 leading-normal">{title}</div>
+        </div>
+
+        <div className="bg-black/30 border border-slate-800/80 rounded-xl p-3.5 space-y-2 text-xs text-slate-400 leading-relaxed">
+          <div className="font-bold text-slate-200 flex items-center gap-1.5 mb-1 text-amber-400 font-sans">
+            <Info size={12} /> 操作说明:
+          </div>
+          该操作涉及临时 binlog 清理和从实例复制线程重启状态，可能短暂产生从库读瞬间毛刺。系统将安全完成该操作的全套步骤并自动复核指标状态。
+        </div>
+
+        {!confirmed ? (
+          <>
+            <div className="flex gap-2.5 pt-1.5 border-t border-white/[0.08]">
+              <button
+                onClick={handleConfirm}
+                className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-900/10 active:scale-95 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5"
+              >
+                <Zap size={12} fill="currentColor" /> 授权并提交执行
+              </button>
+              <button
+                onClick={handleCancel}
+                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
+              >
+                取消
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="pt-2 border-t border-white/[0.08] text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+            ✓ 已授权执行自愈流程，自愈控制台正在下方初始化日志...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const RemediationReviewCard = ({ data, onAction }: any) => {
+  const { alarmId = '', status = 'success', rollbackStatus, audit, archived: initialArchived } = data || {};
+  const isRolledBack = rollbackStatus === 'success';
+  const [localArchived, setLocalArchived] = useState(false);
+  const archived = initialArchived || localArchived;
+
+  return (
+    <div className={`w-full max-w-xl rounded-xl border overflow-hidden shadow-xl mt-3 ${
+      isRolledBack
+        ? 'border-indigo-500/20 bg-[#161722]'
+        : status === 'success' 
+          ? 'border-emerald-500/30 bg-[#0e1716]' 
+          : 'border-rose-500/20 bg-[#1f1618]'
+    }`}>
+      <div className={`p-3.5 border-b flex items-center justify-between ${
+        isRolledBack
+          ? 'bg-indigo-500/10 border-indigo-500/20'
+          : status === 'success' 
+            ? 'bg-emerald-500/10 border-emerald-500/20' 
+            : 'bg-rose-500/10 border-rose-500/20'
+      }`}>
+        <div className="flex items-center gap-2">
+          {isRolledBack ? (
+            <>
+              <span className="text-xs">🔄</span>
+              <span className="text-xs font-black text-indigo-200 uppercase tracking-wider">自愈任务已撤销</span>
+            </>
+          ) : (
+            <>
+              <span className="text-xs">🛡️</span>
+              <span className="text-xs font-black text-emerald-200 uppercase tracking-wider">执行成功：原告警已自动关闭</span>
+            </>
+          )}
+        </div>
+        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+          isRolledBack
+            ? 'bg-indigo-500/20 text-indigo-400'
+            : status === 'success' 
+              ? 'bg-emerald-500/20 text-emerald-400' 
+              : 'bg-rose-500/20 text-rose-400'
+        }`}>
+          {isRolledBack ? '已回滚' : status === 'success' ? '已关闭' : '建议回滚'}
+        </span>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {isRolledBack ? (
+          <div className="text-xs text-slate-400 leading-relaxed font-sans">
+            已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。
+          </div>
+        ) : (
+          <>
+            <div className="text-xs text-slate-300 font-bold font-sans">
+              AI 专家自愈后指标核对看板 (Before vs After) ：
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                <span className="text-slate-400 font-medium">磁盘空间使用率</span>
+                <span className="font-bold text-slate-300 font-mono">95% ➔ <span className="text-emerald-400">41%</span></span>
+              </div>
+              <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Seconds_Behind_Master</span>
+                <span className="font-bold text-slate-300 font-mono">320s ➔ <span className="text-emerald-400">0.2s</span></span>
+              </div>
+              <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                <span className="text-slate-400 font-medium">主从复制异常告警</span>
+                <span className="font-bold text-emerald-400 font-bold flex items-center gap-1">已消除 ✓</span>
+              </div>
+            </div>
+
+            {audit && (
+              <div className="bg-[#0a0a0f] border border-slate-800/80 rounded-xl p-3 space-y-2">
+                <h5 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">📋 自愈审计与特征归档</h5>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
+                  <div className="flex justify-between"><span className="text-slate-500 font-bold">操作人</span><span className="text-slate-300 font-medium">{audit.operator}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 font-bold">审批人</span><span className="text-slate-300 font-medium">{audit.approver}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 font-bold">执行时间</span><span className="text-slate-300 font-medium">{audit.time}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 font-bold">所用脚本</span><span className="text-indigo-400 font-medium">{audit.script}</span></div>
+                  <div className="col-span-2 flex justify-between pt-1 border-t border-slate-800/40"><span className="text-slate-500 font-black">执行结果</span><span className="text-emerald-400 font-bold">{audit.result}</span></div>
+                </div>
+              </div>
+            )}
+
+            <div className="text-xs text-slate-400 leading-relaxed bg-emerald-500/5 p-2 rounded border border-emerald-500/10 font-sans">
+              💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
+            </div>
+          </>
+        )}
+
+        <div className="flex gap-2 border-t border-slate-800/40 pt-3">
+          {isRolledBack ? (
+            <button
+              onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', { alarmId })}
+              className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
+            >
+              升级为人工高优工单
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setLocalArchived(true);
+                  onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId });
+                }}
+                disabled={archived}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                  archived 
+                    ? 'bg-slate-800/60 text-slate-500 cursor-not-allowed border border-slate-850' 
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20'
+                }`}
+              >
+                {archived ? '已归档' : '归档'}
+              </button>
+              <button
+                onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId })}
+                className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
+              >
+                申请回滚撤销
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SelfHealRecommendationCard = ({ data, onAction }: any) => {
   const currentData = data;
-  const { alertTitle, rootCauseText, knownEntities, candidates = [], regenerated } = currentData;
+  const { alertTitle = '', rootCauseText = '', knownEntities = [], candidates = [], regenerated } = currentData || {};
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -2143,43 +2710,170 @@ const RuleShortcutsCard = ({ onAction }: { onAction: any }) => (
   </div>
 );
 
-const ActionExecutionCard = ({ data }: any) => {
-  const { status, progress, logs } = data;
+const ActionExecutionCard = ({ data, onAction }: any) => {
+  const { status, progress, logs, rollbackStatus, audit, archived: initialArchived } = data || {};
+  const isRolledBack = rollbackStatus === 'success';
+  const [localArchived, setLocalArchived] = useState(false);
+  const archived = initialArchived || localArchived;
 
   return (
-    <div className={`bg-[#0d0d12] border ${status === 'success' ? 'border-emerald-500/40' : 'border-blue-500/20'} rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full font-mono`}>
-      <div className={`p-4 ${status === 'success' ? 'bg-emerald-500/5' : 'bg-blue-500/5'} border-b border-white/[0.05] flex items-center justify-between`}>
+    <div className={`bg-[#0d0d12] border ${status === 'success' ? 'border-emerald-500/40' : status === 'aborted' ? 'border-rose-500/20' : 'border-blue-500/20'} rounded-2xl overflow-hidden shadow-2xl max-w-xl w-full font-mono mt-3`}>
+      <div className={`p-4 ${status === 'success' ? 'bg-emerald-500/5' : status === 'aborted' ? 'bg-rose-500/5' : 'bg-blue-500/5'} border-b border-white/[0.05] flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg ${status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'} flex items-center justify-center`}>
-            {status === 'success' ? <CheckCircle2 size={18} /> : <Terminal size={18} className="animate-pulse" />}
+          <div className={`w-8 h-8 rounded-lg ${status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : status === 'aborted' ? 'bg-rose-500/20 text-rose-400' : 'bg-blue-500/20 text-blue-400'} flex items-center justify-center`}>
+            {status === 'success' ? <CheckCircle2 size={18} /> : status === 'aborted' ? <ShieldAlert size={18} className="text-rose-400" /> : <Terminal size={18} className="animate-pulse" />}
           </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-200 tracking-tight">{status === 'success' ? '✓ TASK COMPLETED' : '⚡ EXECUTING...'}</h4>
+            <h4 className="text-xs font-black text-slate-200 tracking-tight">{status === 'success' ? '✓ TASK COMPLETED' : status === 'aborted' ? '■ TASK ABORTED' : '⚡ EXECUTING...'}</h4>
             <div className="flex items-center gap-2 mt-0.5">
               <div className="h-1 w-20 bg-slate-800 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className={`h-full ${status === 'success' ? 'bg-emerald-500' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className={`h-full ${status === 'success' ? 'bg-emerald-500' : status === 'aborted' ? 'bg-rose-500' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
               </div>
-              <span className="text-[9px] text-slate-500">{progress}%</span>
+              <span className="text-[10px] text-slate-500 font-bold">{progress}%</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-3">
-        <div className="bg-black/40 rounded-xl border border-white/[0.03] p-3 font-mono text-[9px] space-y-1.5 h-44 overflow-y-auto no-scrollbar scroll-smooth">
+        <div className="bg-black/40 rounded-xl border border-white/[0.03] p-3.5 font-mono text-[11px] space-y-1.5 h-44 overflow-y-auto no-scrollbar scroll-smooth">
           {logs?.map((log: string, i: number) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="flex gap-2.5">
               <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
-              <span className={log.includes('✓') || log.includes('SUCCESS') ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{log}</span>
+              <span className={log.includes('✓') || log.includes('SUCCESS') || log.includes('✅') ? 'text-emerald-400 font-bold' : log.includes('■') || log.includes('ER') ? 'text-rose-400 font-bold' : 'text-slate-300'}>{log}</span>
             </div>
           ))}
-          {status !== 'success' && <div className="animate-pulse text-blue-400">_</div>}
+          {status !== 'success' && status !== 'aborted' && <div className="animate-pulse text-blue-400">_</div>}
         </div>
-        {status === 'success' && (
+        
+        {status === 'success' && !audit && (
           <div className="pt-2">
             <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Check size={12} strokeWidth={4} /></div>
-              <span className="text-[10px] text-emerald-400 font-bold tracking-tight">修复执行成功，监控采集已恢复正常。</span>
+              <span className="text-xs text-emerald-400 font-bold tracking-tight">自愈操作已成功闭环，原告警已自动关闭。</span>
+            </div>
+          </div>
+        )}
+
+        {status === 'success' && audit && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="pt-2 border-t border-white/[0.05] mt-4 space-y-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 text-xs font-black text-slate-200 mt-2 mb-3">
+              <span>📈</span>
+              <span>阶段二：自愈效果复核与审计归档</span>
+            </div>
+
+            {isRolledBack ? (
+              <div className="text-xs text-slate-400 leading-relaxed font-sans bg-indigo-500/5 p-3 rounded-lg border border-indigo-500/10">
+                已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。
+              </div>
+            ) : (
+              <>
+                <div className="text-xs text-slate-300 font-bold font-sans">
+                  AI 专家自愈后指标核对看板 (Before vs After) ：
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 text-xs font-sans">
+                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                    <span className="text-slate-400 font-medium">磁盘空间使用率</span>
+                    <span className="font-bold text-slate-300 font-mono">95% ➔ <span className="text-emerald-400">41%</span></span>
+                  </div>
+                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                    <span className="text-slate-400 font-medium">Seconds_Behind_Master</span>
+                    <span className="font-bold text-slate-300 font-mono">320s ➔ <span className="text-emerald-400">0.2s</span></span>
+                  </div>
+                  <div className="bg-[#0b0c10] p-2.5 rounded-lg border border-slate-800/40 flex items-center justify-between">
+                    <span className="text-slate-400 font-medium">主从复制异常告警</span>
+                    <span className="font-bold text-emerald-400 flex items-center gap-1">已消除 ✓</span>
+                  </div>
+                </div>
+
+                <div className="bg-[#0a0a0f] border border-slate-800/80 rounded-xl p-3 space-y-2 font-sans">
+                  <h5 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">📋 自愈审计与特征归档</h5>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-slate-500 font-bold">操作人</span><span className="text-slate-300 font-medium">{audit.operator}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500 font-bold">审批人</span><span className="text-slate-300 font-medium">{audit.approver}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500 font-bold">执行时间</span><span className="text-slate-300 font-medium">{audit.time}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500 font-bold">所用脚本</span><span className="text-indigo-400 font-medium">{audit.script}</span></div>
+                    <div className="col-span-2 flex justify-between pt-1 border-t border-slate-800/40"><span className="text-slate-500 font-black">执行结果</span><span className="text-emerald-400 font-bold">{audit.result}</span></div>
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-400 leading-relaxed bg-emerald-500/5 p-2.5 rounded border border-emerald-500/10 font-sans">
+                  💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-2 border-t border-slate-800/40 pt-3">
+              {isRolledBack ? (
+                <button
+                  onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', { alarmId: data?.alarmId })}
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all font-sans"
+                >
+                  升级为人工高优工单
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setLocalArchived(true);
+                      onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId: data?.alarmId });
+                    }}
+                    disabled={archived}
+                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 font-sans ${
+                      archived 
+                        ? 'bg-slate-800/60 text-slate-500 cursor-not-allowed border border-slate-850' 
+                        : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20'
+                    }`}
+                  >
+                    {archived ? '已归档' : '归档'}
+                  </button>
+                  <button
+                    onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId: data?.alarmId })}
+                    className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all font-sans"
+                  >
+                    申请回滚撤销
+                  </button>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {status === 'running' && (
+          <div className="pt-1 flex gap-2">
+            <button
+              onClick={() => onAction?.('ABORT_HEAL_EXECUTION', data)}
+              className="w-full py-2.5 bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1 shadow-md shadow-rose-950/10"
+            >
+              ■ 中止自愈执行
+            </button>
+          </div>
+        )}
+
+        {status === 'aborted' && (
+          <div className="pt-1 space-y-2.5">
+            <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg flex items-center gap-2">
+              <span className="text-xs text-rose-400 font-bold tracking-tight">⚠ 运行已被用户中止，部分变更挂起。</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', data)}
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-md shadow-indigo-950/20"
+              >
+                ↺ 回滚已执行部分
+              </button>
+              <button
+                onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', data)}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
+              >
+                转人工
+              </button>
             </div>
           </div>
         )}
@@ -2648,13 +3342,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
               <Brain size={18} />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI巡检分析</h3>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Phase: {currentStep}/4 · 深度巡检诊断</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-500 font-bold px-2 py-0.5 rounded bg-slate-800/50 border border-slate-700">0412 规格</span>
+            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-tighter">AI巡检分析</h3>
           </div>
         </div>
 
@@ -2678,34 +3366,36 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">详细分析任务明细</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs">
-                        <div className="col-span-2 flex flex-col gap-1">
+                      <div className="space-y-3 text-xs">
+                        <div className="flex flex-col gap-1">
                           <span className="text-[11px] text-slate-500 font-bold uppercase">任务名称</span>
                           <span className="font-mono text-slate-300 font-bold text-[13px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
                         </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-[11px] text-slate-500 font-bold uppercase">巡检对象</span>
-                          <span className="font-mono text-slate-300 font-bold text-sm">{data.stage1.taskDetail.target}</span>
+                          <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.target}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 bg-slate-950/15 p-2.5 rounded-md border border-slate-800/30">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
+                            <span className="text-emerald-400 font-bold text-xs">
+                              {data.stage1.taskDetail.status}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
+                            <span className="text-rose-400 font-bold text-xs">
+                              {data.stage1.taskDetail.result}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
+                            <span className="text-amber-400 font-bold text-xs">
+                              {data.stage1.taskDetail.severity}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">状态</span>
-                          <span className="text-emerald-400 font-bold text-sm flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {data.stage1.taskDetail.status}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">结果</span>
-                          <span className="text-rose-400 font-bold text-sm flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> {data.stage1.taskDetail.result}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">严重级别</span>
-                          <span className="text-amber-400 font-bold text-sm flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {data.stage1.taskDetail.severity}
-                          </span>
-                        </div>
-                        <div className="col-span-2 flex flex-col gap-1">
                           <span className="text-[11px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
                           <span className="font-mono text-slate-300 font-medium text-[13px] bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
                         </div>
@@ -3013,7 +3703,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
                   >
                     <Zap size={14} fill="currentColor" />
-                    生成推荐修复方案
+                    {data?.id === 'A001' ? '生成修复方案' : '一键执行自愈 ⚡'}
                   </button>
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
@@ -3941,8 +4631,41 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         
                         <div className="relative z-10 flex flex-col gap-6">
                           {/* Top Info Bar */}
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                          <div className="flex items-center gap-4">                            <div className="space-y-3.5 text-xs">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] text-slate-500 font-bold uppercase">任务名称</span>
+                                <span className="font-mono text-slate-300 font-bold text-[13px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] text-slate-500 font-bold uppercase">巡检对象</span>
+                                <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.target}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 bg-slate-950/15 p-2.5 rounded-md border border-slate-800/30">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
+                                  <span className="text-emerald-400 font-bold text-xs">
+                                    {data.stage1.taskDetail.status}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
+                                  <span className="text-rose-400 font-bold text-xs">
+                                    {data.stage1.taskDetail.result}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
+                                  <span className="text-amber-400 font-bold text-xs">
+                                    {data.stage1.taskDetail.severity}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
+                                <span className="font-mono text-slate-300 font-medium text-[13px] bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
+                              </div>
+                            </div>
+<div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold shadow-[0_0_15px_rgba(249,115,22,0.1)]">
                               <AlertTriangle size={14} /> 风险等级：中高风险
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold shadow-[0_0_15px_rgba(99,102,241,0.1)]">
@@ -5270,6 +5993,8 @@ const ChatBubble: React.FC<{
           {message.contentType === 'log_analysis_diagnosis' && <LogAnalysisDiagnosisCard data={message.data} />}
           {message.contentType === 'log_analysis_action' && <LogAnalysisActionCard data={message.data} onAction={onAction} />}
           {message.contentType === 'self_heal_recommendation' && <SelfHealRecommendationCard data={message.data} onAction={onAction} />}
+          {message.contentType === 'remediation_offer' && <RemediationOfferCard data={message.data} onAction={onAction} />}
+          {message.contentType === 'remediation_confirm' && <RemediationConfirmCard data={message.data} onAction={onAction} />}
 
           <div className={`flex items-center gap-2 text-[10px] text-slate-500 ${isAI ? 'justify-start' : 'justify-end'}`}>
             <span>{message.timestamp}</span>
@@ -5448,6 +6173,8 @@ const TypewriterText: React.FC<{ text: string, speed?: number, onCitationClick?:
   const [displayedLength, setDisplayedLength] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
 
+  const safeText = text || '';
+
   useEffect(() => {
     let i = 0;
     setDisplayedLength(0);
@@ -5455,13 +6182,13 @@ const TypewriterText: React.FC<{ text: string, speed?: number, onCitationClick?:
     const timer = setInterval(() => {
       i++;
       setDisplayedLength(i);
-      if (i >= text.length) {
+      if (i >= safeText.length) {
         clearInterval(timer);
         setIsTyping(false);
       }
     }, speed);
     return () => clearInterval(timer);
-  }, [text, speed]);
+  }, [safeText, speed]);
 
   const renderContent = (visibleText: string) => {
     const parts = visibleText.split(/(\[\d+\])/g);
@@ -5489,7 +6216,7 @@ const TypewriterText: React.FC<{ text: string, speed?: number, onCitationClick?:
   return (
     <div className="relative">
       <div className="text-base leading-relaxed whitespace-pre-wrap font-medium text-slate-200">
-        {renderContent(text.slice(0, displayedLength))}
+        {renderContent(safeText.slice(0, displayedLength))}
         {isTyping && <span className="inline-block w-1 h-4 ml-1 bg-indigo-500 animate-pulse align-middle" />}
       </div>
     </div>
@@ -7841,20 +8568,37 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
               onClick={() => onSelect?.(alarm)}
               className={`group relative p-4 rounded-xl border transition-all duration-300 cursor-pointer ${selectedAlarmId === alarm.id
                   ? 'bg-purple-500/10 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)] ring-1 ring-purple-500/30'
-                  : alarm.level === 'P0'
-                    ? 'bg-rose-500/[0.03] border-rose-500/20 hover:border-rose-500/40 shadow-[0_0_20px_rgba(244,63,94,0.05)]'
-                    : 'bg-slate-800/20 border-slate-800/60 hover:border-slate-700'
+                  : alarm.status === 'resolved'
+                    ? 'bg-emerald-500/[0.03] border-emerald-500/20 hover:border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.05)]'
+                    : alarm.level === 'P0'
+                      ? 'bg-rose-500/[0.03] border-rose-500/20 hover:border-rose-500/40 shadow-[0_0_20px_rgba(244,63,94,0.05)]'
+                      : 'bg-slate-800/20 border-slate-800/60 hover:border-slate-700'
                 }`}
             >
               <div className="flex justify-between items-start mb-2.5">
                 <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${alarm.level === 'P0' ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]' : 'bg-orange-500'}`} />
-                  <span className={`text-[10px] font-bold ${alarm.level === 'P0' ? 'text-rose-500' : 'text-orange-500'}`}>
-                    {alarm.level === 'P0' ? '严重' : alarm.level === 'P1' ? '重要' : alarm.level === 'P2' ? '次要' : alarm.level === 'P3' ? '警告' : '信息'}
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    alarm.status === 'resolved'
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+                      : alarm.level === 'P0'
+                        ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                        : 'bg-orange-500'
+                  }`} />
+                  <span className={`text-[10px] font-bold ${
+                    alarm.status === 'resolved'
+                      ? 'text-emerald-500'
+                      : alarm.level === 'P0'
+                        ? 'text-rose-500'
+                        : 'text-orange-500'
+                  }`}>
+                    {alarm.status === 'resolved' ? '已恢复' : alarm.level === 'P0' ? '严重' : alarm.level === 'P1' ? '重要' : alarm.level === 'P2' ? '次要' : alarm.level === 'P3' ? '警告' : '信息'}
                   </span>
                   <span className="text-[9px] text-slate-500 px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700/50 uppercase tracking-tighter font-bold">{alarm.type}</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  {alarm.status === 'resolved' && (
+                    <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold shadow-sm whitespace-nowrap animate-in fade-in">✓ 自愈成功</span>
+                  )}
 
                   {(alarm.status === 'converged' || (alarm.convergedCount && alarm.convergedCount > 0)) && (
                     <span className="text-[11px] px-2 py-0.5 bg-slate-800/80 text-slate-400 border border-slate-700/50 rounded font-bold shadow-sm whitespace-nowrap">📦 收敛 {alarm.convergedCount > 99 ? '99+' : (alarm.convergedCount || 1)} 条</span>
@@ -11660,10 +12404,29 @@ export default function App() {
 
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
-      setGlobalError(`JS Error: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}\nStack: ${event.error?.stack}`);
+      const errorMsg = `JS Error: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}\nStack: ${event.error?.stack}`;
+      setGlobalError(errorMsg);
+      fetch('/api/error-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: errorMsg })
+      }).catch(() => {});
+    };
+    const handlePromiseRejection = (event: PromiseRejectionEvent) => {
+      const errorMsg = `Unhandled Promise Rejection: ${event.reason?.message || event.reason}\nStack: ${event.reason?.stack}`;
+      setGlobalError(errorMsg);
+      fetch('/api/error-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: errorMsg })
+      }).catch(() => {});
     };
     window.addEventListener('error', handleGlobalError);
-    return () => window.removeEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handlePromiseRejection);
+    };
   }, []);
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('home');
@@ -11687,6 +12450,8 @@ export default function App() {
   const [selectedPlanForDetail, setSelectedPlanForDetail] = useState<any>(null);
   const [tempMysqlPlan, setTempMysqlPlan] = useState<any>({ executionType: 'scheduled', target: '', cronExpression: '', cronDescription: '' });
   const [isMysqlCreateWizard, setIsMysqlCreateWizard] = useState(false);
+  const [activeRemediation, setActiveRemediation] = useState<any>(null);
+  const [showConfirmRemediation, setShowConfirmRemediation] = useState<any>(null);
 
   const [inspectionTasks, setInspectionTasks] = useState(() => {
     const saved = localStorage.getItem('sre_inspection_tasks');
@@ -11834,6 +12599,13 @@ export default function App() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [activeThread, setActiveThread] = useState<{ schemeId: string; schemeTitle: string } | null>(null);
+  const logIntervalRef = useRef<any>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showNotExecuteDialog, setShowNotExecuteDialog] = useState<any>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const messages = activeSessionId 
     ? (sessions.find(s => s.id === activeSessionId)?.messages || [])
@@ -13505,6 +14277,27 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         return;
       }
 
+      if (data?.id) {
+        // 轨 2：新自愈执行闭环状态机入口 (非 A001 的具体告警，如 A004)
+        addMessage({
+          id: Date.now().toString(),
+          type: 'ai',
+          contentType: 'remediation_offer',
+          content: '基于诊断结论，我已为您生成了自愈修复方案。此方案专为解决数据库从实例复制延迟而设计。请您点击下方按钮以查看或执行自愈操作。',
+          data: {
+            alarmId: data.id,
+            alertTitle: data.title || '数据库从实例复制延迟严重',
+            title: '清理临时归档日志并重启 mysql-user-slave-01 复制线程',
+            risk: '中',
+            confidence: '94%',
+            targetCount: 2,
+            remediation: getRemediationMockData(data.id)
+          },
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        return;
+      }
+
       addMessage({
         id: Date.now().toString(),
         type: 'ai',
@@ -13521,54 +14314,336 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       return;
     }
 
+    if (action === 'TRIGGER_HEAL_FLOW') {
+      addMessage({
+        id: `confirm-${Date.now()}`,
+        type: 'ai',
+        contentType: 'remediation_confirm',
+        content: '为了保障自愈操作的安全与合规，请核对并确认下方自愈授权风险。',
+        data: {
+          ...data,
+          confirmed: false,
+          cancelled: false
+        },
+        timestamp: new Date().toLocaleTimeString()
+      });
+      return;
+    }
+
+    if (action === 'AUTHORIZE_HEAL_EXECUTION_FROM_BUBBLE') {
+      // 锁定当前气泡消息的状态
+      const confirmMsg = [...messages].reverse().find(m => m.contentType === 'remediation_confirm' && m.data?.alarmId === data?.alarmId);
+      if (confirmMsg) {
+        updateMessage(confirmMsg.id, {
+          data: {
+            ...confirmMsg.data,
+            confirmed: true
+          }
+        });
+      }
+      // 真正下发命令行实时控制台日志
+      handleAction('AUTHORIZE_HEAL_EXECUTION', data);
+      return;
+    }
+
+    if (action === 'CANCEL_HEAL_FLOW_FROM_BUBBLE') {
+      const confirmMsg = [...messages].reverse().find(m => m.contentType === 'remediation_confirm' && m.data?.alarmId === data?.alarmId);
+      if (confirmMsg) {
+        updateMessage(confirmMsg.id, {
+          data: {
+            ...confirmMsg.data,
+            cancelled: true
+          }
+        });
+      }
+      showToast('自愈授权操作已取消');
+      return;
+    }
+
+    if (action === 'VIEW_HEAL_DETAILS') {
+      setActiveRemediation(data);
+      return;
+    }
+
+    if (action === 'CLOSE_REMEDIATION_TASK') {
+      const alarmId = data?.alarmId || 'A004';
+      const alarm = MOCK_ALARMS.find(a => a.id === alarmId);
+      if (alarm) {
+        alarm.status = 'resolved';
+      }
+      setAnomalyResolved(prev => !prev);
+      addMessage({
+        id: `close-${Date.now()}`,
+        type: 'ai',
+        contentType: 'text',
+        content: `✓ 告警 ${alarmId}（${alarm ? alarm.title : ''}）已标记自愈闭环。自愈策略已被成功归档至故障特征库，相关实例状态同步变更为已恢复。`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      return;
+    }
+
+    if (action === 'NOT_EXECUTE_HEAL_FLOW') {
+      setShowNotExecuteDialog(data);
+      return;
+    }
+
+    if (action === 'SAVE_REMEDIATION_PLAN') {
+      showToast('方案已保存，可稍后再发起');
+      return;
+    }
+
+    if (action === 'CLOSE_REMEDIATION_TASK_WITH_IGNORE') {
+      const alarmId = data?.alarmId || 'A004';
+      addMessage({
+        id: `ignore-${Date.now()}`,
+        type: 'ai',
+        contentType: 'text',
+        content: `已忽略本次自愈推荐。反馈原因：「${data?.reason || ''}」已成功提交用于优化模型算法。`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      showToast('已忽略本次推荐');
+      return;
+    }
+
+    if (action === 'ARCHIVE_KNOWLEDGE_BASE') {
+      const alarmId = data?.alarmId || 'A004';
+      const reviewMsg = [...messages].reverse().find(m => (m.contentType === 'remediation_review' || m.contentType === 'action_execution') && m.data?.alarmId === alarmId);
+      if (reviewMsg) {
+        updateMessage(reviewMsg.id, {
+          data: {
+            ...reviewMsg.data,
+            archived: true
+          }
+        });
+      }
+      showToast('本次自愈故障排查过程及脚本已成功归档。');
+      return;
+    }
+
+    if (action === 'ABORT_HEAL_EXECUTION') {
+      if (logIntervalRef.current) {
+        clearInterval(logIntervalRef.current);
+        logIntervalRef.current = null;
+      }
+      const targetMsg = [...messages].reverse().find(m => m.contentType === 'action_execution');
+      if (targetMsg) {
+        updateMessage(targetMsg.id, {
+          data: {
+            ...targetMsg.data,
+            status: 'aborted',
+            logs: [...(targetMsg.data?.logs || []), '■ [ER] 用户主动中止执行，自愈流水线挂起。']
+          }
+        });
+      }
+      showToast('自愈执行已中止');
+      return;
+    }
+
+    if (action === 'TRIGGER_REMEDIATION_ROLLBACK') {
+      const alarmId = data?.alarmId || 'A004';
+      const reviewMsg = [...messages].reverse().find(m => (m.contentType === 'remediation_review' || m.contentType === 'action_execution') && m.data?.alarmId === alarmId);
+      if (reviewMsg) {
+        updateMessage(reviewMsg.id, {
+          data: {
+            ...reviewMsg.data,
+            rollbackStatus: 'success'
+          }
+        });
+      }
+
+      const alarm = MOCK_ALARMS.find(a => a.id === alarmId);
+      if (alarm) {
+        alarm.status = 'unresolved';
+      }
+      setAnomalyResolved(prev => !prev);
+      
+      const rollbackExecId = Date.now().toString();
+      addMessage({
+        id: rollbackExecId,
+        type: 'ai',
+        contentType: 'action_execution',
+        content: '回滚流程已启动，正在执行反向撤销操作...',
+        data: {
+          status: 'running',
+          progress: 0,
+          logs: [
+            '[INIT] 启动回滚任务 HEAL-ROLLBACK-A004',
+            '[PRE] 检测 mysql-user-slave-01 当前指针状态...',
+            '[EXEC] 执行从实例复制线程停止 (STOP SLAVE)...',
+            '[EXEC] 重置 MySQL 从实例同步指针到变更前状态...',
+            '[EXEC] 启动从实例复制线程，恢复初始延迟基线...',
+            '[FINAL] 回滚完成，已完全恢复至自愈前原始状态。'
+          ]
+        },
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      
+      setTimeout(() => {
+        updateMessage(rollbackExecId, {
+          data: {
+            status: 'success',
+            progress: 100,
+            logs: [
+              '[INIT] 启动回滚任务 HEAL-ROLLBACK-A004',
+              '[PRE] 检测 mysql-user-slave-01 当前指针状态...',
+              '[EXEC] 执行从实例复制线程停止 (STOP SLAVE)...',
+              '[EXEC] 重置 MySQL 从实例同步指针到变更前状态...',
+              '[EXEC] 启动从实例复制线程，恢复初始延迟基线...',
+              '[FINAL] 回滚完成，已完全恢复至自愈前原始状态。'
+            ]
+          }
+        });
+      }, 2000);
+      return;
+    }
+
+    if (action === 'FORCE_UPGRADE_MANUAL') {
+      showToast('已成功升级为人工高优工单，正在派发中...');
+      return;
+    }
+
     if (action === 'AUTHORIZE_HEAL_EXECUTION') {
+      const alarmId = data?.alarmId || 'A004';
+      if (alarmId === 'A001') {
+        return;
+      }
+      
       const executionId = Date.now().toString();
+      const isOtelFallback = !data?.alarmId && data?.title?.includes('OTel');
+      
+      if (isOtelFallback) {
+        const initialData = {
+          status: 'running',
+          progress: 0,
+          logs: ['[INIT] 执行引擎就绪，分配任务 ID: HEAL-99201', '[AUTH] 权限校验成功: SRE-Admin-Role (已确认)']
+        };
+
+        addMessage({
+          id: executionId,
+          type: 'ai',
+          contentType: 'action_execution',
+          content: '修复执行流水线已启动，正在实时同步执行日志...',
+          data: initialData,
+          timestamp: new Date().toLocaleTimeString()
+        });
+
+        const fullLogs = [
+          '[PRE] 目标节点连通性测试 (Connectivity Check)...',
+          '[PRE] 节点 [vserver-prod-01] 在线，磁盘/内存水位正常 ✅',
+          '[EXEC] 下发配置重置指令 (Apply Config Patch)...',
+          '[EXEC] 正在停止旧采集进程 [PID: 2351]...',
+          '[EXEC] 启动新进程并加载 Patch 配置 (Hot Reload)...',
+          '[POST] 正在检测数据回传链路 (Sink Verification)...',
+          '[POST] Prometheus 指标抓取已恢复 (HTTP 200 OK) ✅',
+          '[FINAL] 监控采集链路已完整恢复，诊断任务完成。'
+        ];
+
+        let currentLogIndex = 0;
+        let currentExecData = { ...initialData };
+
+        logIntervalRef.current = setInterval(() => {
+          if (currentLogIndex < fullLogs.length) {
+            const logEntry = fullLogs[currentLogIndex];
+            currentExecData = {
+              ...currentExecData,
+              progress: Math.min(10 + (currentLogIndex * 12), 95),
+              logs: [...currentExecData.logs, logEntry]
+            };
+            updateMessage(executionId, { data: currentExecData });
+            currentLogIndex++;
+          } else {
+            if (logIntervalRef.current) {
+              clearInterval(logIntervalRef.current);
+              logIntervalRef.current = null;
+            }
+            updateMessage(executionId, { 
+              data: { ...currentExecData, status: 'success', progress: 100 } 
+            });
+          }
+        }, 1000);
+        return;
+      }
+      
+      // 轨 2：新自愈执行（非 A001 告警，主要是 A004）
       const initialData = {
         status: 'running',
         progress: 0,
-        logs: ['[INIT] 执行引擎就绪，分配任务 ID: HEAL-99201', '[AUTH] 权限校验成功: SRE-Admin-Role (已确认)']
+        logs: [
+          '[INIT] 自愈任务启动，任务 ID: HEAL-EXEC-A004',
+          '[AUTH] 权限核对成功: SRE-Admin-Role 授权通过',
+          '[PRE] 目标实例 mysql-user-slave-01 SSH 连通性测试中...'
+        ]
       };
 
       addMessage({
         id: executionId,
         type: 'ai',
         contentType: 'action_execution',
-        content: '修复执行流水线已启动，正在实时同步执行日志...',
+        content: "🔄 阶段一：自动化自愈执行\n已启动自愈执行流水线，正在对目标实例进行物理修复：",
         data: initialData,
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
 
-      // 实时日志流模拟
       const fullLogs = [
-        '[PRE] 目标节点连通性测试 (Connectivity Check)...',
-        '[PRE] 节点 [vserver-prod-01] 在线，磁盘/内存水位正常 ✅',
-        '[EXEC] 下发配置重置指令 (Apply Config Patch)...',
-        '[EXEC] 正在停止旧采集进程 [PID: 2351]...',
-        '[EXEC] 启动新进程并加载 Patch 配置 (Hot Reload)...',
-        '[POST] 正在检测数据回传链路 (Sink Verification)...',
-        '[POST] Prometheus 指标抓取已恢复 (HTTP 200 OK) ✅',
-        '[FINAL] 监控采集链路已完整恢复，诊断任务完成。'
+        '[PRE] 节点 mysql-user-slave-01 (10.0.3.15) 连通性正常，只读属性确认 [READ-ONLY=ON] ✅',
+        '[EXEC] 开始安全截断临时归档 binlog 文件 (rm -rf /var/log/mysql/mysql-bin.000*)...',
+        '[EXEC] 正在截断 binlog 文件...',
+        '[EXEC] 临时磁盘空间已释放。当前磁盘使用率: 41% ✅',
+        '[EXEC] 执行从库复制指针与主库重新对齐 (CHANGE MASTER TO)...',
+        '[EXEC] 启动从实例复制线程 (START SLAVE)...',
+        '[POST] 正在检测主从同步状态 (Seconds_Behind_Master)...',
+        '[POST] 复制线程运行中 (Slave_IO_Running: Yes, Slave_SQL_Running: Yes) ✅',
+        '[POST] 主从延迟 Seconds_Behind_Master: 0.2s (已恢复正常基线)',
+        '[FINAL] 自愈处理方案执行完毕，正在调用 AI 专家进行自愈后指标核对与自愈质量评估...'
       ];
 
       let currentLogIndex = 0;
       let currentExecData = { ...initialData };
 
-      const logInterval = setInterval(() => {
+      logIntervalRef.current = setInterval(() => {
         if (currentLogIndex < fullLogs.length) {
           const logEntry = fullLogs[currentLogIndex];
           currentExecData = {
             ...currentExecData,
-            progress: Math.min(10 + (currentLogIndex * 12), 95),
+            progress: Math.min(10 + (currentLogIndex * 9), 95),
             logs: [...currentExecData.logs, logEntry]
           };
-          
           updateMessage(executionId, { data: currentExecData });
           currentLogIndex++;
         } else {
-          clearInterval(logInterval);
+          if (logIntervalRef.current) {
+            clearInterval(logIntervalRef.current);
+            logIntervalRef.current = null;
+          }
+
+          const auditData = {
+            alarmId: alarmId,
+            status: 'success',
+            audit: {
+              operator: "超管（超）",
+              approver: "—",
+              time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              script: "SCR-MYSQL-CLEANUP-v2.1 (预置)",
+              result: "执行成功（已归档至故障特征库）"
+            }
+          };
+
           updateMessage(executionId, { 
-            data: { ...currentExecData, status: 'success', progress: 100 } 
+            content: "🔄 阶段一：自动化自愈执行\n已启动自愈执行流水线，正在对目标实例进行物理修复：\n\n📈 阶段二：自愈效果复核与审计归档\n系统已安全关闭原告警，正在对自愈后各项性能指标进行复核核算：",
+            data: { 
+              ...currentExecData, 
+              status: 'success', 
+              progress: 100,
+              ...auditData
+            } 
           });
+
+          // 联动自动关闭告警并变绿
+          const alarm = MOCK_ALARMS.find(a => a.id === alarmId);
+          if (alarm) {
+            alarm.status = 'resolved';
+          }
+          setAnomalyResolved(prev => !prev);
         }
       }, 1000);
       return;
@@ -15948,6 +17023,36 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           activeSubId={activeGuideSubId}
           setActiveSubId={setActiveGuideSubId}
         />
+
+        <AnimatePresence>
+          {activeRemediation && (
+            <SelfHealDetailDrawer
+              data={activeRemediation}
+              onClose={() => setActiveRemediation(null)}
+              onConfirm={(data: any) => {
+                setActiveRemediation(null);
+                setShowConfirmRemediation(data);
+              }}
+            />
+          )}
+
+          {showNotExecuteDialog && (
+            <SelfHealNotExecuteDialog
+              data={showNotExecuteDialog}
+              onClose={() => setShowNotExecuteDialog(null)}
+              onAction={(act: string, payload: any) => {
+                setShowNotExecuteDialog(null);
+                handleAction(act, payload);
+              }}
+            />
+          )}
+        </AnimatePresence>
+        {toastMessage && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[250] px-4 py-2.5 bg-slate-900/90 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-xs font-black rounded-xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+            <span className="text-emerald-500 font-bold">✓</span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
       </div>
     </div>
   );

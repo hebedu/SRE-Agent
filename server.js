@@ -13,6 +13,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(compression());
+app.use(express.json());
+
+app.post('/api/error-log', (req, res) => {
+  console.error("\n❌ [CLIENT ERROR] Caught runtime error from browser:");
+  console.error(req.body.error);
+  console.error("==================================================\n");
+  res.sendStatus(200);
+});
 const PORT = 3000;
 const HOST = '0.0.0.0'; // Listen on all interfaces for LAN access
 
