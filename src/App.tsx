@@ -2813,31 +2813,32 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mt-4 font-sans relative pl-8 text-slate-300">
-      {/* 左侧垂直实线 */}
-      <div className="absolute left-[14px] top-2 bottom-2 w-0.5 bg-indigo-500/20" />
-
+    <div className="w-full max-w-2xl mt-4 font-sans text-slate-300 space-y-6 p-2">
       {/* ================= 环节一：自动化自愈执行 ================= */}
-      <div className="relative mb-8">
-        {/* 步骤 1 圆圈标号 (中心点在 left-14px 与时间线完美重合) */}
-        <div className={`absolute left-0 top-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-lg ${
-          status === 'success' 
-            ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-            : status === 'aborted'
-              ? 'bg-rose-500 text-white shadow-rose-500/20'
-              : 'bg-indigo-600 text-white animate-pulse shadow-indigo-600/20'
-        }`}>
-          {status === 'success' ? '✓' : status === 'aborted' ? '✕' : '1'}
+      <div className="flex gap-4">
+        {/* 左侧列：时间轴圆圈与竖线 */}
+        <div className="flex flex-col items-center gap-2">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all shadow-lg shrink-0 ${
+            status === 'success' 
+              ? 'bg-emerald-500 text-white shadow-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.4)]' 
+              : status === 'aborted'
+                ? 'bg-rose-500 text-white shadow-rose-500/20'
+                : 'bg-indigo-600 text-white animate-pulse shadow-indigo-600/20 shadow-[0_0_10px_rgba(79,70,229,0.4)]'
+          }`}>
+            {status === 'success' ? '✓' : status === 'aborted' ? '✕' : '1'}
+          </div>
+          <div className={`w-px flex-1 ${isComplete ? (status === 'success' ? 'bg-emerald-500/40' : 'bg-indigo-600/40') : 'bg-slate-800/30'}`} />
         </div>
 
-        <div className="pl-9">
-          <div className="text-xs font-black text-slate-300 mb-3 tracking-wide flex items-center gap-2">
-            <span>环节一：自动化自愈执行</span>
+        {/* 右侧列：环节一内容 */}
+        <div className="flex-1 pb-2">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span>环节一：{isRollbackExecution ? '自动化回滚执行' : '自动化自愈执行'}</span>
             {status === 'running' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />}
           </div>
 
           {/* 环节一卡片内容区域 */}
-          <div className="bg-[#0b0c16] border border-white/[0.05] rounded-xl p-4 space-y-3.5">
+          <div className="bg-slate-900/50 border border-white/[0.03] rounded-xl p-4 space-y-3.5 shadow-xl">
             {/* 实时动态 Steps 步骤条 */}
             <div className="flex items-center justify-between text-[11px] bg-slate-950/60 p-3 rounded-lg border border-slate-900/60 shadow-inner">
               {/* 步骤 1 */}
@@ -2932,15 +2933,25 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="relative mb-2"
+          className="flex gap-4"
         >
-          {/* 步骤 2 圆圈标号 */}
-          <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-indigo-600/20">
-            2
+          {/* 左侧列：时间轴圆圈与竖线 */}
+          <div className="flex flex-col items-center gap-2">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all shadow-lg shrink-0 ${
+              isRolledBack
+                ? 'bg-amber-500 text-white shadow-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                : isComplete && !isRollbackExecution
+                  ? 'bg-indigo-600 text-white shadow-indigo-600/20 shadow-[0_0_10px_rgba(79,70,229,0.4)]'
+                  : 'bg-emerald-500 text-white shadow-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.4)]'
+            }`}>
+              2
+            </div>
+            <div className="w-px flex-1 bg-slate-800/20" />
           </div>
 
-          <div className="pl-9">
-            <div className="text-xs font-black text-slate-300 mb-3 tracking-wide">
+          {/* 右侧列：环节二内容 */}
+          <div className="flex-1 pb-2">
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
               {isRollbackExecution ? '环节二：回滚结果复核与线下排查' : '环节二：自愈效果复核与审计归档'}
             </div>
 
