@@ -2741,12 +2741,12 @@ const StepCircle = ({ status, num }: { status: 'pending' | 'running' | 'success'
 
 const StepLine = ({ status }: { status: 'pending' | 'running' | 'success' | 'aborted' }) => {
   if (status === 'success') {
-    return <div className="flex-1 h-0.5 mx-2 bg-emerald-500 transition-all duration-500" />;
+    return <div className="flex-1 h-[3px] min-w-[16px] mx-1 bg-emerald-500 transition-all duration-500 rounded-full" />;
   }
   if (status === 'running') {
-    return <div className="flex-1 h-0.5 mx-2 bg-gradient-to-r from-emerald-500 to-blue-500 animate-pulse transition-all duration-500" />;
+    return <div className="flex-1 h-[3px] min-w-[16px] mx-1 bg-gradient-to-r from-emerald-500 to-blue-500 animate-pulse transition-all duration-500 rounded-full" />;
   }
-  return <div className="flex-1 h-0.5 mx-2 bg-slate-800 transition-all duration-500" />;
+  return <div className="flex-1 h-[3px] min-w-[16px] mx-1 bg-slate-800 transition-all duration-500 rounded-full" />;
 };
 
 const getStepTextClass = (status: 'pending' | 'running' | 'success' | 'aborted') => {
@@ -2813,7 +2813,7 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   };
 
   return (
-    <div className="w-full max-w-xl mt-4 font-sans relative pl-8 text-slate-300">
+    <div className="w-full max-w-2xl mt-4 font-sans relative pl-8 text-slate-300">
       {/* 左侧垂直实线 */}
       <div className="absolute left-[14px] top-2 bottom-2 w-0.5 bg-indigo-500/20" />
 
