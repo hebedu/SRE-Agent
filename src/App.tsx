@@ -2803,7 +2803,11 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
     }
     if (stepIndex === 3) {
       if (progress < 80) return 'pending';
-      return 'running';
+      if (status !== 'success') return 'running';
+      return 'success';
+    }
+    if (stepIndex === 4) {
+      return 'pending';
     }
     return 'pending';
   };
@@ -2865,6 +2869,21 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                   {isRollbackExecution ? '恢复故障指标' : '重启复制线程'}
                 </span>
               </div>
+
+              {/* 连接线 3 -> 4 */}
+              <StepLine status={getStepStatus(4)} />
+
+              {/* 步骤 4 */}
+              <div className="flex items-center gap-2">
+                <StepCircle status={getStepStatus(4)} num={4} />
+                <span className={getStepTextClass(getStepStatus(4))}>
+                  {status === 'success' 
+                    ? (isRollbackExecution ? '回滚脚本成功' : '自愈修复成功') 
+                    : status === 'aborted'
+                      ? (isRollbackExecution ? '回退已中止' : '自愈已中止')
+                      : (isRollbackExecution ? '等待回滚成功' : '等待自愈成功')}
+                </span>
+              </div>
             </div>
 
             {/* 阶段一说明文字融合 */}
@@ -2901,14 +2920,6 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                 >
                   ■ 中止自愈执行
                 </button>
-              )}
-              {status === 'success' && (
-                <span className="text-[10px] text-emerald-400 font-black flex items-center gap-1">
-                  ✓ {isRollbackExecution ? '回滚脚本执行成功' : '自愈修复执行成功'}
-                </span>
-              )}
-              {status === 'aborted' && (
-                <span className="text-[10px] text-rose-400 font-bold">✕ 自愈已中止</span>
               )}
             </div>
           </div>
