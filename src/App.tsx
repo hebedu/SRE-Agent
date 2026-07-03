@@ -3016,8 +3016,16 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                     💡 <span className="font-bold text-slate-200">撤销提示：</span>自愈成效已被反向回滚，故障恢复至初始状态。
                   </div>
                 ) : (
-                  <div className="text-xs text-slate-400 bg-emerald-500/[0.03] border border-emerald-500/10 p-2.5 rounded-lg">
-                    💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
+                  <div className="text-xs text-slate-400 bg-emerald-500/[0.03] border border-emerald-500/10 p-2.5 rounded-lg space-y-1.5 animate-in fade-in duration-350">
+                    <div>
+                      💡 <span className="font-bold text-emerald-400">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
+                    </div>
+                    <div className="text-[10.5px] text-slate-500 border-t border-slate-800/40 pt-1.5 mt-1.5 leading-relaxed flex items-start gap-1">
+                      <span className="text-amber-500/80 shrink-0 select-none">⚠️</span>
+                      <span>
+                        建议运维人员线下登录数据库控制台，进一步复核并确认数据一致性。如人工复核发现异常，可点击下方<span className="text-slate-400 font-bold">「申请回滚撤销」</span>将实例物理还原。
+                      </span>
+                    </div>
                   </div>
                 )}
 
