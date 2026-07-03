@@ -2723,6 +2723,17 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   const [selectedKB, setSelectedKB] = useState('kb_sre_cases');
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const consoleLogsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (consoleLogsRef.current) {
+      consoleLogsRef.current.scrollTo({
+        top: consoleLogsRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [logs]);
+
   const kbOptions = [
     { id: 'kb_sre_cases', name: 'SRE 故障案例库', icon: '📚' },
     { id: 'kb_middleware', name: '中间件最佳实践', icon: '⚙️' },
@@ -2775,7 +2786,10 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
             </div>
 
             {/* 控制台终端日志 */}
-            <div className="bg-black/50 border border-white/[0.02] p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 h-36 overflow-y-auto no-scrollbar scroll-smooth">
+            <div 
+              ref={consoleLogsRef}
+              className="bg-black/50 border border-white/[0.02] p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 h-36 overflow-y-auto no-scrollbar scroll-smooth"
+            >
               {logs?.map((log: string, i: number) => (
                 <div key={i} className="flex gap-2.5">
                   <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
