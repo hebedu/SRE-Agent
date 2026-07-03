@@ -2907,22 +2907,16 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
             </div>
 
             {/* 进度控制与中止按钮 */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-20 bg-slate-800 rounded-full overflow-hidden">
-                  <div style={{ width: `${progress}%` }} className="h-full bg-blue-500 transition-all duration-300" />
-                </div>
-                <span className="text-[10px] text-slate-500 font-bold">{progress}%</span>
-              </div>
-              {status === 'running' && !isRollbackExecution && (
+            {status === 'running' && !isRollbackExecution && (
+              <div className="flex justify-end pt-1">
                 <button
                   onClick={() => onAction?.('ABORT_HEAL_EXECUTION', data)}
-                  className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-[10px] font-bold text-white rounded transition-colors active:scale-95"
+                  className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-[10px] font-bold text-white rounded transition-colors active:scale-95 shadow-md shadow-rose-950/20"
                 >
                   ■ 中止自愈执行
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
