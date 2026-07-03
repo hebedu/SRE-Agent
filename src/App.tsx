@@ -2719,6 +2719,18 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   const archived = initialArchived || localArchived;
   const isComplete = status === 'success' && (audit || isRollbackExecution);
 
+  const [archiveState, setArchiveState] = useState<'initial' | 'expanded' | 'archiving'>('initial');
+  const [selectedKB, setSelectedKB] = useState('kb_sre_cases');
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const kbOptions = [
+    { id: 'kb_sre_cases', name: 'SRE 故障案例库', icon: '📚' },
+    { id: 'kb_middleware', name: '中间件最佳实践', icon: '⚙️' },
+    { id: 'kb_team_shared', name: '团队共享知识库', icon: '👥' },
+  ];
+
+  const selectedKBName = kbOptions.find(opt => opt.id === selectedKB)?.name || '';
+
   return (
     <div className="w-full max-w-xl mt-4 font-sans relative pl-8 text-slate-300">
       {/* 左侧垂直实线 */}
@@ -2908,33 +2920,126 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                   </div>
                 )}
 
-                {/* 动作按钮栏 */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setLocalArchived(true);
-                      onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId: data?.alarmId });
-                    }}
-                    disabled={archived || isRollbackRunning || isRolledBack}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                      (archived || isRolledBack)
-                        ? 'bg-slate-800/60 text-slate-500 border border-slate-850 cursor-not-allowed' 
-                        : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20'
-                    }`}
-                  >
-                    {archived ? '已归档' : '归档'}
-                  </button>
-                  <button
-                    onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId: data?.alarmId })}
-                    disabled={isRollbackRunning || isRolledBack}
-                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all active:scale-95 border ${
-                      isRolledBack 
-                        ? 'bg-slate-800/40 text-slate-500 border-slate-850 cursor-not-allowed'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/50'
-                    }`}
-                  >
-                    {isRollbackRunning ? '回滚执行中' : isRolledBack ? '已回滚' : '申请回滚撤销'}
-                  </button>
+                {/* 动作按钮栏与归档折叠区 */}
+                <div className="space-y-3">
+                  {archived ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="w-full p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex flex-col items-center gap-1.5"
+                    >
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[10.5px]">
+                        <CheckCircle2 size={14} /> 已成功归档至知识库
+                      </div>
+                      <button 
+                        onClick={() => onAction?.('SWITCH_TO_KNOWLEDGE_PAGE')}
+                        className="text-[9.5px] text-emerald-500 hover:text-emerald-400 font-black uppercase underline decoration-1 underline-offset-2"
+                      >
+                        查看知识库
+                      </button>
+                    </motion.div>
+                  ) : archiveState === 'initial' ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setArchiveState('expanded')}
+                        disabled={isRollbackRunning || isRolledBack}
+                        className="flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20"
+                      >
+                        归档
+                      </button>
+                      <button
+                        onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId: data?.alarmId })}
+                        disabled={isRollbackRunning || isRolledBack}
+                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all active:scale-95 border ${
+                          isRolledBack 
+                            ? 'bg-slate-800/40 text-slate-500 border-slate-850 cursor-not-allowed'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/50'
+                        }`}
+                      >
+                        {isRollbackRunning ? '回滚执行中' : isRolledBack ? '已回滚' : '申请回滚撤销'}
+                      </button>
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full p-3 bg-slate-900/40 border border-white/[0.05] rounded-xl space-y-3 shadow-inner"
+                    >
+                      <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        <Library size={12} /> 归档到知识库
+                      </div>
+
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 flex items-center justify-between hover:border-slate-600 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{kbOptions.find(opt => opt.id === selectedKB)?.icon}</span>
+                              <span className="font-medium truncate">{selectedKBName}</span>
+                            </div>
+                            <ChevronDown size={14} className={`text-slate-500 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          <AnimatePresence>
+                            {showDropdown && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
+                                <motion.div
+                                  initial={{ opacity: 0, y: 4 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 4 }}
+                                  className="absolute bottom-full mb-2 left-0 w-full bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-20 overflow-hidden"
+                                >
+                                  {kbOptions.map((opt) => (
+                                    <button
+                                      key={opt.id}
+                                      onClick={() => {
+                                        setSelectedKB(opt.id);
+                                        setShowDropdown(false);
+                                      }}
+                                      className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-indigo-500/20 transition-colors ${selectedKB === opt.id ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-300'}`}
+                                    >
+                                      <span>{opt.icon}</span>
+                                      <span className="font-medium">{opt.name}</span>
+                                      {selectedKB === opt.id && <Check size={12} className="ml-auto" />}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setArchiveState('archiving');
+                            setTimeout(() => {
+                              setLocalArchived(true);
+                              onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId: data?.alarmId });
+                              setArchiveState('initial');
+                            }, 1500);
+                          }}
+                          disabled={archiveState === 'archiving'}
+                          className="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 disabled:bg-slate-700 text-white text-xs font-black rounded-lg transition-all active:scale-95 flex items-center gap-2 min-w-[70px] justify-center shadow-lg shadow-indigo-950/20"
+                        >
+                          {archiveState === 'archiving' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            '确认'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setArchiveState('initial')}
+                          disabled={archiveState === 'archiving'}
+                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all active:scale-95"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>
             )}
@@ -2945,7 +3050,7 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
   );
 };
 
-const KnowledgeArchiveSection = ({ data }: { data: any }) => {
+const KnowledgeArchiveSection = ({ data, onAction }: { data: any; onAction?: any }) => {
   const [state, setState] = useState<'initial' | 'expanded' | 'archiving' | 'success'>('initial');
   const [selectedKB, setSelectedKB] = useState('kb_sre_cases');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -2989,7 +3094,10 @@ const KnowledgeArchiveSection = ({ data }: { data: any }) => {
             {archiveTitle}
           </div>
         </div>
-        <button className="mt-1 text-[10px] text-emerald-500 hover:text-emerald-400 font-black uppercase tracking-widest underline decoration-2 underline-offset-4">
+        <button 
+          onClick={() => onAction?.('SWITCH_TO_KNOWLEDGE_PAGE')}
+          className="mt-1 text-[10px] text-emerald-500 hover:text-emerald-400 font-black uppercase tracking-widest underline decoration-2 underline-offset-4"
+        >
           查看知识库
         </button>
       </motion.div>
@@ -14498,6 +14606,12 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         });
       }
       showToast('本次自愈故障排查过程及脚本已成功归档。');
+      return;
+    }
+
+    if (action === 'SWITCH_TO_KNOWLEDGE_PAGE') {
+      setActiveMenu('knowledge');
+      showToast('已跳转至运维知识库');
       return;
     }
 
