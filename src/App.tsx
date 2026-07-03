@@ -2710,6 +2710,52 @@ const RuleShortcutsCard = ({ onAction }: { onAction: any }) => (
   </div>
 );
 
+const StepCircle = ({ status, num }: { status: 'pending' | 'running' | 'success' | 'aborted'; num: number }) => {
+  if (status === 'success') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shadow-lg shadow-emerald-500/20 shrink-0">
+        ✓
+      </div>
+    );
+  }
+  if (status === 'aborted') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-bold shadow-lg shadow-rose-500/20 shrink-0">
+        ✕
+      </div>
+    );
+  }
+  if (status === 'running') {
+    return (
+      <div className="w-5 h-5 rounded-full border border-blue-500 bg-blue-500/10 text-blue-400 flex items-center justify-center text-[10px] font-bold shadow-lg shadow-blue-500/30 animate-pulse shrink-0">
+        <Loader2 size={10} className="animate-spin" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-5 h-5 rounded-full border border-slate-800 bg-slate-900/20 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+      {num}
+    </div>
+  );
+};
+
+const StepLine = ({ status }: { status: 'pending' | 'running' | 'success' | 'aborted' }) => {
+  if (status === 'success') {
+    return <div className="flex-1 h-0.5 mx-2 bg-emerald-500 transition-all duration-500" />;
+  }
+  if (status === 'running') {
+    return <div className="flex-1 h-0.5 mx-2 bg-gradient-to-r from-emerald-500 to-blue-500 animate-pulse transition-all duration-500" />;
+  }
+  return <div className="flex-1 h-0.5 mx-2 bg-slate-800 transition-all duration-500" />;
+};
+
+const getStepTextClass = (status: 'pending' | 'running' | 'success' | 'aborted') => {
+  if (status === 'success') return 'text-emerald-400 font-bold transition-colors duration-500';
+  if (status === 'running') return 'text-blue-400 font-bold transition-colors duration-500';
+  if (status === 'aborted') return 'text-rose-400 transition-colors duration-500';
+  return 'text-slate-500 transition-colors duration-500';
+};
+
 const ActionExecutionCard = ({ data, onAction }: any) => {
   const { status, progress, logs, rollbackStatus, audit, archived: initialArchived, mode } = data || {};
   const isRollbackExecution = mode === 'rollback';
@@ -2742,6 +2788,26 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
 
   const selectedKBName = kbOptions.find(opt => opt.id === selectedKB)?.name || '';
 
+  const getStepStatus = (stepIndex: number) => {
+    if (status === 'success') return 'success';
+    if (status === 'aborted') return 'aborted';
+    
+    if (stepIndex === 1) {
+      if (progress < 30) return 'running';
+      return 'success';
+    }
+    if (stepIndex === 2) {
+      if (progress < 30) return 'pending';
+      if (progress < 80) return 'running';
+      return 'success';
+    }
+    if (stepIndex === 3) {
+      if (progress < 80) return 'pending';
+      return 'running';
+    }
+    return 'pending';
+  };
+
   return (
     <div className="w-full max-w-xl mt-4 font-sans relative pl-8 text-slate-300">
       {/* 左侧垂直实线 */}
@@ -2768,16 +2834,37 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
 
           {/* 环节一卡片内容区域 */}
           <div className="bg-[#0b0c16] border border-white/[0.05] rounded-xl p-4 space-y-3.5">
-            {/* 简易拓扑节点流 */}
-            <div className="flex items-center gap-2 text-[10.5px] bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/40">
-              <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono flex items-center gap-1 font-bold">
-                <span>自愈引擎</span>
-                <Zap size={10} className="fill-blue-400/20" />
-              </span>
-              <span className="text-slate-600">➔</span>
-              <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono font-bold">清理 binlog & 重置指针</span>
-              <span className="text-slate-600">➔</span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono font-bold">重启复制线程</span>
+            {/* 实时动态 Steps 步骤条 */}
+            <div className="flex items-center justify-between text-[11px] bg-slate-950/60 p-3 rounded-lg border border-slate-900/60 shadow-inner">
+              {/* 步骤 1 */}
+              <div className="flex items-center gap-2">
+                <StepCircle status={getStepStatus(1)} num={1} />
+                <span className={getStepTextClass(getStepStatus(1))}>
+                  {isRollbackExecution ? '启动回滚引擎' : '启动自愈引擎'}
+                </span>
+              </div>
+
+              {/* 连接线 1 -> 2 */}
+              <StepLine status={getStepStatus(2)} />
+
+              {/* 步骤 2 */}
+              <div className="flex items-center gap-2">
+                <StepCircle status={getStepStatus(2)} num={2} />
+                <span className={getStepTextClass(getStepStatus(2))}>
+                  {isRollbackExecution ? '撤销物理变更' : '清理 binlog & 重置指针'}
+                </span>
+              </div>
+
+              {/* 连接线 2 -> 3 */}
+              <StepLine status={getStepStatus(3)} />
+
+              {/* 步骤 3 */}
+              <div className="flex items-center gap-2">
+                <StepCircle status={getStepStatus(3)} num={3} />
+                <span className={getStepTextClass(getStepStatus(3))}>
+                  {isRollbackExecution ? '恢复故障指标' : '重启复制线程'}
+                </span>
+              </div>
             </div>
 
             {/* 阶段一说明文字融合 */}
