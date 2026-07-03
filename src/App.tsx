@@ -8919,27 +8919,20 @@ const DiagnosticAlertPanel = ({ onDiagnose, onSelect, selectedAlarmId, onToggle,
               <div className="flex justify-between items-start mb-2.5">
                 <div className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full ${
-                    alarm.status === 'resolved'
-                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
-                      : alarm.level === 'P0'
-                        ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]'
-                        : 'bg-orange-500'
+                    alarm.level === 'P0'
+                      ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                      : 'bg-orange-500'
                   }`} />
                   <span className={`text-[10px] font-bold ${
-                    alarm.status === 'resolved'
-                      ? 'text-emerald-500'
-                      : alarm.level === 'P0'
-                        ? 'text-rose-500'
-                        : 'text-orange-500'
+                    alarm.level === 'P0'
+                      ? 'text-rose-500'
+                      : 'text-orange-500'
                   }`}>
-                    {alarm.status === 'resolved' ? '已恢复' : alarm.level === 'P0' ? '严重' : alarm.level === 'P1' ? '重要' : alarm.level === 'P2' ? '次要' : alarm.level === 'P3' ? '警告' : '信息'}
+                    {alarm.level === 'P0' ? '严重' : alarm.level === 'P1' ? '重要' : alarm.level === 'P2' ? '次要' : alarm.level === 'P3' ? '警告' : '信息'}
                   </span>
                   <span className="text-[9px] text-slate-500 px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700/50 uppercase tracking-tighter font-bold">{alarm.type}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {alarm.status === 'resolved' && (
-                    <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold shadow-sm whitespace-nowrap animate-in fade-in">✓ 自愈成功</span>
-                  )}
 
                   {(alarm.status === 'converged' || (alarm.convergedCount && alarm.convergedCount > 0)) && (
                     <span className="text-[11px] px-2 py-0.5 bg-slate-800/80 text-slate-400 border border-slate-700/50 rounded font-bold shadow-sm whitespace-nowrap">📦 收敛 {alarm.convergedCount > 99 ? '99+' : (alarm.convergedCount || 1)} 条</span>
