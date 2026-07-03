@@ -2711,10 +2711,13 @@ const RuleShortcutsCard = ({ onAction }: { onAction: any }) => (
 );
 
 const ActionExecutionCard = ({ data, onAction }: any) => {
-  const { status, progress, logs, rollbackStatus, audit, archived: initialArchived } = data || {};
+  const { status, progress, logs, rollbackStatus, audit, archived: initialArchived, mode } = data || {};
+  const isRollbackExecution = mode === 'rollback';
   const isRolledBack = rollbackStatus === 'success';
+  const isRollbackRunning = rollbackStatus === 'running';
   const [localArchived, setLocalArchived] = useState(false);
   const archived = initialArchived || localArchived;
+  const isComplete = status === 'success' && (audit || isRollbackExecution);
 
   return (
     <div className="w-full max-w-xl mt-4 font-sans relative pl-8 text-slate-300">
@@ -2758,7 +2761,7 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
             <div className="bg-black/50 border border-white/[0.02] p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 h-36 overflow-y-auto no-scrollbar scroll-smooth">
               {logs?.map((log: string, i: number) => (
                 <div key={i} className="flex gap-2.5">
-                  <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                  <span className="text-slate-600 shrink-0 select-none">[{new Date().toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
                   <span className={log.includes('✓') || log.includes('SUCCESS') || log.includes('✅') ? 'text-emerald-400 font-bold' : log.includes('■') || log.includes('ER') ? 'text-rose-400 font-bold' : 'text-slate-300'}>{log}</span>
                 </div>
               ))}
@@ -2773,13 +2776,18 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                 </div>
                 <span className="text-[10px] text-slate-500 font-bold">{progress}%</span>
               </div>
-              {status === 'running' && (
+              {status === 'running' && !isRollbackExecution && (
                 <button
                   onClick={() => onAction?.('ABORT_HEAL_EXECUTION', data)}
                   className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-[10px] font-bold text-white rounded transition-colors active:scale-95"
                 >
                   ■ 中止自愈执行
                 </button>
+              )}
+              {status === 'success' && (
+                <span className="text-[10px] text-emerald-400 font-black flex items-center gap-1">
+                  ✓ {isRollbackExecution ? '回滚脚本执行成功' : '自愈修复执行成功'}
+                </span>
               )}
               {status === 'aborted' && (
                 <span className="text-[10px] text-rose-400 font-bold">✕ 自愈已中止</span>
@@ -2789,8 +2797,8 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
         </div>
       </div>
 
-      {/* ================= 环节二：自愈效果复核与审计归档 ================= */}
-      {status === 'success' && audit && (
+      {/* ================= 环节二：自愈效果复核与审计归档 / 回滚结果复核与线下排查 ================= */}
+      {isComplete && (
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2804,12 +2812,46 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
 
           <div className="pl-9">
             <div className="text-xs font-black text-slate-300 mb-3 tracking-wide">
-              环节二：自愈效果复核与审计归档
+              {isRollbackExecution ? '环节二：回滚结果复核与线下排查' : '环节二：自愈效果复核与审计归档'}
             </div>
 
-            {isRolledBack ? (
-              <div className="text-xs text-slate-400 bg-indigo-500/5 border border-indigo-500/10 p-3.5 rounded-xl leading-relaxed">
-                已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。
+            {isRollbackExecution ? (
+              // ================= 回滚结果复核与排查面板 (方案 D: 只读无按钮) =================
+              <div className="space-y-4 animate-in fade-in-50 duration-300">
+                {/* 并排双卡片展示 */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* 指标状态回退 */}
+                  <div className="border border-amber-500/20 bg-amber-500/[0.02] rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-amber-300">📈 指标状态回退</span>
+                      <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold">已恢复</span>
+                    </div>
+                    <div className="space-y-1.5 text-[10.5px]">
+                      <div className="flex justify-between"><span className="text-slate-400">磁盘空间</span><span className="font-mono text-slate-200 font-bold">41% (未引入次生)</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">复制延迟</span><span className="font-mono text-slate-200 font-bold">0.2s ➔ <span className="text-amber-300 font-bold">320s</span></span></div>
+                      <div className="flex justify-between"><span className="text-rose-400 font-bold">已重新打开 ⚠️</span></div>
+                    </div>
+                  </div>
+
+                  {/* 回滚审计记录 */}
+                  <div className="border border-slate-700/50 bg-slate-800/[0.05] rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-300">📋 回滚审计记录</span>
+                      <span className="text-[9px] bg-slate-700/40 text-slate-400 px-1.5 py-0.2 rounded font-bold">已完成</span>
+                    </div>
+                    <div className="space-y-1.5 text-[10.5px]">
+                      <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">恢复对象</span><span className="text-slate-200 font-medium">mysql-user-slave-01</span></div>
+                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={new Date().toLocaleDateString()}>恢复时机: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">恢复脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title="SCR-MYSQL-CLEANUP-RB-v2.1">CLEAN-RB-v2.1</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 友情排查小字提示 */}
+                <div className="text-xs text-slate-400 bg-amber-500/[0.025] border border-amber-500/10 p-3 rounded-lg leading-relaxed">
+                  💡 <span className="font-bold text-slate-200">回滚复核结果：</span>当前实例已被安全还原至自愈前初始故障状态。自动化自愈流程已结束，请运维人员线下排查故障根因。
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -2837,16 +2879,22 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                     <div className="space-y-1.5 text-[10.5px]">
                       <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
                       <div className="flex justify-between"><span className="text-slate-400">审批人</span><span className="text-slate-200 font-medium">— (免批)</span></div>
-                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit.time}>时间: {audit.time.split(' ')[1] || audit.time}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit.script}>CLEAN-v2.1</span></div>
+                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>时间: {audit?.time ? (audit.time.split(' ')[1] || audit.time) : '—'}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit?.script || ''}>CLEAN-v2.1</span></div>
                     </div>
                   </div>
                 </div>
 
                 {/* 指标状态及说明 */}
-                <div className="text-xs text-slate-400 bg-emerald-500/[0.03] border border-emerald-500/10 p-2.5 rounded-lg">
-                  💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
-                </div>
+                {isRolledBack ? (
+                  <div className="text-xs text-slate-400 bg-amber-500/[0.025] border border-amber-500/10 p-3 rounded-lg leading-relaxed">
+                    💡 <span className="font-bold text-slate-200">撤销提示：</span>自愈成效已被反向回滚，故障恢复至初始状态。
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 bg-emerald-500/[0.03] border border-emerald-500/10 p-2.5 rounded-lg">
+                    💡 <span className="font-bold text-slate-200">复核结果：</span>所有关键指标已经全面恢复正常基线，未检测到次生故障。告警已自动关闭。
+                  </div>
+                )}
 
                 {/* 动作按钮栏 */}
                 <div className="flex gap-2">
@@ -2855,9 +2903,9 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                       setLocalArchived(true);
                       onAction?.('ARCHIVE_KNOWLEDGE_BASE', { alarmId: data?.alarmId });
                     }}
-                    disabled={archived}
+                    disabled={archived || isRollbackRunning || isRolledBack}
                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                      archived 
+                      (archived || isRolledBack)
                         ? 'bg-slate-800/60 text-slate-500 border border-slate-850 cursor-not-allowed' 
                         : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 shadow-md shadow-emerald-950/20'
                     }`}
@@ -2866,22 +2914,16 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                   </button>
                   <button
                     onClick={() => onAction?.('TRIGGER_REMEDIATION_ROLLBACK', { alarmId: data?.alarmId })}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all active:scale-95"
+                    disabled={isRollbackRunning || isRolledBack}
+                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all active:scale-95 border ${
+                      isRolledBack 
+                        ? 'bg-slate-800/40 text-slate-500 border-slate-850 cursor-not-allowed'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/50'
+                    }`}
                   >
-                    申请回滚撤销
+                    {isRollbackRunning ? '回滚执行中' : isRolledBack ? '已回滚' : '申请回滚撤销'}
                   </button>
                 </div>
-              </div>
-            )}
-
-            {isRolledBack && (
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => onAction?.('FORCE_UPGRADE_MANUAL', { alarmId: data?.alarmId })}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all active:scale-95"
-                >
-                  升级为人工高优工单
-                </button>
               </div>
             )}
           </div>
@@ -14473,6 +14515,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         contentType: 'action_execution',
         content: '回滚流程已启动，正在执行反向撤销操作...',
         data: {
+          mode: 'rollback',
           status: 'running',
           progress: 0,
           logs: [
@@ -14484,12 +14527,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             '[FINAL] 回滚完成，已完全恢复至自愈前原始状态。'
           ]
         },
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
       });
       
       setTimeout(() => {
         updateMessage(rollbackExecId, {
           data: {
+            mode: 'rollback',
             status: 'success',
             progress: 100,
             logs: [
