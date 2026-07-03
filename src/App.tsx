@@ -1872,7 +1872,7 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
       <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-5 h-5 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-[11px]">⚡</div>
-          <span className="text-xs font-black text-slate-200 uppercase tracking-wider">推荐自愈处理方案</span>
+          <span className="text-xs font-black text-slate-200 uppercase tracking-wider">自愈处理方案</span>
         </div>
         <span className="text-[10px] font-black text-emerald-400 px-2 py-0.5 bg-emerald-500/10 rounded-md font-mono">置信度: {confidence}</span>
       </div>
