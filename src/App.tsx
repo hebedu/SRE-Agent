@@ -2943,8 +2943,8 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
             {isRollbackExecution ? (
               // ================= 回滚结果复核与排查面板 (方案 D: 只读无按钮) =================
               <div className="space-y-4 animate-in fade-in-50 duration-300">
-                {/* 并排双卡片展示 */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* 上下卡片堆叠展示 */}
+                <div className="flex flex-col gap-3">
                   {/* 指标状态回退 */}
                   <div className="border border-amber-500/20 bg-amber-500/[0.02] rounded-xl p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between">
@@ -2980,8 +2980,8 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* 并排双卡片展示 */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* 上下卡片堆叠展示 */}
+                <div className="flex flex-col gap-3">
                   {/* 看板卡片 */}
                   <div className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between">
