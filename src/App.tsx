@@ -2956,10 +2956,21 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
             </div>
 
             {/* 阶段二说明文字融合 */}
-            <div className="text-[11px] text-slate-400 bg-slate-900/20 border border-slate-800/20 p-2.5 rounded-lg leading-relaxed mb-3">
-              💡 {isRollbackExecution 
-                ? '已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。' 
-                : '系统已安全关闭原告警，正在对自愈后各项性能指标进行复核核算。'}
+            <div className="text-[11px] text-slate-400 bg-slate-900/20 border border-slate-800/20 p-2.5 rounded-lg leading-relaxed mb-3 flex items-start gap-1.5">
+              <span className="shrink-0 select-none">💡</span>
+              <div>
+                {isRollbackExecution ? (
+                  <>
+                    <span className="text-amber-400 font-extrabold mr-1">【回退成功】</span>
+                    <span>已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-emerald-400 font-extrabold mr-1">【自愈成功】</span>
+                    <span>系统已安全关闭原告警，正在对自愈后各项性能指标进行复核核算。</span>
+                  </>
+                )}
+              </div>
             </div>
 
             {isRollbackExecution ? (
