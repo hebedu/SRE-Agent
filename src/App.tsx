@@ -2757,6 +2757,11 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
               <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono font-bold">重启复制线程</span>
             </div>
 
+            {/* 阶段一说明文字融合 */}
+            <div className="text-[11px] text-slate-400 bg-slate-900/20 border border-slate-800/20 p-2.5 rounded-lg leading-relaxed">
+              💡 {isRollbackExecution ? '回滚流程已启动，正在执行反向撤销操作。' : '已启动自愈执行流水线，正在对目标实例进行物理修复。'}
+            </div>
+
             {/* 控制台终端日志 */}
             <div className="bg-black/50 border border-white/[0.02] p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 h-36 overflow-y-auto no-scrollbar scroll-smooth">
               {logs?.map((log: string, i: number) => (
@@ -2813,6 +2818,13 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
           <div className="pl-9">
             <div className="text-xs font-black text-slate-300 mb-3 tracking-wide">
               {isRollbackExecution ? '环节二：回滚结果复核与线下排查' : '环节二：自愈效果复核与审计归档'}
+            </div>
+
+            {/* 阶段二说明文字融合 */}
+            <div className="text-[11px] text-slate-400 bg-slate-900/20 border border-slate-800/20 p-2.5 rounded-lg leading-relaxed mb-3">
+              💡 {isRollbackExecution 
+                ? '已成功运行配套回滚脚本，恢复了 binlog 指针与复制延迟状态，告警已重新流转至人工待处理队列。' 
+                : '系统已安全关闭原告警，正在对自愈后各项性能指标进行复核核算。'}
             </div>
 
             {isRollbackExecution ? (
@@ -5969,57 +5981,59 @@ const ChatBubble: React.FC<{
         </div>
 
         <div className="space-y-2 w-full">
-          <div className={`p-4 rounded-2xl ${isAI
-            ? 'bg-[#1a1a20] border border-slate-800/50 text-slate-200'
-            : 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
-            }`}>
-            {isAI ? (
-              <TypewriterText 
-                text={message.content} 
-                onCitationClick={(index) => {
-                  if (message.retrievalData) {
-                    onAction?.('OPEN_SOURCE_TRACE', { 
-                      ...message.retrievalData, 
-                      targetDocIndex: index - 1 
-                    });
-                  }
-                }}
-              />
-            ) : (
-              <p className="text-base leading-relaxed whitespace-pre-wrap font-medium">{message.content}</p>
-            )}
+          {message.contentType !== 'action_execution' && (
+            <div className={`p-4 rounded-2xl ${isAI
+              ? 'bg-[#1a1a20] border border-slate-800/50 text-slate-200'
+              : 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+              }`}>
+              {isAI ? (
+                <TypewriterText 
+                  text={message.content} 
+                  onCitationClick={(index) => {
+                    if (message.retrievalData) {
+                      onAction?.('OPEN_SOURCE_TRACE', { 
+                        ...message.retrievalData, 
+                        targetDocIndex: index - 1 
+                      });
+                    }
+                  }}
+                />
+              ) : (
+                <p className="text-base leading-relaxed whitespace-pre-wrap font-medium">{message.content}</p>
+              )}
 
-            {message.retrievalData && isAI && !message.hideSourceButton && (
-              <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
-                <button
-                  onClick={() => onAction?.('OPEN_SOURCE_TRACE', message.retrievalData)}
-                  className="text-xs flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-md transition-colors border border-slate-700/50"
-                >
-                  <Target size={12} className="text-indigo-400" /> [查看来源]
-                </button>
-              </div>
-            )}
+              {message.retrievalData && isAI && !message.hideSourceButton && (
+                <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+                  <button
+                    onClick={() => onAction?.('OPEN_SOURCE_TRACE', message.retrievalData)}
+                    className="text-xs flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-md transition-colors border border-slate-700/50"
+                  >
+                    <Target size={12} className="text-indigo-400" /> [查看来源]
+                  </button>
+                </div>
+              )}
 
-            {message.contentType === 'sop' && message.data?.steps && (
-              <div className="mt-4 bg-[#141418] border border-slate-800 rounded-lg p-3">
-                <h4 className="text-base font-bold text-slate-200 mb-2 border-b border-slate-800 pb-2">{message.data.title}</h4>
-                <div className="space-y-3 mt-2">
-                  {message.data.steps.map((step: any, idx: number) => (
-                    <div key={idx} className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 cursor-pointer hover:text-blue-400">
-                        <div className="w-6 h-6 rounded-full bg-blue-600/20 text-blue-500 flex items-center justify-center text-xs shrink-0 font-bold">{idx + 1}</div>
-                        <span className="text-sm">{step.desc}</span>
+              {message.contentType === 'sop' && message.data?.steps && (
+                <div className="mt-4 bg-[#141418] border border-slate-800 rounded-lg p-3">
+                  <h4 className="text-base font-bold text-slate-200 mb-2 border-b border-slate-800 pb-2">{message.data.title}</h4>
+                  <div className="space-y-3 mt-2">
+                    {message.data.steps.map((step: any, idx: number) => (
+                      <div key={idx} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 cursor-pointer hover:text-blue-400">
+                          <div className="w-6 h-6 rounded-full bg-blue-600/20 text-blue-500 flex items-center justify-center text-xs shrink-0 font-bold">{idx + 1}</div>
+                          <span className="text-sm">{step.desc}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-slate-800">
+                    <button className="text-xs bg-slate-800 hover:bg-slate-700 py-1 px-3 rounded">复制全文</button>
+                    <button className="text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 py-1 px-3 rounded">关联到当前故障</button>
+                  </div>
                 </div>
-                <div className="flex gap-2 mt-4 pt-3 border-t border-slate-800">
-                  <button className="text-xs bg-slate-800 hover:bg-slate-700 py-1 px-3 rounded">复制全文</button>
-                  <button className="text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 py-1 px-3 rounded">关联到当前故障</button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {message.contentType === 'rule_shortcuts' && (
             <RuleShortcutsCard onAction={onAction} />
