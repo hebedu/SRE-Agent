@@ -3408,63 +3408,106 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">01 / 开始分析</div>
               {currentStep >= 1 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                  {/* （1）巡检计划信息 */}
                   {data.stage1?.planInfo && (
-                    <AnalysisTable title="巡检计划概要" columns={['字段', '内容']} data={data.stage1.planInfo} />
+                    <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
                   )}
-                  {data.stage1?.taskDetail && (
-                    <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">详细分析任务明细</span>
+
+                  {/* （2）详细分析 */}
+                  <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">（2）详细分析</span>
+                    </div>
+
+                    {/* 巡检对象总数 */}
+                    {data.stage1?.objectCount !== undefined && (
+                      <div className="text-xs font-bold text-slate-300">
+                        巡检对象总数：<span className="text-indigo-400 font-mono">{data.stage1.objectCount}</span>
                       </div>
-                      <div className="space-y-3 text-xs">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">任务名称</span>
-                          <span className="font-mono text-slate-300 font-bold text-[13px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
+                    )}
+
+                    {/* 巡检对象表格 */}
+                    {data.stage1?.objectsTable && (
+                      <AnalysisTable title="" columns={['#', '巡检对象', '结果', '严重级别', '摘要']} data={data.stage1.objectsTable} />
+                    )}
+
+                    {/* 异常巡检对象卡片面板 */}
+                    {data.stage1?.abnormalDetail && (
+                      <div className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3.5 space-y-3.5 mt-2">
+                        <div className="text-xs font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wide border-b border-slate-900 pb-2">
+                          <div className="w-1 h-3 bg-rose-500 rounded-sm" />
+                          异常巡检对象
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">巡检对象</span>
-                          <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.target}</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4 bg-slate-950/15 p-2.5 rounded-md border border-slate-800/30">
+
+                        {/* 网格行：状态、结果、严重级别 */}
+                        <div className="grid grid-cols-3 gap-4 bg-slate-950/20 p-2.5 rounded-md border border-slate-800/30 text-xs">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
-                            <span className="text-emerald-400 font-bold text-xs">
-                              {data.stage1.taskDetail.status}
+                            <span className="text-slate-300 font-medium font-mono">
+                              {data.stage1.abnormalDetail.status}
                             </span>
                           </div>
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
-                            <span className="text-rose-400 font-bold text-xs">
-                              {data.stage1.taskDetail.result}
+                            <span className="text-rose-400 font-bold font-mono">
+                              {data.stage1.abnormalDetail.result}
                             </span>
                           </div>
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
-                            <span className="text-amber-400 font-bold text-xs">
-                              {data.stage1.taskDetail.severity}
+                            <span className="text-amber-400 font-bold font-mono">
+                              {data.stage1.abnormalDetail.severity}
                             </span>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
-                          <span className="font-mono text-slate-300 font-medium text-[13px] bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
+
+                        {/* 各类长文本说明 */}
+                        <div className="space-y-2.5 text-xs">
+                          {data.stage1.abnormalDetail.errorMessage && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-500 font-bold uppercase">错误信息</span>
+                              <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/50 px-2 py-1.5 rounded border border-slate-900">{data.stage1.abnormalDetail.errorMessage}</span>
+                            </div>
+                          )}
+                          {data.stage1.abnormalDetail.description && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-500 font-bold uppercase">问题描述</span>
+                              <span className="text-slate-300 leading-relaxed font-medium">{data.stage1.abnormalDetail.description}</span>
+                            </div>
+                          )}
+                          {data.stage1.abnormalDetail.impact && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-500 font-bold uppercase">影响范围</span>
+                              <span className="text-slate-400 leading-relaxed font-medium">{data.stage1.abnormalDetail.impact}</span>
+                            </div>
+                          )}
                         </div>
+
+                        {/* 指标子表 */}
+                        {data.stage1?.runtimeMetrics && (
+                          <div className="mt-3.5 border-t border-slate-800/40 pt-3">
+                            <AnalysisTable title="指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
+                          </div>
+                        )}
+
+                        {/* 异常指标 */}
+                        {data.stage1?.anomalies && (
+                          <div className="mt-3.5 border-t border-slate-800/40 pt-3">
+                            <div className="text-[10px] text-rose-400 font-black uppercase tracking-wider mb-2">异常指标</div>
+                            <ul className="space-y-1.5">
+                              {data.stage1.anomalies.map((item: string, idx: number) => (
+                                <li key={idx} className="text-xs text-rose-300 font-medium leading-relaxed flex items-start gap-1.5">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      
-                      {data.stage1?.runtimeMetrics && (
-                        <div className="mt-4 border-t border-slate-800/50 pt-3">
-                          <AnalysisTable title="系统运行时指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {data.stage1?.objectTable && (
-                    <AnalysisTable title="巡检对象概要" columns={['字段', '内容']} data={data.stage1.objectTable} />
-                  )}
-                  {data.stage1?.metricsTable && (
-                    <AnalysisTable title="异常判定指标表" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />
-                  )}
+                    )}
+                  </div>
 
                 </motion.div>
               )}
@@ -4672,96 +4715,112 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                 {isPhased ? (
                   <>
                     {/* Phase 1: Overview */}
-                    <section>
-                      <div className="flex items-center gap-3 mb-6">
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-3">
                         <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                         <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">1. 巡检执行概览 (Executive Summary)</h3>
                       </div>
-                      <div className="bg-[#0a0a0f] border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden group mb-6 shadow-inner">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><ClipboardCheck size={100} /></div>
-                        
-                        <div className="relative z-10 flex flex-col gap-6">
-                          {/* Top Info Bar */}
-                          <div className="flex items-center gap-4">                            <div className="space-y-3.5 text-xs">
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[11px] text-slate-500 font-bold uppercase">任务名称</span>
-                                <span className="font-mono text-slate-300 font-bold text-[13px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.name}</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[11px] text-slate-500 font-bold uppercase">巡检对象</span>
-                                <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/20 px-2 py-1.5 rounded-md border border-slate-800/40">{data.stage1.taskDetail.target}</span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-4 bg-slate-950/15 p-2.5 rounded-md border border-slate-800/30">
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
-                                  <span className="text-emerald-400 font-bold text-xs">
-                                    {data.stage1.taskDetail.status}
-                                  </span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
-                                  <span className="text-rose-400 font-bold text-xs">
-                                    {data.stage1.taskDetail.result}
-                                  </span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
-                                  <span className="text-amber-400 font-bold text-xs">
-                                    {data.stage1.taskDetail.severity}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[11px] text-slate-500 font-bold uppercase">指标/资源摘要</span>
-                                <span className="font-mono text-slate-300 font-medium text-[13px] bg-slate-950/40 px-2.5 py-1.5 rounded-md">{data.stage1.taskDetail.summary}</span>
-                              </div>
-                            </div>
-<div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold shadow-[0_0_15px_rgba(249,115,22,0.1)]">
-                              <AlertTriangle size={14} /> 风险等级：中高风险
-                            </div>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-                              <Target size={14} /> 影响范围：3 个实例
-                            </div>
-                          </div>
 
-                          {/* Overview Text */}
-                          <p className="text-sm text-blue-100/80 leading-relaxed font-bold">
-                            针对「{data.stage1?.objectTable?.[0]?.[1] || '指定对象'}」的专家级深度巡检已完成。本次分析历经四阶段全自动推演，通过对 CPU、内存、错误率等多维指标的交叉穿透，识别出 {data.stage3?.evidenceList?.length || 0} 项运维核心证据。
-                          </p>
-                          
-                          {/* Main Issues */}
-                          <div>
-                            <h4 className="text-[10px] font-black text-rose-400/80 uppercase tracking-widest mb-3 flex items-center gap-2">
-                              主要问题
-                            </h4>
-                            <ul className="space-y-2">
-                              <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" /> CPU 持续高负载
-                              </li>
-                              <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" /> 错误率升高
-                              </li>
-                            </ul>
-                          </div>
+                      {/* （1）巡检计划信息 */}
+                      {data.stage1?.planInfo && (
+                        <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
+                      )}
 
-                          {/* Recommendations */}
-                          <div className="pt-2">
-                            <h4 className="text-[10px] font-black text-emerald-400/80 uppercase tracking-widest mb-3 flex items-center gap-2">
-                              AI 修复建议
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-3">
-                              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 text-xs font-bold transition-all border border-emerald-500/30">
-                                👉 立即执行 Heap Dump
-                              </button>
-                              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700 shadow-sm">
-                                👉 查看最近变更
-                              </button>
-                            </div>
-                          </div>
+                      {/* （2）详细分析 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-2xl p-6 space-y-4">
+                        <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          <span className="text-[12px] font-black text-slate-400 uppercase tracking-wider">（2）详细分析</span>
                         </div>
+
+                        {/* 巡检对象总数 */}
+                        {data.stage1?.objectCount !== undefined && (
+                          <div className="text-xs font-bold text-slate-300">
+                            巡检对象总数：<span className="text-indigo-400 font-mono">{data.stage1.objectCount}</span>
+                          </div>
+                        )}
+
+                        {/* 巡检对象表格 */}
+                        {data.stage1?.objectsTable && (
+                          <AnalysisTable title="" columns={['#', '巡检对象', '结果', '严重级别', '摘要']} data={data.stage1.objectsTable} />
+                        )}
+
+                        {/* 异常巡检对象卡片面板 */}
+                        {data.stage1?.abnormalDetail && (
+                          <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-5 space-y-4 mt-2">
+                            <div className="text-xs font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wide border-b border-slate-900 pb-2">
+                              <div className="w-1 h-3 bg-rose-500 rounded-sm" />
+                              异常巡检对象
+                            </div>
+
+                            {/* 网格行：状态、结果、严重级别 */}
+                            <div className="grid grid-cols-3 gap-4 bg-slate-950/20 p-3 rounded-md border border-slate-800/30 text-xs">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
+                                <span className="text-slate-300 font-medium font-mono">
+                                  {data.stage1.abnormalDetail.status}
+                                </span>
+                              </div>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
+                                <span className="text-rose-400 font-bold font-mono">
+                                  {data.stage1.abnormalDetail.result}
+                                </span>
+                              </div>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
+                                <span className="text-amber-400 font-bold font-mono">
+                                  {data.stage1.abnormalDetail.severity}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* 各类长文本说明 */}
+                            <div className="space-y-3.5 text-xs">
+                              {data.stage1.abnormalDetail.errorMessage && (
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">错误信息</span>
+                                  <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/50 px-2 py-1.5 rounded border border-slate-900">{data.stage1.abnormalDetail.errorMessage}</span>
+                                </div>
+                              )}
+                              {data.stage1.abnormalDetail.description && (
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">问题描述</span>
+                                  <span className="text-slate-300 leading-relaxed font-medium">{data.stage1.abnormalDetail.description}</span>
+                                </div>
+                              )}
+                              {data.stage1.abnormalDetail.impact && (
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase">影响范围</span>
+                                  <span className="text-slate-400 leading-relaxed font-medium">{data.stage1.abnormalDetail.impact}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 指标子表 */}
+                            {data.stage1?.runtimeMetrics && (
+                              <div className="mt-4 border-t border-slate-800/40 pt-4">
+                                <AnalysisTable title="指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
+                              </div>
+                            )}
+
+                            {/* 异常指标 */}
+                            {data.stage1?.anomalies && (
+                              <div className="mt-4 border-t border-slate-800/40 pt-4">
+                                <div className="text-[10px] text-rose-400 font-black uppercase tracking-wider mb-2">异常指标</div>
+                                <ul className="space-y-1.5">
+                                  {data.stage1.anomalies.map((item: string, idx: number) => (
+                                    <li key={idx} className="text-xs text-rose-300 font-medium leading-relaxed flex items-start gap-1.5">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                                      <span>{item}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {data.stage1?.objectTable && <AnalysisTable title="（1）巡检对象详细快照" columns={['名称', '描述']} data={data.stage1.objectTable} />}
-                      {data.stage1?.metricsTable && <AnalysisTable title="（2）关键指标运行基准" columns={['指标', '当前值', '阈值', '状态']} data={data.stage1.metricsTable} />}
                     </section>
 
                     {/* Phase 2: Evidence Gallery */}
@@ -13961,7 +14020,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
           contentType: 'analysis',
           content: `正在识别巡检对象 [${task.target}] 并加载指标快照...`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          data: isFirstInspectionTask ? {
+          data: {
             format: '0412_phased',
             currentStep: 1,
             stage1: {
@@ -13969,18 +14028,24 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
                 ['执行结果', 'abnormal'],
                 ['执行时间', 'warning'],
-                ['总任务数', '1'],
-                ['正常任务数', '0'],
-                ['异常任务数', '1'],
-                ['失败任务数', '0']
+                ['总实例数', '1'],
+                ['正常实例数', '0'],
+                ['异常实例数', '1'],
+                ['失败实例数', '0']
               ],
-              taskDetail: {
-                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
-                target: task.target,
+              objectCount: 23,
+              objectsTable: [
+                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
+              ],
+              abnormalDetail: {
                 status: 'completed',
                 result: 'abnormal',
                 severity: 'warning',
-                summary: 'Python: RSS=1821MB threads=7 fd=19'
+                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
+                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
+                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
               },
               runtimeMetrics: [
                 ['FD 数', 'fd_count', '19', '个'],
@@ -13989,18 +14054,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['RSS 内存', 'rss_mb', '1821', 'MB'],
                 ['线程数', 'threads', '7', '个']
               ],
-              metricsTable: [
-                ['CPU 使用率', '92%', '80%', '异常'],
-                ['内存使用率', '88%', '80%', '偏高'],
-                ['错误率', '3.2%', '1%', '异常']
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
               ]
-            }
-          } : {
-            format: '0412_phased',
-            currentStep: 1,
-            stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', '异常'], ['内存使用率', '88%', '80%', '偏高'], ['错误率', '3.2%', '1%', '异常']]
             }
           }
         });
@@ -14009,7 +14066,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       // Step 2: Exploration (3.5s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
-          data: isFirstInspectionTask ? {
+          data: {
             format: '0412_phased',
             currentStep: 2,
             stage1: {
@@ -14017,18 +14074,24 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
                 ['执行结果', 'abnormal'],
                 ['执行时间', 'warning'],
-                ['总任务数', '1'],
-                ['正常任务数', '0'],
-                ['异常任务数', '1'],
-                ['失败任务数', '0']
+                ['总实例数', '1'],
+                ['正常实例数', '0'],
+                ['异常实例数', '1'],
+                ['失败实例数', '0']
               ],
-              taskDetail: {
-                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
-                target: task.target,
+              objectCount: 23,
+              objectsTable: [
+                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
+              ],
+              abnormalDetail: {
                 status: 'completed',
                 result: 'abnormal',
                 severity: 'warning',
-                summary: 'Python: RSS=1821MB threads=7 fd=19'
+                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
+                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
+                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
               },
               runtimeMetrics: [
                 ['FD 数', 'fd_count', '19', '个'],
@@ -14037,10 +14100,9 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['RSS 内存', 'rss_mb', '1821', 'MB'],
                 ['线程数', 'threads', '7', '个']
               ],
-              metricsTable: [
-                ['CPU 使用率', '92%', '80%', '异常'],
-                ['内存使用率', '88%', '80%', '偏高'],
-                ['错误率', '3.2%', '1%', '异常']
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
@@ -14060,21 +14122,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
               correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
             }
-          } : {
-            format: '0412_phased',
-            currentStep: 2,
-            stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
-            },
-            stage2: {
-              charts: [
-                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
-                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
-              ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
-            }
           }
         });
       }, 3500);
@@ -14082,7 +14129,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
       // Step 3: Diagnosis (6s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
-          data: isFirstInspectionTask ? {
+          data: {
             format: '0412_phased',
             currentStep: 3,
             stage1: {
@@ -14090,18 +14137,24 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
                 ['执行结果', 'abnormal'],
                 ['执行时间', 'warning'],
-                ['总任务数', '1'],
-                ['正常任务数', '0'],
-                ['异常任务数', '1'],
-                ['失败任务数', '0']
+                ['总实例数', '1'],
+                ['正常实例数', '0'],
+                ['异常实例数', '1'],
+                ['失败实例数', '0']
               ],
-              taskDetail: {
-                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
-                target: task.target,
+              objectCount: 23,
+              objectsTable: [
+                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
+              ],
+              abnormalDetail: {
                 status: 'completed',
                 result: 'abnormal',
                 severity: 'warning',
-                summary: 'Python: RSS=1821MB threads=7 fd=19'
+                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
+                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
+                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
               },
               runtimeMetrics: [
                 ['FD 数', 'fd_count', '19', '个'],
@@ -14110,10 +14163,9 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['RSS 内存', 'rss_mb', '1821', 'MB'],
                 ['线程数', 'threads', '7', '个']
               ],
-              metricsTable: [
-                ['CPU 使用率', '92%', '80%', '异常'],
-                ['内存使用率', '88%', '80%', '偏高'],
-                ['错误率', '3.2%', '1%', '异常']
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
@@ -14137,25 +14189,6 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
               candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
               evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
             }
-          } : {
-            format: '0412_phased',
-            currentStep: 3,
-            stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
-            },
-            stage2: {
-              charts: [
-                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
-                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
-              ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
-            },
-            stage3: {
-              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加']],
-              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为']
-            }
           }
         });
       }, 6000);
@@ -14165,7 +14198,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
         setIsAIProcessing(false);
         setInspectionAnalysisStatus(prev => ({ ...prev, [task.name]: 'completed' }));
         updateMessage(aiMsgId, {
-          data: isFirstInspectionTask ? {
+          data: {
             format: '0412_phased',
             currentStep: 4,
             stage1: {
@@ -14173,18 +14206,24 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
                 ['执行结果', 'abnormal'],
                 ['执行时间', 'warning'],
-                ['总任务数', '1'],
-                ['正常任务数', '0'],
-                ['异常任务数', '1'],
-                ['失败任务数', '0']
+                ['总实例数', '1'],
+                ['正常实例数', '0'],
+                ['异常实例数', '1'],
+                ['失败实例数', '0']
               ],
-              taskDetail: {
-                name: 'python_comprehensive_inspection_python_1781249079 @ 172.30.34.73:8001',
-                target: task.target,
+              objectCount: 23,
+              objectsTable: [
+                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
+              ],
+              abnormalDetail: {
                 status: 'completed',
                 result: 'abnormal',
                 severity: 'warning',
-                summary: 'Python: RSS=1821MB threads=7 fd=19'
+                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
+                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
+                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
               },
               runtimeMetrics: [
                 ['FD 数', 'fd_count', '19', '个'],
@@ -14193,10 +14232,9 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 ['RSS 内存', 'rss_mb', '1821', 'MB'],
                 ['线程数', 'threads', '7', '个']
               ],
-              metricsTable: [
-                ['CPU 使用率', '92%', '80%', '异常'],
-                ['内存使用率', '88%', '80%', '偏高'],
-                ['错误率', '3.2%', '1%', '异常']
+              anomalies: [
+                'CPU 使用率异常升高（92%）',
+                '内存使用率接近上限（88%）'
               ]
             },
             stage2: {
@@ -14230,29 +14268,7 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
                 '检查近期是否上线了新的代码版本，尤其是涉及缓存或线程池的相关改动',
                 '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
                 '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
-              ]
-            }
-          } : {
-            format: '0412_phased',
-            currentStep: 4,
-            stage1: {
-              objectTable: [['对象名称', task.target], ['类型', 'Service'], ['环境', 'prod'], ['集群', 'cluster-A']],
-              metricsTable: [['CPU使用率', '92%', '80%', 'Critical'], ['内存使用率', '88%', '80%', 'High'], ['错误率', '3.2%', '1%', 'Critical']]
-            },
-            stage2: {
-              charts: [
-                { title: 'CPU 使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [65, 92] },
-                { title: '内存使用率趋势 (近30分钟)', labels: ['10:00', '10:30'], data: [60, 88] }
               ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关']]
-            },
-            stage3: {
-              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加']],
-              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为']
-            },
-            stage4: {
-              summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
               judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。'
             }
           }
@@ -14801,7 +14817,82 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }
 
     if (action === 'VIEW_REPORT') {
-      setActiveReportData(data);
+      const enrichedData = {
+        format: '0412_phased',
+        currentStep: 4,
+        ...data,
+        stage1: data.stage1 || {
+          planInfo: [
+            ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
+            ['执行结果', 'abnormal'],
+            ['执行时间', 'warning'],
+            ['总实例数', '1'],
+            ['正常实例数', '0'],
+            ['异常实例数', '1'],
+            ['失败实例数', '0']
+          ],
+          objectCount: 23,
+          objectsTable: [
+            ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+            ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+            ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
+          ],
+          abnormalDetail: {
+            status: 'completed',
+            result: 'abnormal',
+            severity: 'warning',
+            errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
+            description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
+            impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
+          },
+          runtimeMetrics: [
+            ['FD 数', 'fd_count', '19', '个'],
+            ['进程 ID', 'pid', '1', '-'],
+            ['进程存活状态', 'process_alive', 'true', '存活'],
+            ['RSS 内存', 'rss_mb', '1821', 'MB'],
+            ['线程数', 'threads', '7', '个']
+          ],
+          anomalies: [
+            'CPU 使用率异常升高（92%）',
+            '内存使用率接近上限（88%）'
+          ]
+        },
+        stage2: data.stage2 || {
+          charts: [
+            {
+              title: 'CPU 使用率趋势 (近30分钟)',
+              labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+              data: [65, 70, 75, 82, 88, 90, 92],
+              events: [{ time: '10:15', label: '异常开始' }]
+            },
+            {
+              title: '内存使用率趋势 (近30分钟)',
+              labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+              data: [60, 65, 70, 75, 80, 85, 88]
+            }
+          ],
+          comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
+          correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
+        },
+        stage3: data.stage3 || {
+          candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
+          evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
+        },
+        stage4: data.stage4 || {
+          summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
+          recommendations: [
+            '由于内存持续上涨且无 GC 迹象，可能存在内存泄漏，建议人工介入 Dump 堆内存进行分析',
+            'CPU 负载已超 90% 并伴随大量错误，建议临时扩容或重启服务以保证可用性'
+          ],
+          generalSuggestions: [
+            '检查近期是否上线了新的代码版本，尤其是涉及缓存或线程池的相关改动',
+            '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
+            '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
+          ],
+          judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。'
+        }
+      };
+      setActiveReportData(enrichedData);
       setIsReportDrawerOpen(true);
       return;
     }
