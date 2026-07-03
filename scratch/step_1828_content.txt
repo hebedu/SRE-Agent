@@ -1,0 +1,1 @@
+"          {message.contentType === 'rule_draft' && <InspectionTaskEditListCard data={message.data} onAction={onAction} />}"

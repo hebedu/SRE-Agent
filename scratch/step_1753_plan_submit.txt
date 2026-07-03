@@ -1,0 +1,1 @@
+"      if (action === 'STEP_CONFIRMATION') {\n        if (isMysqlCreateWizard) {\n          handleAction('MYSQL_PLAN_SUBMIT_FINAL', {\n            tasks: tempMysqlPlan.tasks,\n            cronExpression: inspectionCronValue,\n            cronDescription: inspectionFrequency\n          });\n          return;\n        }\n        setInspectionWizard('confirmation');"

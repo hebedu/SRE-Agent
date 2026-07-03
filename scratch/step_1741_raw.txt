@@ -1,0 +1,1 @@
+"          {message.contentType === 'rule_draft' && <RuleDraftCard data={message.data} onAction={onAction} mode={inspectionContext?.mode} />}\n          {message.contentType === 'mysql_task_edit_list' && <MySQLTaskEditListCard data={message.data} onAction={onAction} />}\n          {message.contentType === 'frequency_select' && ("

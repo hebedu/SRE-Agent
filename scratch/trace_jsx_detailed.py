@@ -1,30 +1,32 @@
-import sys
 import re
 
-path = '/Users/admin/Downloads/ai-sre-console_v2/src/App.tsx'
-with open(path, 'r') as f:
+path = '/Users/admin/Downloads/SRE-Agent-main/src/App.tsx'
+with open(path, 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
 stack = []
-for i, line in enumerate(lines):
-    if i < 3084: continue
-    if i > 3215: break
+for idx, line in enumerate(lines):
+    line_num = idx + 1
+    # 忽略注释和字符串以减少噪点（极简处理）
+    # 去除单行注释
+    clean_line = re.sub(r'//.*$', '', line)
     
-    # Matching <div but not self-closing <div ... />
-    opens = re.findall(r'<div(?![^>]*/>)', line)
-    closes = re.findall(r'</div', line)
-    
-    for _ in opens:
-        stack.append(i + 1)
-    for _ in closes:
-        if stack:
-            stack.pop()
-        else:
-            print(f"ERROR: Extra close at line {i+1}")
-            
-    if stack:
-        print(f"Line {i+1}: Stack size {len(stack)}, deepest open from line {stack[0]}")
-    else:
-        print(f"Line {i+1}: Stack EMPTY")
+    # 检查大括号
+    for char in clean_line:
+        if char == '{':
+            stack.append(line_num)
+        elif char == '}':
+            if stack:
+                stack.pop()
+            else:
+                print(f"Extra closing brace at line {line_num}")
 
-print(f"Final unclosed lines: {stack}")
+    # 如果到了 7547 行
+    if line_num == 7547:
+        print(f"Brace depth at line 7547: {len(stack)}")
+        if stack:
+            print("Unclosed braces opened at lines:")
+            # 打印最深的前 10 个 unclosed
+            for opened in stack[-10:]:
+                print(f"  Line {opened}: {lines[opened-1].strip()[:60]}")
+        break

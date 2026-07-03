@@ -1,0 +1,1 @@
+"const InspectionTaskEditModal = ({ isOpen, onClose, task, onSave }: InspectionTaskEditModalProps) => {\n  // 采用安全克隆防崩溃\n  const [editedTask, setEditedTask] = useState<any>(() => task ? safeClonePlan(task) : {});\n\n  if (!isOpen || !editedTask) return null;"
