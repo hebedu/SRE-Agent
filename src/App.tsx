@@ -2977,6 +2977,16 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                       <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={new Date().toLocaleDateString()}>恢复时机: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
                       <div className="flex justify-between"><span className="text-slate-400">恢复脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title="SCR-MYSQL-CLEANUP-RB-v2.1">CLEAN-RB-v2.1</span></div>
                     </div>
+                    <div className="mt-2.5 space-y-1.5 border-t border-slate-800/40 pt-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">恢复脚本内容</div>
+                      <pre className="p-3 bg-black/60 border border-slate-800/80 rounded-lg font-mono text-[10.5px] text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
+{`#!/bin/bash
+echo "[INFO] Starting rollback sequence for MySQL slave binlog sync..."
+echo "[INFO] Restoring binlog index parameters from backup..."
+mysql -u root -e "START SLAVE"
+echo "[SUCCESS] Slave replication thread restarted. Replication latency restored."`}
+                      </pre>
+                    </div>
                   </div>
                 </div>
 
@@ -3011,8 +3021,19 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                     <div className="space-y-1.5 text-[10.5px]">
                       <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
                       <div className="flex justify-between"><span className="text-slate-400">操作结果</span><span className="text-emerald-400 font-bold">自愈成功</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">操作时间</span><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>${audit?.time ? (audit.time.includes('-') || audit.time.includes('/') ? audit.time : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')} ${audit.time}`) : '—'}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">操作时间</span><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>{audit?.time ? (audit.time.includes('-') || audit.time.includes('/') ? audit.time : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')} ${audit.time}`) : '—'}</span></div>
                       <div className="flex justify-between"><span className="text-slate-400">操作脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit?.script || ''}>CLEAN-v2.1</span></div>
+                    </div>
+                    <div className="mt-2.5 space-y-1.5 border-t border-indigo-500/10 pt-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">执行脚本内容</div>
+                      <pre className="p-3 bg-black/60 border border-slate-800/80 rounded-lg font-mono text-[10.5px] text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
+{`#!/bin/bash
+echo "[INFO] Checking replica status on mysql-user-slave-01..."
+mysql -u root -e "SHOW SLAVE STATUS" | grep "Seconds_Behind_Master"
+echo "[WARN] Disk space critical (95%). Executing safe binlog truncation..."
+rm -rf /var/log/mysql/mysql-bin.000*
+echo "[SUCCESS] Disk space freed. Current usage: 41%."`}
+                      </pre>
                     </div>
                   </div>
                 </div>
