@@ -5269,12 +5269,14 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           data={data.stage2.trendTable.slice(0, 5).map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]])} 
                         />
                       )}
-                      <button 
-                        onClick={() => openObjectsModal('全部趋势数据', data.stage2.trendTable)}
-                        className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                      >
-                        查看全部趋势数据 &rarr;
-                      </button>
+                      <div className="flex justify-center mt-2.5">
+                        <button 
+                          onClick={() => openObjectsModal('全部趋势数据', data.stage2.trendTable.map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]]))}
+                          className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                        >
+                          查看全部趋势数据 ↓
+                        </button>
+                      </div>
                       {data.stage2?.trendSummary && (
                         <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 mt-2">
                           <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">健康趋势摘要</div>
@@ -5484,7 +5486,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                                        {/* abnormal 分支 */}
+                                                                                          {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
                     <div className="space-y-6">
                       {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -5742,7 +5744,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                                        {/* abnormal 分支 */}
+                                                                                          {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
                     <div className="space-y-6">
                       {/* 1. 问题汇总与关键发现 */}
@@ -6077,6 +6079,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7756,7 +7760,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                                        {/* abnormal 分支 */}
+                                                                                                              {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6">
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -8003,7 +8007,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                                         {/* abnormal 分支 */}
+                                                                                                               {/* abnormal 分支 */}
                       {branch === 'abnormal' && activeReportDetails.verdict && (
                         <div className="space-y-6">
                           {/* 1. 问题汇总与关键发现 */}
@@ -8299,6 +8303,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
