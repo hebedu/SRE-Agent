@@ -2778,15 +2778,10 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
     }
     if (stepIndex === 2) {
       if (progress < 30) return 'pending';
-      if (progress < 80) return 'running';
+      if (status !== 'success' && status !== 'aborted') return 'running';
       return 'success';
     }
     if (stepIndex === 3) {
-      if (progress < 80) return 'pending';
-      if (status !== 'success') return 'running';
-      return 'success';
-    }
-    if (stepIndex === 4) {
       return 'pending';
     }
     return 'pending';
@@ -2836,7 +2831,7 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
               <div className="flex items-center gap-2">
                 <StepCircle status={getStepStatus(2)} num={2} />
                 <span className={getStepTextClass(getStepStatus(2))}>
-                  {isRollbackExecution ? '撤销物理变更' : '清理 binlog & 重置指针'}
+                  {isRollbackExecution ? '回滚执行中' : '自愈执行中'}
                 </span>
               </div>
 
@@ -2847,17 +2842,6 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
               <div className="flex items-center gap-2">
                 <StepCircle status={getStepStatus(3)} num={3} />
                 <span className={getStepTextClass(getStepStatus(3))}>
-                  {isRollbackExecution ? '恢复故障指标' : '重启复制线程'}
-                </span>
-              </div>
-
-              {/* 连接线 3 -> 4 */}
-              <StepLine status={getStepStatus(4)} />
-
-              {/* 步骤 4 */}
-              <div className="flex items-center gap-2">
-                <StepCircle status={getStepStatus(4)} num={4} />
-                <span className={getStepTextClass(getStepStatus(4))}>
                   {status === 'success' 
                     ? (isRollbackExecution ? '回滚脚本成功' : '自愈修复成功') 
                     : status === 'aborted'
