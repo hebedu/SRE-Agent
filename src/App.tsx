@@ -8342,15 +8342,15 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
 
                 return (
                   <td key={j} className="px-3.5 py-2 text-xs font-medium text-slate-300 break-words whitespace-normal min-w-[80px]">
-                    {displayCell === '异常' || displayCell === '未存活' || displayCell === '失败' || displayCell === '严重' ? (
+                    {displayCell === '异常' || displayCell === '未存活' || displayCell === '失败' || displayCell === '严重' || displayCell === '突增' ? (
                       <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
                         {displayCell}
                       </span>
-                    ) : displayCell === '偏高' || displayCell === '警告' ? (
+                    ) : displayCell === '偏高' || displayCell === '警告' || displayCell === '稳步上升' ? (
                       <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
                         {displayCell}
                       </span>
-                    ) : displayCell === '正常' || displayCell === '存活' || displayCell === '已完成' || displayCell === '普通' ? (
+                    ) : displayCell === '正常' || displayCell === '存活' || displayCell === '已完成' || displayCell === '普通' || displayCell === '平稳' ? (
                       <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase ${
                         displayCell === '普通' 
                           ? 'bg-slate-800 text-slate-400 border-slate-700/50' 
