@@ -1951,15 +1951,9 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
         <div className="flex gap-2.5 pt-1.5 border-t border-white/[0.08]">
           <button
             onClick={() => onAction?.('TRIGGER_HEAL_FLOW', data)}
-            className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md shadow-amber-900/10"
+            className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md shadow-amber-900/10"
           >
             确认执行
-          </button>
-          <button
-            onClick={() => onAction?.('NOT_EXECUTE_HEAL_FLOW', data)}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all"
-          >
-            不执行
           </button>
         </div>
       </div>
@@ -2095,15 +2089,9 @@ const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
         <div className="p-5 border-t border-slate-800 bg-[#14141a] flex gap-3 shrink-0">
           <button
             onClick={() => onConfirm(data)}
-            className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-amber-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
+            className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-amber-900/20 active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
           >
             <Zap size={14} fill="currentColor" /> 确认执行
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
-          >
-            不执行
           </button>
         </div>
       </motion.div>
