@@ -5496,7 +5496,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                                                          {/* abnormal 分支 */}
+                                                                                                            {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
                     <div className="space-y-6">
                       {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -5754,7 +5754,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                                                          {/* abnormal 分支 */}
+                                                                                                            {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
                     <div className="space-y-6">
                       {/* 1. 问题汇总与关键发现 */}
@@ -5765,7 +5765,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         </div>
                         <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
                           <p className="font-medium">
-                            经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例，核心关键发现如下：
+                            经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例和 <span className="text-amber-400 font-bold">1</span> 个失败实例，核心关键发现如下：
                           </p>
                           <ul className="space-y-2.5">
                             <li className="flex items-start gap-2">
@@ -5780,9 +5780,15 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                 对于 <strong className="font-mono text-rose-300">172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 <strong>980</strong> 并单调上升，已高度逼近单实例 resource 上限，存在显著的连接/句柄泄漏风险。
                               </span>
                             </li>
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0 mt-1.5" />
+                              <span>
+                                对于 <strong className="font-mono text-amber-300">172.30.34.90:8001</strong>：该实例在巡检期间连接超时（Connection Timeout），端口无法访问，提示处于服务阻断或宕机状态。
+                              </span>
+                            </li>
                           </ul>
                           <p className="text-[11px] text-slate-400 border-t border-slate-800/40 pt-2 mt-1">
-                            ※ 总体判定：两台实例异常机制不同，但均有触发服务阻断或局部雪崩的高风险，需尽快执行相应的自愈或处置预案。
+                            ※ 总体判定：两台异常实例分别存在高负载和句柄泄漏风险，一台失败实例疑似宕机或网络阻断。均需尽快执行排查或自愈预案。
                           </p>
                         </div>
                       </div>
@@ -5811,12 +5817,21 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                   2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。
                                 </td>
                               </tr>
-                              <tr className="hover:bg-slate-900/10">
+                              <tr className="border-b border-slate-800/30 hover:bg-slate-900/10">
                                 <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.81:8001</td>
                                 <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。</td>
                                 <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
                                   1. 检查底层 TCP 连接及网络套接字释放逻辑；<br />
                                   2. 在测试环境复现连接管理逻辑并定位未关闭连接句柄的代码段。
+                                </td>
+                              </tr>
+                              <tr className="hover:bg-slate-900/10">
+                                <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.90:8001</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">巡检连接超时，实例可能发生宕机或网络策略拦截。</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                  1. 检查目标节点服务端口监听与网络可达性；<br />
+                                  2. 核验防火墙或安全组拦截规则；<br />
+                                  3. 确认进程/容器存活状态，必要时执行实例重启。
                                 </td>
                               </tr>
                             </tbody>
@@ -6089,6 +6104,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7770,7 +7787,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                                                              {/* abnormal 分支 */}
+                                                                                                                                    {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6">
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -8017,7 +8034,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                                                               {/* abnormal 分支 */}
+                                                                                                                                     {/* abnormal 分支 */}
                       {branch === 'abnormal' && activeReportDetails.verdict && (
                         <div className="space-y-6">
                           {/* 1. 问题汇总与关键发现 */}
@@ -8028,7 +8045,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                             </div>
                             <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
                               <p className="font-medium">
-                                经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例，核心关键发现如下：
+                                经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例和 <span className="text-amber-400 font-bold">1</span> 个失败实例，核心关键发现如下：
                               </p>
                               <ul className="space-y-2.5">
                                 <li className="flex items-start gap-2">
@@ -8043,9 +8060,15 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                     对于 <strong className="font-mono text-rose-300">172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 <strong>980</strong> 并单调上升，已高度逼近单实例 resource 上限，存在显著 of 连接/句柄泄漏风险。
                                   </span>
                                 </li>
+                                <li className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0 mt-1.5" />
+                                  <span>
+                                    对于 <strong className="font-mono text-amber-300">172.30.34.90:8001</strong>：该实例在巡检期间连接超时（Connection Timeout），端口无法访问，提示处于服务阻断或宕机状态。
+                                  </span>
+                                </li>
                               </ul>
                               <p className="text-[11px] text-slate-400 border-t border-slate-800/40 pt-2 mt-1">
-                                ※ 总体判定：两台实例异常机制不同，但均有触发服务阻断或局部雪崩的高风险，需尽快执行相应的自愈或处置预案。
+                                ※ 总体判定：两台异常实例分别存在高负载和句柄泄漏风险，一台失败实例疑似宕机或网络阻断。均需尽快执行排查或自愈预案。
                               </p>
                             </div>
                           </div>
@@ -8070,16 +8093,25 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                     <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.73:8001</td>
                                     <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">系统资源双高压力，疑似内存泄漏与突增负载叠加。</td>
                                     <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
-                                      1. 建议人工介入 Dump 堆内存进行泄漏点分析；<br />
+                                      1. 建议人工介入 Dump 堆内存进行泄漏点 analysis；<br />
                                       2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。
                                     </td>
                                   </tr>
-                                  <tr className="hover:bg-slate-900/10">
+                                  <tr className="border-b border-slate-800/30 hover:bg-slate-900/10">
                                     <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.81:8001</td>
                                     <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。</td>
                                     <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
                                       1. 检查底层 TCP 连接及网络套接字释放逻辑；<br />
                                       2. 在测试环境复现连接 management 逻辑并定位未关闭连接句柄的代码段。
+                                    </td>
+                                  </tr>
+                                  <tr className="hover:bg-slate-900/10">
+                                    <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.90:8001</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">巡检连接超时，实例可能发生宕机或网络策略拦截。</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                      1. 检查目标节点服务端口监听与网络可达性；<br />
+                                      2. 核验防火墙或安全组拦截规则；<br />
+                                      3. 确认进程/容器存活状态，必要时执行实例重启。
                                     </td>
                                   </tr>
                                 </tbody>
@@ -8313,6 +8345,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
