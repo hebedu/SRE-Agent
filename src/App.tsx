@@ -4396,9 +4396,35 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
   );
 };
 
-const exportReport = (data: any, branch: string, format: string) => {
+const exportReport = (data: any, branchParam: string, format: string) => {
+  let branch = branchParam;
+  if (data?.status === '健康' || data?.status === '正常' || data?.status === 'normal' || data?.branch === 'normal') {
+    branch = 'normal';
+  } else if (data?.status === '失败' || data?.status === 'failed' || data?.branch === 'failed') {
+    branch = 'failed';
+  } else if (data?.status === '异常' || data?.status === 'abnormal' || data?.branch === 'abnormal') {
+    branch = 'abnormal';
+  }
   const branchLabel = branch === 'normal' ? '健康 (normal)' : branch === 'abnormal' ? '异常 (abnormal)' : '失败 (failed)';
   
+  let section2Title = '';
+  let section3Title = '';
+  let section4Title = '';
+
+  if (branch === 'normal') {
+    section2Title = '二、指标健康与趋势 (Trends & Evidences)';
+    section3Title = '三、健康状态审查 (Diagnostics & Analysis)';
+    section4Title = '四、审定结论与后续策略 (Verdict & Recommendations)';
+  } else if (branch === 'abnormal') {
+    section2Title = '二、指标趋势与数据演进 (Trends & Evidences)';
+    section3Title = '三、深度根因剖析与诊断依据 (Diagnostics & Analysis)';
+    section4Title = '四、处置决策与修复方案 (Verdict & Recommendations)';
+  } else {
+    section2Title = '二、采集失败证据说明 (Trends & Evidences)';
+    section3Title = '三、原因归纳与排查建议 (Diagnostics & Analysis)';
+    section4Title = '四、失败总结与自愈处置 (Verdict & Recommendations)';
+  }
+
   // Define metadata per branch
   let planName = '';
   let taskId = '';
@@ -4599,10 +4625,10 @@ const exportReport = (data: any, branch: string, format: string) => {
 
   if (branch === 'normal') {
     diagMarkdown = `
-## 三、根因分析 (Root Cause Analysis)
+## ${section3Title}
 当前分支为健康巡检分支，系统未检测到异常或错误指标，**无需进行根因分析**。
 
-## 四、最终结论与自愈建议 (Verdict & Recommendations)
+## ${section4Title}
 ### 1. 问题汇总与关键发现
 经巡检多维关联分析，当前巡检计划下 **23** 个实例全部运行状态健康，无故障发现。
 - 资源使用率均在安全水位内（CPU < 35%，内存 < 50%）。
@@ -4613,12 +4639,12 @@ const exportReport = (data: any, branch: string, format: string) => {
 建议维持现状，定期自动巡检。无需执行任何自愈脚本或人工处置。
 `;
     diagHtml = `
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section3Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <p style="color: #10b981; font-weight: bold;">✓ 当前分支为健康巡检分支，系统未检测到任何异常指标，无需进行根因分析。</p>
       </div>
 
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section4Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
         <p>经巡检多维关联分析，当前巡检计划下 <strong>23</strong> 个实例全部运行状态健康，无故障发现。</p>
@@ -4635,7 +4661,7 @@ const exportReport = (data: any, branch: string, format: string) => {
     `;
   } else if (branch === 'abnormal') {
     diagMarkdown = `
-## 三、根因分析 (Root Cause Analysis)
+## ${section3Title}
 
 ### 诊断对象: 172.30.34.73:8001 (异常)
 #### 根因候选表
@@ -4668,7 +4694,7 @@ const exportReport = (data: any, branch: string, format: string) => {
 
 ---
 
-## 四、最终结论与自愈建议 (Verdict & Recommendations)
+## ${section4Title}
 ### 1. 问题汇总与关键发现
 经巡检多维关联分析，当前巡检计划下共发现 **2** 个异常实例和 **1** 个失败实例，核心关键发现如下：
 - 对于 **172.30.34.73:8001**：系统检测到其 CPU 使用率异常升高（达 92%）且内存使用率接近上限（达 88%），呈现明显的双高压力，同时伴随错误率的异常波动。
@@ -4685,7 +4711,7 @@ const exportReport = (data: any, branch: string, format: string) => {
 | 172.30.34.90:8001 | 巡检连接超时，实例可能发生宕机或网络策略拦截。 | 1. 检查目标节点服务端口监听与网络可达性；<br>2. 核验防火墙或安全组拦截规则；<br>3. 确认进程/容器存活状态，必要时执行实例重启。 |
 `;
     diagHtml = `
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section3Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h3>诊断对象: 172.30.34.73:8001 (异常)</h3>
         <h4>1. 根因候选表</h4>
@@ -4729,13 +4755,13 @@ const exportReport = (data: any, branch: string, format: string) => {
         <p style="color: #f87171; font-weight: bold;">⚠️ 当前对象为巡检失败，无法基于指标进行根因分析</p>
       </div>
 
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section4Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
         <p>经巡检多维关联分析，当前巡检计划下共发现 <strong>2</strong> 个异常实例和 <strong>1</strong> 个失败实例，核心关键发现如下：</p>
         <ul>
           <li>对于 <strong>172.30.34.73:8001</strong>：系统检测到其 CPU 使用率异常升高（达 92%）且内存使用率接近上限（达 88%），呈现明显的双高压力，同时伴随错误率的异常波动。</li>
-          <li>对于 <strong>172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 980 并单调上升，已高度逼近单实例 resource 上限，存在显著 of 连接/句柄泄漏风险。</li>
+          <li>对于 <strong>172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 980 并单调上升，已高度逼近单实例 resource 上限，存在显著的连接/句柄泄漏风险。</li>
           <li>对于 <strong>172.30.34.90:8001</strong>：该实例在巡检期间连接超时（Connection Timeout），端口无法访问，提示处于服务阻断或宕机状态。</li>
         </ul>
         <p style="color: #fbbf24; font-size: 11px; margin-top: 10px;">※ 总体判定：两台异常实例分别存在高负载和句柄泄漏风险，一台失败实例疑似宕机或网络阻断。均需尽快执行排查或自愈预案。</p>
@@ -4769,10 +4795,10 @@ const exportReport = (data: any, branch: string, format: string) => {
     `;
   } else {
     diagMarkdown = `
-## 三、根因分析 (Root Cause Analysis)
+## ${section3Title}
 当前分支为全量巡检失败分支。由于所有 **23** 个实例在数据采集阶段全部响应超时（Connection Timeout），系统无法获取到性能指标，**无法基于指标进行针对性根因分析**。
 
-## 四、最终结论与自愈建议 (Verdict & Recommendations)
+## ${section4Title}
 ### 1. 问题汇总与关键发现
 经巡检多维关联分析，当前巡检计划下 **23** 个实例全部响应超时，表现为网络连通性阻断。
 - 端口监听失败，网络无法建连。
@@ -4785,12 +4811,12 @@ const exportReport = (data: any, branch: string, format: string) => {
 3. **Pod/容器宿主机**：确认对应集群宿主机物理状态是否存活，节点是否发生僵死或磁盘写满保护。
 `;
     diagHtml = `
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section3Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #ef4444/30; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: rgba(239, 68, 68, 0.05);">
         <p style="color: #f87171; font-weight: bold;">⚠️ 当前分支为全量巡检失败分支。由于所有 23 个实例全部响应超时，系统无法获取性能指标，无法进行指标根因分析。</p>
       </div>
 
-      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">${section4Title}</h2>
       <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
         <p>经巡检多维关联分析，当前巡检计划下 <strong>23</strong> 个实例全部响应超时，表现为网络连通性阻断。</p>
@@ -4824,7 +4850,7 @@ ${planInfoMarkdown}
 ${statsMarkdown}
 ### 3. 全量巡检对象列表
 ${fullObjectsTableMarkdown}\n
-## 二、指标对比与趋势概览 (Metrics and Trends Overview)
+## ${section2Title}
 ${trendTableMarkdown}\n
 ${diagMarkdown}
 `;
@@ -4891,7 +4917,7 @@ ${diagMarkdown}
     </table>
   </div>
 
-  <h2>二、指标对比与趋势概览 (Metrics and Trends Overview)</h2>
+  <h2>${section2Title}</h2>
   <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
     <thead>
       <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">指标名称</th><th style="padding: 10px; border: 1px solid #334155;">绑定参数</th><th style="padding: 10px; border: 1px solid #334155;">评估状态</th><th style="padding: 10px; border: 1px solid #334155;">10:00</th><th style="padding: 10px; border: 1px solid #334155;">10:10</th><th style="padding: 10px; border: 1px solid #334155;">10:20</th><th style="padding: 10px; border: 1px solid #334155;">10:30</th><th style="padding: 10px; border: 1px solid #334155;">趋势</th></tr>
