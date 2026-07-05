@@ -4408,6 +4408,420 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
 };
 
 
+const exportReport = (data: any, branch: string, format: string) => {
+  const branchLabel = branch === 'normal' ? '健康 (normal)' : branch === 'abnormal' ? '异常 (abnormal)' : '失败 (failed)';
+  
+  let fullObjectsTableRows = '';
+  let fullObjectsTableMarkdown = '| 序号 | 巡检对象 | 状态 | 严重级别 | 核心摘要 |\n| --- | --- | --- | --- | --- |\n';
+  
+  let allObjects: any[] = [];
+  if (branch === 'normal') {
+    for (let i = 1; i <= 23; i++) {
+      allObjects.push([
+        String(i),
+        `172.30.38.${10 + i}:8001`,
+        'completed',
+        'info',
+        `RSS=${480 + (i * 3) % 40}MB CPU=${28 + (i * 2) % 10}%`
+      ]);
+    }
+  } else if (branch === 'abnormal') {
+    allObjects.push(['1', '172.30.34.73:8001', 'abnormal', 'critical', 'CPU / 内存超限，出现错误率']);
+    allObjects.push(['2', '172.30.34.81:8001', 'abnormal', 'critical', '活动文件描述符 (FD) 过高']);
+    allObjects.push(['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']);
+    for (let i = 4; i <= 23; i++) {
+      allObjects.push([
+        String(i),
+        `172.30.38.${10 + i}:8001`,
+        'completed',
+        'info',
+        `RSS=${480 + (i * 3) % 40}MB CPU=${28 + (i * 2) % 10}%`
+      ]);
+    }
+  } else {
+    for (let i = 1; i <= 23; i++) {
+      allObjects.push([
+        String(i),
+        `172.30.40.${10 + i}:8001`,
+        'failed',
+        'critical',
+        '连接超时 (Connection Timeout)'
+      ]);
+    }
+  }
+
+  allObjects.forEach((obj: any) => {
+    const statusText = obj[2] === 'completed' ? '正常' : obj[2] === 'abnormal' ? '异常' : '失败';
+    const severityText = obj[3] === 'info' ? '普通' : obj[3] === 'warning' ? '警告' : '严重';
+    fullObjectsTableMarkdown += `| ${obj[0]} | ${obj[1]} | ${statusText} | ${severityText} | ${obj[4]} |\n`;
+    fullObjectsTableRows += `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #334155;">${obj[0]}</td>
+        <td style="padding: 10px; border: 1px solid #334155; font-family: monospace; font-weight: bold;">${obj[1]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;"><span class="badge ${obj[2] === 'completed' ? 'badge-normal' : obj[2] === 'abnormal' ? 'badge-abnormal' : 'badge-failed'}">${statusText}</span></td>
+        <td style="padding: 10px; border: 1px solid #334155;">${severityText}</td>
+        <td style="padding: 10px; border: 1px solid #334155;">${obj[4]}</td>
+      </tr>
+    `;
+  });
+
+  let trendTableMarkdown = '| 指标名称 | 绑定参数 | 评估状态 | 10:00 | 10:10 | 10:20 | 10:30 | 趋势 |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n';
+  let trendTableRows = '';
+  
+  let trendData: any[] = [];
+  if (branch === 'normal') {
+    trendData = [
+      ['CPU 使用率', 'cpu_usage', '正常', '28%', '32%', '30%', '32%', '平稳'],
+      ['内存使用率', 'mem_usage', '正常', '42%', '45%', '44%', '45%', '平稳'],
+      ['错误率', 'error_rate', '正常', '0.0%', '0.0%', '0.0%', '0.0%', '平稳'],
+      ['FD 文件描述符', 'fd_count', '正常', '15', '18', '16', '18', '平稳'],
+      ['网络流入 (KB/s)', 'net_in', '正常', '120', '140', '135', '142', '平稳'],
+      ['网络流出 (KB/s)', 'net_out', '正常', '240', '280', '270', '285', '平稳']
+    ];
+  } else if (branch === 'abnormal') {
+    trendData = [
+      ['CPU 使用率 (172.30.34.73)', 'cpu_usage', '异常', '65%', '75%', '88%', '92%', '突增'],
+      ['内存使用率 (172.30.34.73)', 'mem_usage', '警告', '60%', '70%', '80%', '88%', '稳步上升'],
+      ['错误率 (172.30.34.73)', 'error_rate', '异常', '0.5%', '1.0%', '2.2%', '3.2%', '突增'],
+      ['FD 文件描述符 (172.30.34.81)', 'fd_count', '异常', '120', '340', '720', '980', '突增'],
+      ['网络连接数 (172.30.34.81)', 'net_conn', '警告', '150', '320', '680', '950', '稳步上升']
+    ];
+  } else {
+    trendData = [
+      ['服务端口存活', 'service_port', '异常', 'Down', 'Down', 'Down', 'Down', '异常'],
+      ['网络连通性', 'ping_ok', '异常', 'Fail', 'Fail', 'Fail', 'Fail', '异常']
+    ];
+  }
+
+  trendData.forEach((row: any) => {
+    trendTableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} | ${row[6]} | ${row[7]} |\n`;
+    trendTableRows += `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #334155;">${row[0]}</td>
+        <td style="padding: 10px; border: 1px solid #334155; font-family: monospace;">${row[1]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;"><span class="badge ${row[2] === '正常' ? 'badge-normal' : 'badge-failed'}">${row[2]}</span></td>
+        <td style="padding: 10px; border: 1px solid #334155;">${row[3]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;">${row[4]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;">${row[5]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;">${row[6]}</td>
+        <td style="padding: 10px; border: 1px solid #334155;"><span class="badge ${row[7] === '平稳' ? 'badge-normal' : row[7] === '稳步上升' ? 'badge-failed' : 'badge-abnormal'}">${row[7]}</span></td>
+      </tr>
+    `;
+  });
+
+  let diagMarkdown = '';
+  let diagHtml = '';
+
+  if (branch === 'normal') {
+    diagMarkdown = `
+## 三、根因分析 (Root Cause Analysis)
+当前分支为健康巡检分支，系统未检测到异常或错误指标，**无需进行根因分析**。
+
+## 四、最终结论与自愈建议 (Verdict & Recommendations)
+### 1. 问题汇总与关键发现
+经巡检多维关联分析，当前巡检计划下 **23** 个实例全部运行状态健康，无故障发现。
+- 资源使用率均在安全水位内（CPU < 35%，内存 < 50%）。
+- 复制延迟与文件描述符正常。
+- 端口监听与服务连通性 100% 成功。
+
+### 2. 自愈与处置修复方案
+建议维持现状，定期自动巡检。无需执行任何自愈脚本或人工处置。
+`;
+    diagHtml = `
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="color: #10b981; font-weight: bold;">✓ 当前分支为健康巡检分支，系统未检测到任何异常指标，无需进行根因分析。</p>
+      </div>
+
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
+        <p>经巡检多维关联分析，当前巡检计划下 <strong>23</strong> 个实例全部运行状态健康，无故障发现。</p>
+        <ul>
+          <li>资源使用率均在安全水位内（CPU &lt; 35%，内存 &lt; 50%）。</li>
+          <li>复制延迟与文件描述符正常。</li>
+          <li>端口监听与服务连通性 100% 成功。</li>
+        </ul>
+      </div>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">2. 自愈与处置修复方案</h3>
+        <p>建议维持现状，定期自动巡检。无需执行任何自愈脚本或人工处置。</p>
+      </div>
+    `;
+  } else if (branch === 'abnormal') {
+    diagMarkdown = `
+## 三、根因分析 (Root Cause Analysis)
+
+### 诊断对象: 172.30.34.73:8001 (异常)
+#### 根因候选表
+| 可能原因 | 支撑证据 | 说明 |
+| --- | --- | --- |
+| 资源压力 | CPU + 内存同步上升 | 资源占用持续增加 |
+| 异常负载 | 错误率上升 | 但未与流量直接关联 |
+
+#### 关键证据总结
+- CPU 与内存呈现高度同步上升趋势
+- 内存未观察到明显回收行为
+- 错误率存在异常波动
+
+---
+
+### 诊断对象: 172.30.34.81:8001 (异常)
+#### 根因候选表
+| 可能原因 | 支撑证据 | 说明 |
+| --- | --- | --- |
+| 句柄泄漏 | FD文件描述符单调上升 | 新增连接未正常释放 |
+
+#### 关键证据总结
+- 文件描述符计数从 120 持续单调增长至 980
+- 连接池未复用，不断建立新 Socket 连接
+
+---
+
+### 诊断对象: 172.30.34.90:8001 (失败)
+> 提示：当前对象为巡检失败，无法基于指标进行根因分析
+
+---
+
+## 四、最终结论与自愈建议 (Verdict & Recommendations)
+### 1. 问题汇总与关键发现
+经巡检多维关联分析，当前巡检计划下共发现 **2** 个异常实例和 **1** 个失败实例，核心关键发现如下：
+- 对于 **172.30.34.73:8001**：系统检测到其 CPU 使用率异常升高（达 92%）且内存使用率接近上限（达 88%），呈现明显的双高压力，同时伴随错误率的异常波动。
+- 对于 **172.30.34.81:8001**：系统检测到其 activity 文件描述符数（FD Count）达到 980 并单调上升，已高度逼近单实例 resource 上限，存在显著的连接/句柄泄漏风险。
+- 对于 **172.30.34.90:8001**：该实例在巡检期间连接超时（Connection Timeout），端口无法访问，提示处于服务阻断或宕机状态。
+
+※ 总体判定：两台异常实例分别存在高负载和句柄泄漏风险，一台失败实例疑似宕机或网络阻断。均需尽快执行排查或自愈预案。
+
+### 2. 自愈与处置修复方案
+| 异常实例 | 根因诊断结论 | 建议处置措施 |
+| --- | --- | --- |
+| 172.30.34.73:8001 | 系统资源双高压力，疑似内存泄漏与突增负载叠加。 | 1. 建议人工介入 Dump 堆内存进行泄漏点分析；<br>2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。 |
+| 172.30.34.81:8001 | 文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。 | 1. 检查底层 TCP 连接及网络套接字释放逻辑；<br>2. 在测试环境复现连接管理逻辑并定位未关闭连接句柄的代码段。 |
+| 172.30.34.90:8001 | 巡检连接超时，实例可能发生宕机或网络策略拦截。 | 1. 检查目标节点服务端口监听与网络可达性；<br>2. 核验防火墙或安全组拦截规则；<br>3. 确认进程/容器存活状态，必要时执行实例重启。 |
+`;
+    diagHtml = `
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>诊断对象: 172.30.34.73:8001 (异常)</h3>
+        <h4>1. 根因候选表</h4>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+          <thead>
+            <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">可能原因</th><th style="padding: 10px; border: 1px solid #334155;">支撑证据</th><th style="padding: 10px; border: 1px solid #334155;">说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding: 10px; border: 1px solid #334155;">资源压力</td><td style="padding: 10px; border: 1px solid #334155;">CPU + 内存同步上升</td><td style="padding: 10px; border: 1px solid #334155;">资源占用持续增加</td></tr>
+            <tr style="background-color: #0f172a;"><td style="padding: 10px; border: 1px solid #334155;">异常负载</td><td style="padding: 10px; border: 1px solid #334155;">错误率上升</td><td style="padding: 10px; border: 1px solid #334155;">但未与流量直接关联</td></tr>
+          </tbody>
+        </table>
+        <h4>2. 关键证据总结</h4>
+        <ul>
+          <li>CPU 与内存呈现高度同步上升趋势</li>
+          <li>内存未观察到明显回收行为</li>
+          <li>错误率存在异常波动</li>
+        </ul>
+      </div>
+
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>诊断对象: 172.30.34.81:8001 (异常)</h3>
+        <h4>1. 根因候选表</h4>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+          <thead>
+            <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">可能原因</th><th style="padding: 10px; border: 1px solid #334155;">支撑证据</th><th style="padding: 10px; border: 1px solid #334155;">说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding: 10px; border: 1px solid #334155;">句柄泄漏</td><td style="padding: 10px; border: 1px solid #334155;">FD文件描述符单调上升</td><td style="padding: 10px; border: 1px solid #334155;">新连接未正常释放</td></tr>
+          </tbody>
+        </table>
+        <h4>2. 关键证据总结</h4>
+        <ul>
+          <li>文件描述符计数从 120 持续单调增长至 980</li>
+          <li>连接池未复用，不断建立新 Socket 连接</li>
+        </ul>
+      </div>
+
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #ef4444/30; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: rgba(239, 68, 68, 0.05);">
+        <h3>诊断对象: 172.30.34.90:8001 (失败)</h3>
+        <p style="color: #f87171; font-weight: bold;">⚠️ 当前对象为巡检失败，无法基于指标进行根因分析</p>
+      </div>
+
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
+        <p>经巡检多维关联分析，当前巡检计划下共发现 <strong>2</strong> 个异常实例和 <strong>1</strong> 个失败实例，核心关键发现如下：</p>
+        <ul>
+          <li>对于 <strong>172.30.34.73:8001</strong>：系统检测到其 CPU 使用率异常升高（达 92%）且内存使用率接近上限（达 88%），呈现明显的双高压力，同时伴随错误率的异常波动。</li>
+          <li>对于 <strong>172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 980 并单调上升，已高度逼近单实例 resource 上限，存在显著 of 连接/句柄泄漏风险。</li>
+          <li>对于 <strong>172.30.34.90:8001</strong>：该实例在巡检期间连接超时（Connection Timeout），端口无法访问，提示处于服务阻断或宕机状态。</li>
+        </ul>
+        <p style="color: #fbbf24; font-size: 11px; margin-top: 10px;">※ 总体判定：两台异常实例分别存在高负载和句柄泄漏风险，一台失败实例疑似宕机或网络阻断。均需尽快执行排查或自愈预案。</p>
+      </div>
+
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">2. 自愈与处置修复方案</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+          <thead>
+            <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">异常实例</th><th style="padding: 10px; border: 1px solid #334155;">根因诊断结论</th><th style="padding: 10px; border: 1px solid #334155;">建议处置措施</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #334155; font-family: monospace; font-weight: bold;">172.30.34.73:8001</td>
+              <td style="padding: 10px; border: 1px solid #334155;">系统资源双高压力，疑似内存泄漏与突增负载叠加。</td>
+              <td style="padding: 10px; border: 1px solid #334155;">1. 建议人工介入 Dump 堆内存进行泄漏点分析；<br>2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。</td>
+            </tr>
+            <tr style="background-color: #0f172a;">
+              <td style="padding: 10px; border: 1px solid #334155; font-family: monospace; font-weight: bold;">172.30.34.81:8001</td>
+              <td style="padding: 10px; border: 1px solid #334155;">文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。</td>
+              <td style="padding: 10px; border: 1px solid #334155;">1. 检查底层 TCP 连接及网络套接字释放逻辑；<br>2. 在测试环境复现连接管理逻辑并定位未关闭连接句柄的代码段。</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #334155; font-family: monospace; font-weight: bold;">172.30.34.90:8001</td>
+              <td style="padding: 10px; border: 1px solid #334155;">巡检连接超时，实例可能发生宕机或网络策略拦截。</td>
+              <td style="padding: 10px; border: 1px solid #334155;">1. 检查目标节点服务端口监听与网络可达性；<br>2. 核验防火墙或安全组拦截规则；<br>3. 确认进程/容器存活状态，必要时执行实例重启。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  } else {
+    diagMarkdown = `
+## 三、根因分析 (Root Cause Analysis)
+当前分支为全量巡检失败分支。由于所有 **23** 个实例在数据采集阶段全部响应超时（Connection Timeout），系统无法获取到性能指标，**无法基于指标进行针对性根因分析**。
+
+## 四、最终结论与自愈建议 (Verdict & Recommendations)
+### 1. 问题汇总与关键发现
+经巡检多维关联分析，当前巡检计划下 **23** 个实例全部响应超时，表现为网络连通性阻断。
+- 端口监听失败，网络无法建连。
+- 判定为系统性网络割接阻断、DNS 配置故障、或安全组策略批量拦截。
+
+### 2. 自愈与处置修复方案
+建议运维人员排查以下集群底层底座状态：
+1. **网络与安全策略**：核验交换机、路由器路由策略及防火墙安全组规则，确认是否存在全局断连规则。
+2. **DNS 与注册中心**：核验内部服务域名解析是否正确，是否因配置中心同步失败导致 IP 整体漂移。
+3. **Pod/容器宿主机**：确认对应集群宿主机物理状态是否存活，节点是否发生僵死或磁盘写满保护。
+`;
+    diagHtml = `
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">三、根因分析 (Root Cause Analysis)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #ef4444/30; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: rgba(239, 68, 68, 0.05);">
+        <p style="color: #f87171; font-weight: bold;">⚠️ 当前分支为全量巡检失败分支。由于所有 23 个实例全部响应超时，系统无法获取性能指标，无法进行指标根因分析。</p>
+      </div>
+
+      <h2 style="color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px;">四、最终结论与自愈建议 (Verdict & Recommendations)</h2>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">1. 问题汇总与关键发现</h3>
+        <p>经巡检多维关联分析，当前巡检计划下 <strong>23</strong> 个实例全部响应超时，表现为网络连通性阻断。</p>
+        <ul>
+          <li>端口监听失败，网络无法建连。</li>
+          <li>判定为系统性网络割接阻断、DNS 配置故障、或安全组策略批量拦截。</li>
+        </ul>
+      </div>
+      <div class="info-card" style="background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #e2e8f0; margin-top: 15px;">2. 自愈与处置修复方案</h3>
+        <p>建议运维人员排查以下集群底层底座状态：</p>
+        <ol>
+          <li><strong>网络与安全策略</strong>：核验交换机、路由器路由策略及防火墙安全组规则，确认是否存在全局断连规则。</li>
+          <li><strong>DNS 与注册中心</strong>：核验内部服务域名解析是否正确，是否因配置中心同步失败导致 IP 整体漂移。</li>
+          <li><strong>Pod/容器宿主机</strong>：确认对应集群宿主机物理状态是否存活，节点是否发生僵死或磁盘写满保护。</li>
+        </ol>
+      </div>
+    `;
+  }
+
+  if (format === 'md') {
+    const mdContent = `# SRE-Agent 自动巡检报告\n
+报告名称: ${data.name}
+报告 ID: ${data.id || 'INSP-CURRENT'}
+巡检分支: ${branchLabel}
+生成时间: ${new Date().toLocaleString()}\n
+---
+
+## 一、巡检基本状态概览 (Basic Status Overview)
+${fullObjectsTableMarkdown}\n
+## 二、指标对比与趋势概览 (Metrics and Trends Overview)
+${trendTableMarkdown}\n
+${diagMarkdown}
+`;
+    const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `巡检报告_${data.id || 'INSP'}_${branch}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } else {
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SRE-Agent 巡检报告 - ${data.name}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #0b0f19;
+      color: #cbd5e1;
+      padding: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    h1 { color: #f8fafc; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+    h2 { color: #38bdf8; margin-top: 30px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    h3 { color: #e2e8f0; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+    th { background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left; padding: 10px; border: 1px solid #334155; }
+    td { padding: 10px; border: 1px solid #334155; }
+    tr:nth-child(even) { background-color: #0f172a; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .badge-normal { background-color: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-abnormal { background-color: rgba(244, 63, 94, 0.1); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.2); }
+    .badge-failed { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .code { font-family: monospace; background-color: #020617; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; color: #34d399; white-space: pre-wrap; }
+    .info-card { background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>SRE-Agent 自动巡检报告</h1>
+  <div class="info-card">
+    <p><strong>报告名称：</strong> ${data.name}</p>
+    <p><strong>报告 ID：</strong> ${data.id || 'INSP-CURRENT'}</p>
+    <p><strong>巡检分支：</strong> ${branchLabel}</p>
+    <p><strong>生成时间：</strong> ${new Date().toLocaleString()}</p>
+  </div>
+
+  <h2>一、巡检基本状态概览 (Basic Status Overview)</h2>
+  <table>
+    <thead>
+      <tr><th>序号</th><th>巡检对象</th><th>状态</th><th>严重级别</th><th>核心摘要</th></tr>
+    </thead>
+    <tbody>
+      ${fullObjectsTableRows}
+    </tbody>
+  </table>
+
+  <h2>二、指标对比与趋势概览 (Metrics and Trends Overview)</h2>
+  <table>
+    <thead>
+      <tr><th>指标名称</th><th>绑定参数</th><th>评估状态</th><th>10:00</th><th>10:10</th><th>10:20</th><th>10:30</th><th>趋势</th></tr>
+    </thead>
+    <tbody>
+      ${trendTableRows}
+    </tbody>
+  </table>
+
+  ${diagHtml}
+</body>
+</html>
+`;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `巡检报告_${data.id || 'INSP'}_${branch}.html`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+};
+
+
 const getFallbackNodeDetails = (nodeIp: string, branch: string) => {
   const isFailed = nodeIp === '172.30.34.90:8001' || branch === 'failed';
   return {
@@ -7015,17 +7429,36 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                     <span>生成时间日期: {selectedReportId === 'current' ? (data.updatedAt || new Date().toLocaleString()) : fullHistory.find(h => h.id === selectedReportId)?.updatedAt}</span>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700">
-                    <Download size={14} /> 导出为 PDF
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportReport(data, branch, 'md')}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700 hover:border-slate-600"
+                    title="导出全量巡检数据的 Markdown 报告文档"
+                  >
+                    <Download size={13} /> 导出 Markdown
                   </button>
-                  <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all border border-transparent hover:border-rose-500/20">
-                    <X size={24} />
+                  <button
+                    onClick={() => exportReport(data, branch, 'html')}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all border border-indigo-500 shadow-md shadow-indigo-900/10 active:scale-95"
+                    title="导出带精美排版和高亮主题的 HTML 报告网页"
+                  >
+                    <Download size={13} /> 导出 HTML
+                  </button>
+                  <button onClick={onClose} className="p-2 rounded-xl hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all border border-transparent hover:border-rose-500/20 ml-2">
+                    <X size={20} />
                   </button>
                 </div>
               </div>
 
               <div className="p-10 space-y-12 max-w-4xl mx-auto flex-1 text-left font-sans relative">
+                {/* 界面全量数据导出提示 */}
+                <div className="text-[11px] text-amber-400 bg-amber-950/10 border border-amber-500/10 rounded-xl px-4 py-3 leading-relaxed flex items-start gap-2 shadow-inner">
+                  <span className="shrink-0 select-none">💡</span>
+                  <span>
+                    <strong>提示：</strong>为优化网页加载与交互性能，当前界面仅精简展示 Top 关键对象与参数趋势。若需获取全部 23 个实例及完整历史趋势数据，请点击右上角 <strong>[导出 Markdown]</strong> 或 <strong>[导出 HTML]</strong> 获取完整报告文档。
+                  </span>
+                </div>
+
                 {isPhased ? (
                   <>
                     {/* Phase 1: 开始分析 */}
