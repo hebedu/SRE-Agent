@@ -1891,7 +1891,10 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
 
         {/* ① 脚本预览 */}
         <div className="flex flex-col gap-2">
-          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">① 脚本预览 (Shell)</span>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className={`w-1 h-3.5 rounded-full ${risk === '高' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">① 脚本预览 (Shell)</span>
+          </div>
           <pre className="p-3.5 bg-black/60 border border-slate-800/80 rounded-xl font-mono text-xs text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
             {remediation?.script || ''}
           </pre>
@@ -1899,7 +1902,10 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
 
         {/* ② 风险提示 */}
         <div className="flex flex-col gap-2">
-          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">② 风险提示</span>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className={`w-1 h-3.5 rounded-full ${risk === '高' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">② 风险提示</span>
+          </div>
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3.5 text-xs space-y-3">
             <div className="flex justify-between border-b border-slate-800/40 pb-2">
               <span className="text-slate-500 font-bold">操作类型</span>
@@ -1926,21 +1932,16 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
 
         {/* ③ 影响范围 */}
         <div className="flex flex-col gap-2">
-          <span className="text-[11.5px] font-black text-slate-500 uppercase tracking-widest">③ 影响范围 & 爆炸半径</span>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className={`w-1 h-3.5 rounded-full ${risk === '高' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">③ 受影响的对象</span>
+          </div>
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3.5 text-xs space-y-3.5">
             <div>
               <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">受影响对象</div>
               <div className="flex flex-wrap gap-2">
                 {remediation?.blastRadius?.targets?.map((t: string, i: number) => (
                   <span key={i} className="px-2.5 py-0.5 bg-slate-950 border border-slate-800/80 rounded text-[10.5px] text-slate-300 font-mono">{t}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">波及应用与微服务</div>
-              <div className="flex flex-wrap gap-2">
-                {remediation?.blastRadius?.impactServices?.map((s: string, i: number) => (
-                  <span key={i} className="px-2.5 py-0.5 bg-rose-500/5 border border-rose-500/10 rounded text-[10.5px] text-rose-400 font-mono font-bold">{s}</span>
                 ))}
               </div>
             </div>
@@ -2018,7 +2019,7 @@ const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
                   : 'text-slate-500 border-transparent hover:text-slate-300'
               }`}
             >
-              {tab === 'script' ? '① 脚本内容' : tab === 'risk' ? '② 风险评估' : '③ 影响范围'}
+              {tab === 'script' ? '① 脚本内容' : tab === 'risk' ? '② 风险评估' : '③ 受影响的对象'}
             </button>
           ))}
         </div>
@@ -2074,24 +2075,15 @@ const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
           {activeTab === 'blast' && (
             <div className="space-y-4">
               <div className="text-xs text-slate-400">
-                系统通过拓扑与依赖链推导出的 <span className="font-bold text-slate-200">Blast Radius (爆炸半径)</span> 关联对象：
+                系统核对的自愈脚本直接关联的物理实体或运行节点：
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-500 font-bold uppercase">直接影响资源</div>
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">受影响对象</div>
                   <div className="flex flex-wrap gap-2">
                     {blastRadius?.targets?.map((t: string, i: number) => (
                       <span key={i} className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono italic">{t}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 pt-2">
-                  <div className="text-[10px] text-slate-500 font-bold uppercase">波及应用与微服务</div>
-                  <div className="flex flex-wrap gap-2">
-                    {blastRadius?.impactServices?.map((s: string, i: number) => (
-                      <span key={i} className="px-2.5 py-1 bg-rose-500/5 border border-rose-500/10 rounded-lg text-[10px] text-rose-400 font-mono font-bold">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -3030,9 +3022,9 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                     </div>
                     <div className="space-y-1.5 text-[10.5px]">
                       <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">审批人</span><span className="text-slate-200 font-medium">— (免批)</span></div>
-                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>时间: {audit?.time ? (audit.time.split(' ')[1] || audit.time) : '—'}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit?.script || ''}>CLEAN-v2.1</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">操作结果</span><span className="text-emerald-400 font-bold">自愈成功</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">操作时间</span><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>${audit?.time ? (audit.time.includes('-') || audit.time.includes('/') ? audit.time : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')} ${audit.time}`) : '—'}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">操作脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title={audit?.script || ''}>CLEAN-v2.1</span></div>
                     </div>
                   </div>
                 </div>
@@ -3636,14 +3628,1041 @@ const MySQLTaskEditListCard = ({ onAction, data }: any) => {
   );
 };
 
+const PREDEFINED_NODE_DETAILS = {
+  '172.30.34.73:8001': {
+    detailTable: [
+      ['对象', '172.30.34.73:8001'],
+      ['状态', 'completed'],
+      ['结果', 'abnormal'],
+      ['严重级别', 'critical'],
+      ['摘要', 'Python: RSS=1821MB threads=7 fd=19'],
+      ['问题描述', '该对象存在资源使用异常，RSS 内存较高，CPU 使用率持续升高，需关注资源压力。'],
+      ['影响范围', '当前服务实例，可能影响响应性能与稳定性。']
+    ],
+    baseMetrics: [
+      ['FD 数', 'fd_count', '19', '个'],
+      ['进程 ID', 'pid', '1', '-'],
+      ['进程存活状态', 'process_alive', 'true', '存活'],
+      ['RSS 内存', 'rss_mb', '1821', 'MB'],
+      ['线程数', 'threads', '7', '个']
+    ],
+    evalMetrics: [
+      ['CPU 使用率', '92%', '80%', '异常'],
+      ['内存使用率', '88%', '80%', '偏高'],
+      ['错误率', '3.2%', '1%', '异常']
+    ],
+    anomalies: [
+      'CPU 使用率异常升高（92%）',
+      '内存使用率接近上限（88%）',
+      '错误率高于阈值（3.2%）'
+    ],
+    charts: [
+      {
+        title: 'CPU 使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [65, 70, 75, 82, 88, 90, 92],
+        events: [{ time: '10:15', label: '异常开始' }]
+      },
+      {
+        title: '内存使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [60, 65, 70, 75, 80, 85, 88]
+      },
+      {
+        title: '错误率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [0.5, 0.8, 1.0, 1.5, 2.2, 2.8, 3.2]
+      }
+    ],
+    historyTable: [
+      ['CPU 使用率', '92%', '68%', '80%', '明显偏高'],
+      ['内存使用率', '88%', '64%', '80%', '明显偏高'],
+      ['错误率', '3.2%', '0.8%', '1%', '明显偏高']
+    ],
+    diagnosis: {
+      candidates: [
+        ['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'],
+        ['异常负载', '错误率上升', '但未与流量直接关联']
+      ],
+      evidences: [
+        'CPU 与内存呈现高度同步上升趋势',
+        '内存未观察到明显回收行为',
+        '错误率存在异常波动'
+      ],
+      unconfirmed: [
+        '未获取详细日志',
+        '未获取线程堆栈',
+        '未确认近期发布变更'
+      ]
+    },
+    verdict: {
+      summary: [
+        ['分析对象', '172.30.34.73:8001'],
+        ['问题类型', '资源使用异常'],
+        ['影响范围', '当前服务实例'],
+        ['状态', '持续中'],
+        ['严重级别', 'critical']
+      ],
+      findings: [
+        'CPU 使用率持续 high 位运行',
+        '内存持续增长且未明显回落',
+        '错误率高于历史基线'
+      ],
+      judgment: '当前对象存在资源压力风险，可能影响服务稳定性与响应性能。当前仍需持续关注。',
+      recommendations: [
+        '建议查看当前对象对应时间段日志',
+        '建议持续关注当前对象资源变化趋势',
+        '建议确认当前对象近期是否存在发布或配置变更'
+      ],
+      boundary: [
+        '详细日志',
+        '线程堆栈',
+        'Heap Dump',
+        '应用代码链路'
+      ]
+    }
+  },
+  '172.30.34.81:8001': {
+    detailTable: [
+      ['对象', '172.30.34.81:8001'],
+      ['状态', 'completed'],
+      ['结果', 'abnormal'],
+      ['严重级别', 'critical'],
+      ['摘要', 'Python: RSS=486MB threads=12 fd=980'],
+      ['问题描述', '文件句柄数已接近系统允许上限，存在句柄泄漏风险。'],
+      ['影响范围', '可能导致新连接无法建立，引发服务崩溃。']
+    ],
+    baseMetrics: [
+      ['FD 数', 'fd_count', '980', '个'],
+      ['进程 ID', 'pid', '12', '-'],
+      ['进程存活状态', 'process_alive', 'true', '存活'],
+      ['RSS 内存', 'rss_mb', '486', 'MB'],
+      ['线程数', 'threads', '12', '个']
+    ],
+    evalMetrics: [
+      ['CPU 使用率', '28%', '80%', '正常'],
+      ['内存使用率', '45%', '80%', '正常'],
+      ['FD 使用数', '980', '800', '异常']
+    ],
+    anomalies: [
+      'FD文件描述符使用率过高（95%）',
+      '接近系统句柄上限（1024）'
+    ],
+    charts: [
+      {
+        title: 'FD 使用数趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [300, 350, 420, 510, 700, 880, 980],
+        events: [{ time: '10:20', label: '急剧上升' }]
+      },
+      {
+        title: 'CPU 使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [25, 26, 28, 27, 28, 29, 28]
+      },
+      {
+        title: '内存使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [40, 42, 43, 44, 45, 45, 45]
+      }
+    ],
+    historyTable: [
+      ['FD使用数', '980', '150', '800', '接近上限'],
+      ['CPU使用率', '28%', '25%', '80%', '正常']
+    ],
+    diagnosis: {
+      candidates: [
+        ['句柄泄漏', 'FD 数量突增且持续不下降', '疑似连接或文件流未关闭'],
+        ['连接池泄露', '与上游调用增加相关', '资源句柄耗尽']
+      ],
+      evidences: [
+        'FD 句柄在近 30 分钟内呈指数级上涨',
+        '未见任何句柄释放行为'
+      ],
+      unconfirmed: [
+        '未确认底层文件流是否合理关闭',
+        '未确认 Socket 连接重试策略'
+      ]
+    },
+    verdict: {
+      summary: [
+        ['分析对象', '172.30.34.81:8001'],
+        ['问题类型', 'FD 句柄数超限'],
+        ['影响范围', '当前服务实例'],
+        ['状态', '持续中'],
+        ['严重级别', 'critical']
+      ],
+      findings: [
+        '文件句柄数已达 980，逼近 1024 限制',
+        '未观察到文件句柄回收动作'
+      ],
+      judgment: '当前对象已达临界限制，随时可能因 Out of FDs 拒绝连接，建议尽快核查。',
+      recommendations: [
+        '建议查看该实例打开的文件 and 连接详情 (lsof)',
+        '确认底层资源是否在 finally 中正确释放'
+      ],
+      boundary: [
+        '当前文件流堆栈',
+        '未释放的 HTTP/TCP 连接链'
+      ]
+    }
+  },
+  '172.30.34.90:8001': {
+    detailTable: [
+      ['对象', '172.30.34.90:8001'],
+      ['状态', 'failed'],
+      ['结果', 'failed'],
+      ['严重级别', 'critical'],
+      ['失败原因', '连接超时'],
+      ['错误信息', '无法连接目标对象，巡检脚本未执行'],
+      ['影响范围', '当前对象所有配置检查项均未完成']
+    ],
+    uncollectedMetrics: [
+      ['CPU 使用率', '否', '连接失败，无法采集'],
+      ['内存使用率', '否', '连接失败，无法采集'],
+      ['RSS 内存', '否', '连接失败，无法采集'],
+      ['线程数', '否', '连接失败，无法采集'],
+      ['FD 数', '否', '连接失败，无法采集']
+    ],
+    diagnosis: {
+      candidates: [
+        ['网络连接异常', '连接超时', '无法连接目标对象']
+      ],
+      unconfirmed: [
+        '未确认目标对象网络是否可达',
+        '未确认 Agent 是否正常运行',
+        '未确认巡检脚本权限配置',
+        '未确认目标对象是否发生重启或迁移'
+      ]
+    },
+    verdict: {
+      summary: [
+        ['分析对象', '172.30.34.90:8001'],
+        ['巡检结果', 'failed'],
+        ['影响范围', '当前对象所有检查项未完成'],
+        ['当前状态', '巡检未完整完成'],
+        ['严重级别', 'critical']
+      ],
+      findings: [
+        '当前对象巡检执行失败',
+        '失败对象无法采集 CPU、内存、RSS、线程数、FD 数等指标',
+        '当前数据不足以判断该对象的服务健康状态',
+        '本次失败会影响该对象的巡检完整性'
+      ],
+      judgment: '当前问题属于巡检执行失败，不等同于服务业务异常。当前对象的实际运行状态未知。需要先恢复巡检采集能力，再进行健康判断。',
+      recommendations: [
+        '建议确认当前对象网络连通性',
+        '建议确认当前对象 Agent 是否在线',
+        '建议确认当前对象巡检脚本权限配置',
+        '建议重新执行当前对象巡检'
+      ],
+      boundary: [
+        '当前对象实时指标',
+        '当前对象历史趋势',
+        '当前对象日志',
+        '目标主机实际运行状态'
+      ]
+    }
+  },
+  '172.30.34.91:8001': {
+    detailTable: [
+      ['对象', '172.30.34.91:8001'],
+      ['状态', 'failed'],
+      ['结果', 'failed'],
+      ['严重级别', 'critical'],
+      ['失败原因', 'Agent 离线'],
+      ['错误信息', 'SRE Agent 已丢失心跳超过 5 分钟'],
+      ['影响范围', '当前对象所有指标和配置检查均未完成']
+    ],
+    uncollectedMetrics: [
+      ['CPU 使用率', '否', 'Agent 离线，无法采集'],
+      ['内存使用率', '否', 'Agent 离线，无法采集'],
+      ['RSS 内存', '否', 'Agent 离线，无法采集'],
+      ['线程数', '否', 'Agent 离线，无法采集'],
+      ['FD 数', '否', 'Agent 离线，无法采集']
+    ],
+    diagnosis: {
+      candidates: [
+        ['Agent 离线', 'Agent 状态不可用', '目标对象无法执行巡检脚本']
+      ],
+      unconfirmed: [
+        '未确认目标对象网络是否可达',
+        '未确认 Agent 服务是否被强杀',
+        '未确认目标主机系统资源负载是否已满导致假死'
+      ]
+    },
+    verdict: {
+      summary: [
+        ['分析对象', '172.30.34.91:8001'],
+        ['巡检结果', 'failed'],
+        ['影响范围', '当前对象所有检查项未完成'],
+        ['当前状态', '巡检未完整完成'],
+        ['严重级别', 'critical']
+      ],
+      findings: [
+        '当前对象 Agent 心跳丢失已超 5 分钟',
+        '无法读取系统实时及历史状态',
+        '本次失败导致检查无法闭环'
+      ],
+      judgment: '由于 Agent 离线，无法判断其业务状态，可能主机故障或 Agent 进程死亡，需要优先排查 Agent 服务状态。',
+      recommendations: [
+        '建议登录主机执行 systemctl status sre-agent 检查 Agent 服务状态',
+        '检查 Agent 配置文件中的心跳上报地址是否正确'
+      ],
+      boundary: [
+        '当前对象实时指标',
+        '当前对象历史趋势',
+        'Agent 运行日志'
+      ]
+    }
+  },
+  '172.30.34.92:8001': {
+    detailTable: [
+      ['对象', '172.30.34.92:8001'],
+      ['状态', 'failed'],
+      ['结果', 'failed'],
+      ['严重级别', 'warning'],
+      ['失败原因', '权限不足'],
+      ['错误信息', '执行巡检脚本时返回 Permission Denied'],
+      ['影响范围', '部分高特权系统指标未完成采集']
+    ],
+    uncollectedMetrics: [
+      ['CPU 使用率', '是', '正常'],
+      ['内存使用率', '是', '正常'],
+      ['RSS 内存', '否', '无权读取 /proc 目录'],
+      ['线程数', '否', '无权读取 /proc 目录'],
+      ['FD 数', '否', '无权读取 /proc 目录']
+    ],
+    diagnosis: {
+      candidates: [
+        ['权限配置不足', '返回权限错误', '脚本无权限访问部分指标']
+      ],
+      unconfirmed: [
+        '未确认执行账号的用户组配置',
+        '未确认 sudoers 文件中巡检指令的免密权限配置'
+      ]
+    },
+    verdict: {
+      summary: [
+        ['分析对象', '172.30.34.92:8001'],
+        ['巡检结果', 'failed'],
+        ['影响范围', '部分高特权配置检查项未完成'],
+        ['当前状态', '巡检未完整完成'],
+        ['严重级别', 'warning']
+      ],
+      findings: [
+        '部分基础系统信息采集受限',
+        '未完成 RSS、线程数、FD 数采集'
+      ],
+      judgment: '巡检部分失败，权限配置不全。部分指标正常采集，但不完整。建议排查账户权限设置。',
+      recommendations: [
+        '建议核查巡检脚本在目标主机上的执行账号所属用户组',
+        '核查 /etc/sudoers 配置文件中赋予该账号的权限'
+      ],
+      boundary: [
+        '高特权指标数据',
+        '内核级别文件描述符监控'
+      ]
+    }
+  }
+};
+
+const generateInspectionAnalysisData = (task) => {
+  let branch = 'abnormal';
+  if (task.status === '健康' || task.status === '正常') {
+    branch = 'normal';
+  } else if (task.status === '失败') {
+    branch = 'failed';
+  }
+
+  const name = task.name || 'Python 应用综合巡检计划_20260612_152439';
+  const updatedAt = task.updatedAt || '2026-06-12 15:24:39';
+
+  let stage1 = {};
+  let stage2 = {};
+  let stage3 = {};
+  let stage4 = {};
+  let priorityObjects = [];
+  const nodeDetails = PREDEFINED_NODE_DETAILS;
+
+  if (branch === 'normal') {
+    const planInfo = [
+      ['巡检计划名称', name],
+      ['执行结果', 'normal'],
+      ['执行时间', updatedAt],
+      ['严重级别', 'info']
+    ];
+
+    const normalFirstFive = [
+      ['1', '172.30.34.73:8001', 'normal', 'info', 'RSS=512MB CPU=32%'],
+      ['2', '172.30.34.81:8001', 'normal', 'info', 'RSS=486MB CPU=28%'],
+      ['3', '172.30.34.90:8001', 'normal', 'info', 'RSS=530MB CPU=35%'],
+      ['4', '172.30.34.91:8001', 'normal', 'info', 'RSS=498MB CPU=31%'],
+      ['5', '172.30.34.92:8001', 'normal', 'info', 'RSS=520MB CPU=33%']
+    ];
+    const objectsTable = [...normalFirstFive];
+    for (let i = 6; i <= 23; i++) {
+      objectsTable.push([
+        i.toString(),
+        `172.30.34.${72 + i}:8001`,
+        'normal',
+        'info',
+        `RSS=${480 + (i * 3) % 40}MB CPU=${28 + (i * 2) % 10}%`
+      ]);
+    }
+
+    stage1 = {
+      planInfo,
+      objectCount: 23,
+      objectsTable,
+      objectStats: [
+        ['巡检对象总数', 23],
+        ['正常对象数', 23],
+        ['异常对象数', 0],
+        ['失败对象数', 0]
+      ],
+      healthSummary: '本次巡检共覆盖 23 个对象，所有对象均执行成功，未发现异常对象或失败对象。关键资源指标整体处于正常范围内，CPU、内存、错误率均未出现超阈值情况，当前系统运行状态稳定。'
+    };
+
+    const trendTable = [
+      ['172.30.34.73:8001', 28, 30, 31, 32, 31, 33, 32, '平稳'],
+      ['172.30.34.81:8001', 25, 26, 28, 27, 28, 29, 28, '平稳'],
+      ['172.30.34.90:8001', 30, 31, 30, 32, 31, 30, 32, '平稳'],
+      ['172.30.34.91:8001', 29, 30, 30, 31, 31, 32, 31, '平稳'],
+      ['172.30.34.92:8001', 27, 28, 29, 29, 30, 30, 31, '平稳']
+    ];
+    for (let i = 6; i <= 23; i++) {
+      trendTable.push([
+        `172.30.34.${72 + i}:8001`,
+        25 + (i % 5), 26 + (i % 4), 28 - (i % 3), 27 + (i % 2), 28, 29 - (i % 4), 28, '平稳'
+      ]);
+    }
+
+    stage2 = {
+      trendTable,
+      trendSummary: '近 30 分钟内，核心巡检对象的 CPU、内存和错误率整体保持平稳，未观察到持续上升、突增或异常波动。当前趋势与正常巡检状态一致，暂无潜在恶化迹象。'
+    };
+
+    stage3 = {
+      judgmentTable: [
+        ['执行完整性', '通过', '所有对象巡检成功'],
+        ['结果检查', '通过', '无异常对象，无失败对象'],
+        ['阈值检查', '通过', '关键指标均低于阈值'],
+        ['趋势检查', '通过', '近 30 分钟无持续恶化趋势']
+      ],
+      evidenceList: [
+        '本次巡检覆盖 23 个对象',
+        '所有对象均执行成功',
+        '未发现异常或失败对象',
+        '关键指标整体处于正常范围',
+        '关键趋势整体平稳'
+      ]
+    };
+
+    stage4 = {
+      verdictTable: [
+        ['巡检结果', '正常'],
+        ['影响范围', '无异常影响'],
+        ['当前状态', '稳定'],
+        ['严重级别', 'info']
+      ],
+      verdictJudgments: [
+        '当前系统运行状态稳定',
+        '暂未发现资源压力或错误率异常',
+        '无需立即处理'
+      ],
+      verdictSuggestions: [
+        '建议保持当前巡检策略',
+        '建议继续按计划执行后续巡检',
+        '如业务高峰期临近，可持续关注核心服务指标'
+      ]
+    };
+
+  } else if (branch === 'abnormal') {
+    const planInfo = [
+      ['巡检计划名称', name],
+      ['执行结果', 'abnormal'],
+      ['执行时间', updatedAt],
+      ['严重级别', 'critical']
+    ];
+
+    const abnormalFirstFive = [
+      ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
+      ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
+      ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时'],
+      ['4', '172.30.34.91:8001', 'normal', 'info', 'RSS=512MB CPU=32%'],
+      ['5', '172.30.34.92:8001', 'normal', 'info', 'RSS=498MB CPU=31%']
+    ];
+    const objectsTable = [...abnormalFirstFive];
+    for (let i = 6; i <= 23; i++) {
+      objectsTable.push([
+        i.toString(),
+        `172.30.34.${72 + i}:8001`,
+        'normal',
+        'info',
+        `RSS=${480 + (i * 3) % 40}MB CPU=${28 + (i * 2) % 10}%`
+      ]);
+    }
+
+    priorityObjects = [
+      { ip: '172.30.34.73:8001', type: 'abnormal', severity: 'critical', reason: 'CPU=92%，RSS=1821MB' },
+      { ip: '172.30.34.81:8001', type: 'abnormal', severity: 'critical', reason: 'FD=980 接近上限' },
+      { ip: '172.30.34.90:8001', type: 'failed', severity: 'critical', reason: '连接超时' }
+    ];
+
+    stage1 = {
+      planInfo,
+      objectCount: 23,
+      objectsTable,
+      objectStats: [
+        ['巡检对象总数', 23],
+        ['正常对象数', 20],
+        ['异常对象数', 2],
+        ['失败对象数', 1]
+      ]
+    };
+
+    const trendTable = [
+      ['172.30.34.73:8001', 65, 70, 75, 82, 88, 90, 92, '稳步上升'],
+      ['172.30.34.81:8001', 40, 42, 45, 48, 70, 88, 95, '突增'],
+      ['172.30.34.91:8001', 30, 31, 30, 32, 31, 30, 32, '平稳']
+    ];
+    for (let i = 4; i <= 23; i++) {
+      trendTable.push([
+        `172.30.34.${72 + i}:8001`,
+        25 + (i % 5), 26 + (i % 4), 28 - (i % 3), 27 + (i % 2), 28, 29 - (i % 4), 28, '平稳'
+      ]);
+    }
+
+    stage2 = {
+      trendTable
+    };
+
+  } else if (branch === 'failed') {
+    const planInfo = [
+      ['巡检计划名称', name],
+      ['执行结果', 'failed'],
+      ['执行时间', updatedAt],
+      ['严重级别', 'critical']
+    ];
+
+    const failedFirstFive = [
+      ['1', '172.30.34.90:8001', 'failed', 'critical', '连接超时'],
+      ['2', '172.30.34.91:8001', 'failed', 'critical', 'Agent 离线'],
+      ['3', '172.30.34.92:8001', 'failed', 'warning', '权限不足'],
+      ['4', '172.30.34.73:8001', 'normal', 'info', 'RSS=512MB CPU=32%'],
+      ['5', '172.30.34.81:8001', 'normal', 'info', 'RSS=486MB CPU=28%']
+    ];
+    const objectsTable = [...failedFirstFive];
+    for (let i = 6; i <= 23; i++) {
+      objectsTable.push([
+        i.toString(),
+        `172.30.34.${72 + i}:8001`,
+        'normal',
+        'info',
+        `RSS=${480 + (i * 3) % 40}MB CPU=${28 + (i * 2) % 10}%`
+      ]);
+    }
+
+    priorityObjects = [
+      { ip: '172.30.34.90:8001', reason: '连接超时', severity: 'critical', impact: '所有检查项未完成' },
+      { ip: '172.30.34.91:8001', reason: 'Agent 离线', severity: 'critical', impact: '所有检查项未完成' },
+      { ip: '172.30.34.92:8001', reason: '权限不足', severity: 'warning', impact: '部分检查项未完成' }
+    ];
+
+    stage1 = {
+      planInfo,
+      objectCount: 23,
+      objectsTable,
+      objectStats: [
+        ['巡检对象总数', 23],
+        ['正常对象数', 20],
+        ['异常对象数', 0],
+        ['失败对象数', 3]
+      ]
+    };
+
+    stage2 = {
+      failedDistribution: [
+        ['连接超时', 1, '172.30.34.90:8001'],
+        ['Agent 离线', 1, '172.30.34.91:8001'],
+        ['权限不足', 1, '172.30.34.92:8001']
+      ],
+      failedImpact: [
+        ['影响对象数', '3'],
+        ['未完成检查项', 'CPU、内存、RSS、线程数、FD 数'],
+        ['是否影响本次巡检完整性', '是'],
+        ['是否可判断服务健康', '否，部分对象数据缺失']
+      ]
+    };
+
+    stage3 = {
+      reasonsTable: [
+        ['网络连接异常', '1', '172.30.34.90:8001', '连接超时', '巡检系统无法连接目标对象，导致检查脚本未执行'],
+        ['Agent 离线', '1', '172.30.34.91:8001', 'Agent 状态不可用', '目标对象无法响应巡检任务，指标无法采集'],
+        ['权限配置不足', '1', '172.30.34.92:8001', '返回权限错误', '巡检脚本无权限访问部分系统指标']
+      ],
+      ratioTable: [
+        ['网络连接异常', '1', '33.3%'],
+        ['Agent 离线', '1', '33.3%'],
+        ['权限配置不足', '1', '33.3%']
+      ],
+      judgments: [
+        '网络连接异常：目标对象不可达或连接超时，导致巡检脚本无法执行。',
+        'Agent 状态异常：目标对象 Agent 离线或无响应，导致巡检任务无法下发或执行。',
+        '权限配置不足：巡检脚本缺少必要权限，导致部分指标无法采集。'
+      ],
+      unconfirmed: [
+        '是否存在网络连通性问题，例如目标对象不可达、端口不通、防火墙限制。',
+        '是否存在 Agent 离线、异常退出、心跳中断等情况。',
+        '是否存在巡检脚本权限不足、账号授权缺失、指标访问受限等问题。',
+        '是否存在目标对象重启、迁移、下线或配置变更情况。'
+      ],
+      conclusion: '本次失败属于巡检执行层面的失败，当前数据不足以判断失败对象的真实服务健康状态。需要先恢复巡检采集能力，再重新执行失败对象巡检，之后才能继续判断是否存在资源异常或业务异常。'
+    };
+
+    stage4 = {
+      verdictTable: [
+        ['巡检结果', '失败'],
+        ['巡检对象总数', '23'],
+        ['失败对象数', '3'],
+        ['失败占比', '13%'],
+        ['主要失败原因', '连接超时、Agent 离线、权限不足'],
+        ['巡检完整性', '受影响'],
+        ['服务健康判断', '部分对象数据缺失，无法完整判断']
+      ],
+      findings: [
+        '本次巡检共覆盖 23 个对象，其中 3 个对象执行失败。',
+        '失败对象主要集中在连接超时、Agent 离线、权限不足三类原因。',
+        '失败对象无法采集 CPU、内存、RSS、线程数、FD 数等关键指标。',
+        '由于部分对象数据缺失，本次巡检完整性受到影响。',
+        '当前无法基于失败对象判断其真实服务健康状态。'
+      ],
+      judgments: [
+        '当前问题属于巡检执行失败，不等同于服务业务异常。',
+        '本次巡检结果不完整，失败对象的实际运行状态未知。',
+        '需要优先恢复失败对象的巡检采集能力。',
+        '只有重新采集到指标后，才能继续判断失败对象是否存在业务或资源异常。'
+      ],
+      recommendationsTable: [
+        ['连接超时', '确认目标对象网络连通性、端口访问状态、防火墙策略'],
+        ['Agent 离线', '确认 Agent 是否在线、是否正常运行、心跳是否恢复'],
+        ['权限不足', '确认巡检脚本执行权限、指标访问权限、账号授权配置']
+      ],
+      supplementaryRecommendations: [
+        '建议优先处理严重级别较高的失败对象。',
+        '建议恢复采集能力后，重新执行失败对象巡检。',
+        '建议重新巡检后再生成健康判断或异常分析结论。'
+      ]
+    };
+  }
+
+  return {
+    format: '0412_phased',
+    branch,
+    name,
+    updatedAt,
+    status: task.status,
+    priorityObjects,
+    nodeDetails,
+    stage1,
+    stage2,
+    stage3,
+    stage4
+  };
+};
+
+
+const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelectIp }: any) => {
+  const [search, setSearch] = useState('');
+  const [filterResult, setFilterResult] = useState('全部');
+  const [filterSeverity, setFilterSeverity] = useState('全部');
+
+  if (!isOpen) return null;
+
+  const filtered = objects.filter((row: any) => {
+    const ip = row[1] || '';
+    const result = row[2] || '';
+    const severity = row[3] || '';
+    
+    const matchesSearch = ip.toLowerCase().includes(search.toLowerCase());
+    const matchesResult = filterResult === '全部' || result === filterResult ||
+      (filterResult === 'normal' && result === '正常') ||
+      (filterResult === 'abnormal' && result === '异常') ||
+      (filterResult === 'failed' && result === '失败');
+    const matchesSeverity = filterSeverity === '全部' || severity === filterSeverity ||
+      (filterSeverity === 'info' && severity === '普通') ||
+      (filterSeverity === 'warning' && severity === '警告') ||
+      (filterSeverity === 'critical' && severity === '严重');
+    
+    return matchesSearch && matchesResult && matchesSeverity;
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+      <div className="bg-[#0b0b10] border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden text-left font-sans">
+        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[#101016]">
+          <h3 className="text-sm font-bold text-slate-200">{title}</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="p-4 bg-slate-900/20 border-b border-slate-800 flex gap-4 items-center">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input 
+              type="text" 
+              placeholder="输入 IP 搜索..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-black/40 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <select 
+              value={filterResult} 
+              onChange={(e) => setFilterResult(e.target.value)}
+              className="bg-black/40 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none bg-[#0a0a0f]"
+            >
+              <option value="全部">全部结果</option>
+              <option value="normal">正常 (normal)</option>
+              <option value="abnormal">异常 (abnormal)</option>
+              <option value="failed">失败 (failed)</option>
+            </select>
+            <select 
+              value={filterSeverity} 
+              onChange={(e) => setFilterSeverity(e.target.value)}
+              className="bg-black/40 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none bg-[#0a0a0f]"
+            >
+              <option value="全部">全部级别</option>
+              <option value="info">普通 (info)</option>
+              <option value="warning">警告 (warning)</option>
+              <option value="critical">严重 (critical)</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400">
+                <th className="px-3 py-2">#</th>
+                <th className="px-3 py-2">巡检对象</th>
+                <th className="px-3 py-2">结果</th>
+                <th className="px-3 py-2">严重级别</th>
+                <th className="px-3 py-2">摘要/原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((row: any, i: number) => {
+                const isSelected = selectedIp === row[1];
+                return (
+                  <tr 
+                    key={i} 
+                    onClick={() => { onSelectIp(row[1]); onClose(); }}
+                    className={`border-b border-slate-800/30 last:border-0 hover:bg-blue-600/5 cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10' : ''}`}
+                  >
+                    <td className="px-3 py-2 text-slate-500">{row[0]}</td>
+                    <td className="px-3 py-2 font-mono text-slate-200">{row[1]}</td>
+                    <td className="px-3 py-2">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                        row[2] === 'normal' || row[2] === '正常' ? 'bg-emerald-500/10 text-emerald-400' :
+                        row[2] === 'abnormal' || row[2] === '异常' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-rose-500/10 text-rose-400'
+                      }`}>
+                        {row[2] === 'normal' ? '正常' : row[2] === 'abnormal' ? '异常' : row[2] === 'failed' ? '失败' : row[2]}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                        row[3] === 'info' || row[3] === '普通' ? 'bg-slate-800 text-slate-400' :
+                        row[3] === 'warning' || row[3] === '警告' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-rose-500/10 text-rose-500'
+                      }`}>
+                        {row[3] === 'info' ? '普通' : row[3] === 'warning' ? '警告' : row[3] === 'critical' ? '严重' : row[3]}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-slate-400 truncate max-w-[200px]">{row[4]}</td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-slate-500">未找到匹配的对象</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const getFallbackNodeDetails = (nodeIp: string, branch: string) => {
+  return {
+    detailTable: [
+      ['对象', nodeIp],
+      ['状态', 'completed'],
+      ['结果', 'normal'],
+      ['严重级别', 'info'],
+      ['摘要', 'Python: RSS=512MB CPU=32%'],
+      ['问题描述', '该对象运行状态良好，各项指标均在安全阈值内。'],
+      ['影响范围', '无异常影响。']
+    ],
+    baseMetrics: [
+      ['FD 数', 'fd_count', '15', '个'],
+      ['进程 ID', 'pid', '45', '-'],
+      ['进程存活状态', 'process_alive', 'true', '存活'],
+      ['RSS 内存', 'rss_mb', '512', 'MB'],
+      ['线程数', 'threads', '8', '个']
+    ],
+    evalMetrics: [
+      ['CPU 使用率', '32%', '80%', '正常'],
+      ['内存使用率', '45%', '80%', '正常'],
+      ['错误率', '0.0%', '1%', '正常']
+    ],
+    anomalies: [],
+    charts: [
+      {
+        title: 'CPU 使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [28, 30, 31, 32, 31, 33, 32]
+      },
+      {
+        title: '内存使用率趋势 (近30分钟)',
+        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
+        data: [42, 43, 44, 45, 45, 45, 45]
+      }
+    ],
+    historyTable: [
+      ['CPU 使用率', '32%', '30%', '80%', '正常'],
+      ['内存使用率', '45%', '44%', '80%', '正常']
+    ],
+    diagnosis: {
+      candidates: [],
+      evidences: ['各项指标整体平稳', '无异常告警触发'],
+      unconfirmed: []
+    },
+    verdict: {
+      summary: [
+        ['分析对象', nodeIp],
+        ['问题类型', '正常'],
+        ['影响范围', '无'],
+        ['状态', '稳定'],
+        ['严重级别', 'info']
+      ],
+      findings: ['指标均处于正常安全水位'],
+      judgment: '当前运行平稳，无异常风险。',
+      recommendations: ['无需处理，继续保持常规监控。'],
+      boundary: []
+    }
+  };
+};
+
+
+const AllMetricsModal = ({ isOpen, onClose, title, data }: any) => {
+  const [search, setSearch] = useState('');
+  const [filterTrend, setFilterTrend] = useState('全部');
+
+  if (!isOpen) return null;
+
+  const filtered = data.filter((row: any) => {
+    const ip = row[0] || '';
+    const trend = row[8] || '';
+    
+    const matchesSearch = ip.toLowerCase().includes(search.toLowerCase());
+    const matchesTrend = filterTrend === '全部' || trend === filterTrend;
+    
+    return matchesSearch && matchesTrend;
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+      <div className="bg-[#0b0b10] border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden text-left font-sans">
+        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[#101016]">
+          <h3 className="text-sm font-bold text-slate-200">{title}</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="p-4 bg-slate-900/20 border-b border-slate-800 flex gap-4 items-center">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input 
+              type="text" 
+              placeholder="输入 IP 搜索..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-black/40 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <select 
+              value={filterTrend} 
+              onChange={(e) => setFilterTrend(e.target.value)}
+              className="bg-black/40 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none bg-[#0a0a0f]"
+            >
+              <option value="全部">全部趋势</option>
+              <option value="平稳">平稳</option>
+              <option value="稳步上升">稳步上升</option>
+              <option value="突增">突增</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400">
+                <th className="px-3 py-2">#</th>
+                <th className="px-3 py-2">巡检对象</th>
+                <th className="px-3 py-2">10:00</th>
+                <th className="px-3 py-2">10:05</th>
+                <th className="px-3 py-2">10:10</th>
+                <th className="px-3 py-2">10:15</th>
+                <th className="px-3 py-2">10:20</th>
+                <th className="px-3 py-2">10:25</th>
+                <th className="px-3 py-2">10:30</th>
+                <th className="px-3 py-2">趋势</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((row: any, i: number) => {
+                return (
+                  <tr 
+                    key={i} 
+                    className="border-b border-slate-800/30 last:border-0 hover:bg-blue-600/5 transition-colors"
+                  >
+                    <td className="px-3 py-2 text-slate-500">{i + 1}</td>
+                    <td className="px-3 py-2 font-mono text-slate-200">{row[0]}</td>
+                    <td className="px-3 py-2 text-slate-300">{row[1]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[2]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[3]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[4]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[5]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[6]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{row[7]}%</td>
+                    <td className="px-3 py-2">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                        row[8] === '平稳' ? 'bg-emerald-500/10 text-emerald-400' :
+                        row[8] === '稳步上升' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-rose-500/10 text-rose-400'
+                      }`}>
+                        {row[8]}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="text-center py-8 text-slate-500">未找到匹配的指标数据</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+const MultiLineTrendChart = ({ title, labels, lines, events }: {
+  title: string,
+  labels: string[],
+  lines: { name: string, data: number[], color: string }[],
+  events?: { time: string, label: string }[]
+}) => {
+  const allData = lines.flatMap(l => l.data);
+  const max = Math.max(...allData, 100);
+  const min = 0;
+
+  return (
+    <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 text-left font-sans">
+      <div className="border-b border-slate-800/40 pb-2 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <Activity size={12} className="text-blue-500" /> {title}
+          </h4>
+          <span className="text-[9px] font-mono text-slate-500 bg-slate-900/60 border border-slate-800/50 rounded px-1.5 py-0.5 shrink-0">
+            10:00 - 10:30
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 items-center">
+          {lines.map((l, idx) => (
+            <div key={idx} className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800/50 shadow-inner">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.color }} />
+              <span className="font-mono">{l.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="relative h-24 w-full">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+          <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+          <line x1="0" y1="80" x2="100" y2="80" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+
+          {lines.map((l, lineIdx) => {
+            const points = l.data.map((val, i) => {
+              const x = (i / (l.data.length - 1)) * 100;
+              const y = 100 - ((val - min) / (max - min)) * 100;
+              return `${x},${y}`;
+            }).join(' ');
+
+            return (
+              <polyline
+                key={lineIdx}
+                points={points}
+                fill="none"
+                stroke={l.color}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            );
+          })}
+        </svg>
+      </div>
+      <div className="flex justify-between w-full text-[8px] text-slate-500 font-mono mt-1.5 px-1">
+        <span className="shrink-0">{labels[0]}</span>
+        <span className="shrink-0">{labels[Math.floor(labels.length / 2)]}</span>
+        <span className="shrink-0">{labels[labels.length - 1]}</span>
+      </div>
+    </div>
+  );
+};
+
 const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   const currentStep = data.currentStep || 0;
   const isPhased = data.format === '0412_phased';
+  const branch = data.branch || 'abnormal';
 
-  // 如果是0412分阶段可视化模式
+  const [selectedNodeIp, setSelectedNodeIp] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalObjects, setModalObjects] = useState<any[]>([]);
+  const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
+  const [modalMetrics, setModalMetrics] = useState<any[]>([]);
+  
+  // Trend chart metric selection
+  const [selectedMetric, setSelectedMetric] = useState('CPU');
+
+  const defaultSelectedIp = branch === 'abnormal' ? '172.30.34.73:8001' : branch === 'failed' ? '172.30.34.90:8001' : '';
+  const activeIp = selectedNodeIp || defaultSelectedIp;
+  const activeDetails = data.nodeDetails?.[activeIp] || getFallbackNodeDetails(activeIp, branch);
+
+  const openObjectsModal = (title: string, list: any[]) => {
+    setModalTitle(title);
+    setModalObjects(list);
+    setIsModalOpen(true);
+  };
+
   if (isPhased) {
     return (
-      <div className="bg-[var(--bg-surface)] border border-slate-800/80 rounded-xl overflow-hidden shadow-2xl max-w-4xl font-sans">
+      <div className="bg-[var(--bg-surface)] border border-slate-800/80 rounded-xl overflow-hidden shadow-2xl max-w-4xl font-sans text-left">
         <div className="p-4 border-b border-slate-800/50 bg-[var(--bg-panel-alt)] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
@@ -3660,134 +4679,577 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
               <div className={`w-6 h-6 rounded-full ${currentStep >= 1 ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>1</div>
               <div className={`w-px flex-1 ${currentStep > 1 ? 'bg-blue-600' : 'bg-slate-800/50'}`} />
             </div>
-            <div className="flex-1 pb-4">
+            <div className="flex-1 min-w-0 pb-4">
               <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">01 / 开始分析</div>
               {currentStep >= 1 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  {/* （1）巡检计划信息 */}
-                  {data.stage1?.planInfo && (
-                    <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
-                  )}
+                  {/* normal 分支 */}
+                  {branch === 'normal' && (
+                    <div className="space-y-4">
+                      {/* 1. 巡检计划信息 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2.5 mb-3">
+                          <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                        </div>
+                        <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <tbody>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                    正常 (normal)
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                              </tr>
+                              <tr>
+                                <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-slate-800 text-slate-400">
+                                    普通 (info)
+                                  </span>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
 
-                  {/* （2）详细分析 */}
-                  <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">（2）详细分析</span>
+                      {/* 2. 巡检对象统计 */}
+                      {data.stage1?.objectStats && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
+                          </div>
+                          <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                            <table className="w-full text-left border-collapse text-xs">
+                              <thead>
+                                <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                  <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                    <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. 全部巡检对象列表 */}
+                      {data.stage1?.objectsTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                            data={data.stage1.objectsTable.slice(0, 5)} 
+                          />
+                          <div className="flex justify-center mt-2.5">
+                            <button 
+                              onClick={() => openObjectsModal('全部巡检对象', data.stage1.objectsTable)}
+                              className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                            >
+                              查看全部巡检对象 ↓
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 整体健康摘要 */}
+                      {data.stage1?.healthSummary && (
+                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4">
+                          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">整体健康摘要</div>
+                          <p className="text-xs text-slate-300 leading-relaxed font-medium">{data.stage1.healthSummary}</p>
+                        </div>
+                      )}
                     </div>
-
-                    {/* 巡检对象总数 */}
-                    {data.stage1?.objectCount !== undefined && (
-                      <div className="text-xs font-bold text-slate-300">
-                        巡检对象总数：<span className="text-indigo-400 font-mono">{data.stage1.objectCount}</span>
-                      </div>
-                    )}
-
-                    {/* 巡检对象表格 */}
-                    {data.stage1?.objectsTable && (
-                      <AnalysisTable title="" columns={['#', '巡检对象', '结果', '严重级别', '摘要']} data={data.stage1.objectsTable} />
-                    )}
-
-                    {/* 异常巡检对象卡片面板 */}
-                    {data.stage1?.abnormalDetail && (
-                      <div className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3.5 space-y-3.5 mt-2">
-                        <div className="text-xs font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wide border-b border-slate-900 pb-2">
-                          <div className="w-1 h-3 bg-rose-500 rounded-sm" />
-                          异常巡检对象
-                        </div>
-
-                        {/* 网格行：状态、结果、严重级别 */}
-                        <div className="grid grid-cols-3 gap-4 bg-slate-950/20 p-2.5 rounded-md border border-slate-800/30 text-xs">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
-                            <span className="text-slate-300 font-medium font-mono">
-                              {data.stage1.abnormalDetail.status}
-                            </span>
-                          </div>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
-                            <span className="text-rose-400 font-bold font-mono">
-                              {data.stage1.abnormalDetail.result}
-                            </span>
-                          </div>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
-                            <span className="text-amber-400 font-bold font-mono">
-                              {data.stage1.abnormalDetail.severity}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* 各类长文本说明 */}
-                        <div className="space-y-2.5 text-xs">
-                          {data.stage1.abnormalDetail.errorMessage && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-500 font-bold uppercase">错误信息</span>
-                              <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/50 px-2 py-1.5 rounded border border-slate-900">{data.stage1.abnormalDetail.errorMessage}</span>
-                            </div>
-                          )}
-                          {data.stage1.abnormalDetail.description && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-500 font-bold uppercase">问题描述</span>
-                              <span className="text-slate-300 leading-relaxed font-medium">{data.stage1.abnormalDetail.description}</span>
-                            </div>
-                          )}
-                          {data.stage1.abnormalDetail.impact && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-500 font-bold uppercase">影响范围</span>
-                              <span className="text-slate-400 leading-relaxed font-medium">{data.stage1.abnormalDetail.impact}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 指标子表 */}
-                        {data.stage1?.runtimeMetrics && (
-                          <div className="mt-3.5 border-t border-slate-800/40 pt-3">
-                            <AnalysisTable title="指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
-                          </div>
-                        )}
-
-                        {/* 异常指标 */}
-                        {data.stage1?.anomalies && (
-                          <div className="mt-3.5 border-t border-slate-800/40 pt-3">
-                            <div className="text-[10px] text-rose-400 font-black uppercase tracking-wider mb-2">异常指标</div>
-                            <ul className="space-y-1.5">
-                              {data.stage1.anomalies.map((item: string, idx: number) => (
-                                <li key={idx} className="text-xs text-rose-300 font-medium leading-relaxed flex items-start gap-1.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                </motion.div>
-              )}
-            </div>
-          </div>
-
-          {/* Phase 2: 路径与证据探索 */}
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className={`w-6 h-6 rounded-full ${currentStep >= 2 ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>2</div>
-              <div className={`w-px flex-1 ${currentStep > 2 ? 'bg-indigo-600' : 'bg-slate-800/50'}`} />
-            </div>
-            <div className="flex-1 pb-4">
-              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">02 / 路径与证据探索</div>
-              {currentStep >= 2 && (
-                <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  {data.stage2?.charts?.map((chart: any, i: number) => (
-                    <AnalysisTrendChart key={i} {...chart} />
-                  ))}
-                  {data.stage2?.comparisonTable && (
-                    <AnalysisTable title="历史对比分析" columns={['指标', '当前值', '昨日同时间', '阈值']} data={data.stage2.comparisonTable} />
                   )}
-                  {data.stage2?.correlationTable && (
-                    <AnalysisTable title="多指标关联分析" columns={['指标', '当前状态', '趋势', '关联关系']} data={data.stage2.correlationTable} />
+
+                  {/* abnormal 分支 */}
+                  {branch === 'abnormal' && (
+                    <div className="space-y-4">
+                      {/* 1. 巡检计划信息 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2.5 mb-3">
+                          <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                        </div>
+                        <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <tbody>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-amber-500/10 text-amber-400 border-amber-500/20">
+                                    异常 (abnormal)
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                              </tr>
+                              <tr>
+                                <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-500 border-rose-500/20">
+                                    严重 (critical)
+                                  </span>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* 2. 巡检对象统计 */}
+                      {data.stage1?.objectStats && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
+                          </div>
+                          <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                            <table className="w-full text-left border-collapse text-xs">
+                              <thead>
+                                <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                  <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                    <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. 全部巡检对象列表 */}
+                      {data.stage1?.objectsTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-2">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                            data={data.stage1.objectsTable.slice(0, 5)} 
+                          />
+                          <div className="flex justify-center mt-2.5">
+                            <button 
+                              onClick={() => openObjectsModal('全部巡检对象', data.stage1.objectsTable)}
+                              className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                            >
+                              查看全部巡检对象 ↓
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4. 巡检对象分析 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
+                        <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 巡检对象分析</span>
+                        </div>
+
+                        {/* （1）重点分析对象列表 */}
+                        {data.priorityObjects && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 pl-3.5 my-3">
+                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                              <span className="text-[11px] font-bold text-slate-400">（1）异常对象列表</span>
+                            </div>
+                            <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                  <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 font-bold uppercase tracking-wider">
+                                    <th className="px-3.5 py-2">#</th>
+                                    <th className="px-3.5 py-2">对象</th>
+                                    <th className="px-3.5 py-2">类型</th>
+                                    <th className="px-3.5 py-2">严重级别</th>
+                                    <th className="px-3.5 py-2">异常指标</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {data.priorityObjects.slice(0, 5).map((row: any, idx: number) => {
+                                    const isSelected = activeIp === row.ip;
+                                    return (
+                                      <tr 
+                                        key={idx} 
+                                        onClick={() => setSelectedNodeIp(row.ip)}
+                                        className={`border-b border-slate-800/30 last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10 font-bold' : ''}`}
+                                      >
+                                        <td className="px-3.5 py-2 text-slate-500">{idx + 1}</td>
+                                        <td className="px-3.5 py-2 font-mono text-slate-200">{row.ip}</td>
+                                        <td className="px-3.5 py-2">
+                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                            row.type === 'normal' || row.reason === 'normal' ? 'bg-emerald-500/10 text-emerald-400' :
+                                            row.type === 'failed' || row.reason === '连接超时' || row.reason === 'Agent 离线' ? 'bg-rose-500/10 text-rose-400' :
+                                            'bg-amber-500/10 text-amber-400'
+                                          }`}>
+                                            {row.type === 'normal' ? '正常' : row.type === 'abnormal' ? '异常' : row.type === 'failed' ? '失败' : (row.type || row.reason)}
+                                          </span>
+                                        </td>
+                                        <td className="px-3.5 py-2">
+                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                            row.severity === 'info' ? 'bg-slate-800 text-slate-400' :
+                                            row.severity === 'warning' ? 'bg-amber-500/10 text-amber-550' :
+                                            'bg-rose-500/10 text-rose-500'
+                                          }`}>
+                                            {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
+                                          </span>
+                                        </td>
+                                        <td className="px-3.5 py-2">
+                                          {row.reason === 'CPU=92%，RSS=1821MB' || row.reason === 'CPU=92%, RSS=1821MB' ? (
+                                            <>
+                                              <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">CPU</span>
+                                              <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] font-bold ml-1">内存</span>
+                                            </>
+                                          ) : row.reason === 'FD=980 接近上限' ? (
+                                            <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">FD上限</span>
+                                          ) : row.reason === '连接超时' || row.reason === 'Agent 离线' ? (
+                                            <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 border border-slate-700/50 rounded text-[10px] font-bold">{row.reason}</span>
+                                          ) : (
+                                            <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">{row.reason || row.impact}</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                            {data.priorityObjects.length > 5 && (
+                              <button 
+                                onClick={() => {
+                                  const modalObjs = data.priorityObjects.map((o: any, i: number) => [
+                                    (i + 1).toString(),
+                                    o.ip,
+                                    o.type || 'failed',
+                                    o.severity,
+                                    o.reason || o.impact
+                                  ]);
+                                  openObjectsModal('全部重点分析对象', modalObjs);
+                                }}
+                                className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                              >
+                                查看全部重点对象 &rarr;
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* （2）当前对象详情 */}
+                        <div className="space-y-3 pt-4 border-t border-slate-800/40">
+                          <div className="flex items-center gap-2 pl-3.5 my-3">
+                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                            <span className="text-[11px] font-bold text-slate-400">（2）异常对象详情</span>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2 py-1">
+                            {data.priorityObjects.map((obj: any) => {
+                              const isSelected = activeIp === obj.ip;
+                              const isFailed = obj.type === 'failed' || obj.reason === '连接超时' || obj.reason === 'Agent 离线';
+                              return (
+                                <button
+                                  key={obj.ip}
+                                  onClick={() => setSelectedNodeIp(obj.ip)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                    isSelected 
+                                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                                      : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800 border border-slate-800/80'
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                  <span className="font-mono">{obj.ip}</span>
+                                  <span className="opacity-70">
+                                    ({isFailed ? '失败' : '异常'})
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Subordinate details card panel representing active tab state */}
+                          <div className="bg-slate-950/40 border border-slate-800/50 rounded-xl p-4 mt-2.5 space-y-5">
+                            {/* 运行时基础指标 */}
+                            {activeDetails.baseMetrics && (
+                              <div className="space-y-2.5">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1 h-1 rounded-full bg-blue-500/60" />
+                                  运行时基础指标
+                                </div>
+                                <AnalysisTable title="" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={activeDetails.baseMetrics} />
+                              </div>
+                            )}
+
+                            {/* 异常判断指标 */}
+                            {activeDetails.evalMetrics && (
+                              <div className="space-y-2.5 pt-4 border-t border-slate-800/30">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1 h-1 rounded-full bg-blue-500/60" />
+                                  异常判断指标
+                                </div>
+                                <AnalysisTable title="" columns={['指标', '当前值', '阈值', '状态']} data={activeDetails.evalMetrics} />
+                              </div>
+                            )}
+
+                            {/* 运行时未采集指标 */}
+                            {activeDetails.uncollectedMetrics && (
+                              <div className="space-y-2.5 pt-4 border-t border-slate-800/30">
+                                <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1 h-1 rounded-full bg-rose-500/60" />
+                                  运行时未采集指标
+                                </div>
+                                <AnalysisTable title="" columns={['检查项', '是否采集', '说明']} data={activeDetails.uncollectedMetrics} />
+                              </div>
+                            )}
+
+                            {/* 异常判断摘要 */}
+                            {activeDetails.anomalies && activeDetails.anomalies.length > 0 && (
+                              <div className="space-y-2 pt-4 border-t border-slate-800/30">
+                                <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1 h-1 rounded-full bg-rose-500/60" />
+                                  异常判断摘要
+                                </div>
+                                <ul className="space-y-1.5 bg-rose-500/[0.01] border border-rose-500/10 rounded-xl p-3.5">
+                                  {activeDetails.anomalies.map((item: string, idx: number) => (
+                                    <li key={idx} className="text-xs text-rose-300 font-medium flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                                      {item}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* failed 分支 */}
+                  {branch === 'failed' && (
+                    <div className="space-y-4">
+                      {/* 1. 巡检计划信息 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2.5 mb-3">
+                          <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                        </div>
+                        <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <tbody>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-400 border-rose-500/20">
+                                    失败 (failed)
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr className="border-b border-slate-800/30">
+                                <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                              </tr>
+                              <tr>
+                                <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                <td className="px-3.5 py-2 font-medium">
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-500 border-rose-500/20">
+                                    严重 (critical)
+                                  </span>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* 2. 巡检对象统计 */}
+                      {data.stage1?.objectStats && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
+                          </div>
+                          <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                            <table className="w-full text-left border-collapse text-xs">
+                              <thead>
+                                <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                  <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                  <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                    <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. 全部巡检对象列表 */}
+                      {data.stage1?.objectsTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-2">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                            data={data.stage1.objectsTable.slice(0, 5)} 
+                          />
+                          <div className="flex justify-center mt-2.5">
+                            <button 
+                              onClick={() => openObjectsModal('全部巡检对象', data.stage1.objectsTable)}
+                              className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                            >
+                              查看全部巡检对象 ↓
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4. 重点失败对象 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
+                        <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 重点失败对象</span>
+                        </div>
+
+                        {/* （1）重点失败对象列表 */}
+                        {data.priorityObjects && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 pl-3.5 my-3">
+                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                              <span className="text-[11px] font-bold text-slate-400">（1）重点失败对象列表</span>
+                            </div>
+                            <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                  <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 font-bold uppercase tracking-wider">
+                                    <th className="px-3.5 py-2">#</th>
+                                    <th className="px-3.5 py-2">对象</th>
+                                    <th className="px-3.5 py-2">失败原因</th>
+                                    <th className="px-3.5 py-2">严重级别</th>
+                                    <th className="px-3.5 py-2">影响</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {data.priorityObjects.slice(0, 5).map((row: any, idx: number) => {
+                                    const isSelected = activeIp === row.ip;
+                                    return (
+                                      <tr 
+                                        key={idx} 
+                                        onClick={() => setSelectedNodeIp(row.ip)}
+                                        className={`border-b border-slate-800/30 last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10 font-bold' : ''}`}
+                                      >
+                                        <td className="px-3.5 py-2 text-slate-500">{idx + 1}</td>
+                                        <td className="px-3.5 py-2 font-mono text-slate-200">{row.ip}</td>
+                                        <td className="px-3.5 py-2">
+                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/10 text-rose-400">
+                                            {row.reason}
+                                          </span>
+                                        </td>
+                                        <td className="px-3.5 py-2">
+                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                            row.severity === 'info' ? 'bg-slate-800 text-slate-400' :
+                                            row.severity === 'warning' ? 'bg-amber-500/10 text-amber-550' :
+                                            'bg-rose-500/10 text-rose-500'
+                                          }`}>
+                                            {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
+                                          </span>
+                                        </td>
+                                        <td className="px-3.5 py-2 text-slate-300 font-bold">{row.impact}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* （2）当前对象详情 */}
+                        <div className="space-y-3 pt-4 border-t border-slate-800/40">
+                          <div className="flex items-center gap-2 pl-3.5 my-3">
+                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                            <span className="text-[11px] font-bold text-slate-400">（2）当前对象详情</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2 my-2.5">
+                            {data.priorityObjects.map((obj: any) => {
+                              const isSelected = activeIp === obj.ip;
+                              const isFailed = obj.type === 'failed' || obj.reason === '连接超时' || obj.reason === 'Agent 离线';
+                              return (
+                                <button
+                                  key={obj.ip}
+                                  onClick={() => setSelectedNodeIp(obj.ip)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                    isSelected 
+                                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                                      : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800 border border-slate-800/80'
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                  <span className="font-mono">{obj.ip}</span>
+                                  <span className="opacity-70">
+                                    ({isFailed ? '失败' : '异常'})
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {activeDetails.uncollectedMetrics && (
+                            <div className="pt-3 border-t border-slate-800/40">
+                              <AnalysisTable title="未采集指标说明" columns={['检查项', '是否采集', '说明']} data={activeDetails.uncollectedMetrics} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </motion.div>
               )}
@@ -3799,30 +5261,169 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
             </div>
           </div>
 
-          {/* Phase 3: 根因分析 */}
+          {/* Phase 2: 分析指标发展路径 / 路径与证据探索 / 失败证据说明 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
-              <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>3</div>
-              <div className={`w-px flex-1 ${currentStep > 3 ? 'bg-purple-600' : 'bg-slate-800/50'}`} />
+              <div className={`w-6 h-6 rounded-full ${currentStep >= 2 ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>2</div>
+              <div className={`w-px flex-1 ${currentStep > 2 ? 'bg-purple-600' : 'bg-slate-800/50'}`} />
             </div>
-            <div className="flex-1 pb-4">
-              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">03 / 根因分析</div>
-              {currentStep >= 3 && (
+            <div className="flex-1 min-w-0 pb-4">
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">
+                {branch === 'normal' ? '02 / 分析指标发展路径' : branch === 'abnormal' ? '02 / 路径与证据探索' : '02 / 失败证据说明'}
+              </div>
+              {currentStep >= 2 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  {data.stage3?.candidateTable && (
-                    <AnalysisTable title="根因推导关联" columns={['可能原因', '支撑证据', '说明']} data={data.stage3.candidateTable} />
-                  )}
-                  <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">排查诊断关键证据</span>
+                  {/* normal 分支 */}
+                  {branch === 'normal' && (
+                    <div className="space-y-4">
+                      {data.stage2?.trendTable && (
+                        <AnalysisTable 
+                          title="CPU 使用率趋势概览（近 30 分钟）" 
+                          columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
+                          data={data.stage2.trendTable.slice(0, 5)} 
+                        />
+                      )}
+                      <button 
+                        onClick={() => openObjectsModal('全部趋势数据', data.stage2.trendTable)}
+                        className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                      >
+                        查看全部趋势数据 &rarr;
+                      </button>
+                      {data.stage2?.trendSummary && (
+                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 mt-2">
+                          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">健康趋势摘要</div>
+                          <p className="text-xs text-slate-300 leading-relaxed font-medium">{data.stage2.trendSummary}</p>
+                        </div>
+                      )}
                     </div>
-                    <ul className="space-y-1.5">{data.stage3?.evidenceList?.map((e: string, i: number) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-purple-500" /> {e}
-                      </li>
-                    ))}</ul>
-                  </div>
+                  )}
+
+                  {/* abnormal 分支 */}
+                  {branch === 'abnormal' && (() => {
+                    const abnormalIps = ['172.30.34.73:8001', '172.30.34.81:8001'];
+                    const labels = ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'];
+                    
+                    const cpuLines = abnormalIps.map((ip, idx) => {
+                      const details = data.nodeDetails?.[ip] || getFallbackNodeDetails(ip, 'abnormal');
+                      const chart = details?.charts?.find((c: any) => c.title.includes('CPU'));
+                      return {
+                        name: ip,
+                        data: chart ? chart.data : [0,0,0,0,0,0,0],
+                        color: idx === 0 ? '#f43f5e' : '#3b82f6'
+                      };
+                    });
+                    
+                    const memoryLines = abnormalIps.map((ip, idx) => {
+                      const details = data.nodeDetails?.[ip] || getFallbackNodeDetails(ip, 'abnormal');
+                      const chart = details?.charts?.find((c: any) => c.title.includes('内存') || c.title.includes('Memory'));
+                      return {
+                        name: ip,
+                        data: chart ? chart.data : [0,0,0,0,0,0,0],
+                        color: idx === 0 ? '#f43f5e' : '#3b82f6'
+                      };
+                    });
+
+                    const errorLines = [
+                      { name: '172.30.34.73:8001', data: [0.5, 0.8, 1.0, 1.5, 2.2, 2.8, 3.2], color: '#f43f5e' },
+                      { name: '172.30.34.81:8001', data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], color: '#3b82f6' }
+                    ];
+
+                    const isFailedNode = activeDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+
+                    return (
+                      <div className="space-y-6">
+                        {/* 1. 指标趋势概览表 */}
+                        {data.stage2?.trendTable && (
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2.5 mb-3">
+                              <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 指标趋势概览表</span>
+                            </div>
+                            <AnalysisTable 
+                              title="" 
+                              columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
+                              data={data.stage2.trendTable.slice(0, 10)} 
+                            />
+                            {data.stage2.trendTable.length > 10 && (
+                              <div className="flex justify-center mt-2.5">
+                                <button 
+                                  onClick={() => {
+                                    setModalTitle('指标趋势概览表 - 全部指标数据');
+                                    setModalMetrics(data.stage2.trendTable);
+                                    setIsMetricsModalOpen(true);
+                                  }}
+                                  className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                                >
+                                  查看全部指标 ↓
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 2. 异常对象趋势图 */}
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 异常对象趋势图</span>
+                          </div>
+                          <div className="space-y-3">
+                            <MultiLineTrendChart title="CPU 使用率趋势图 (所有异常对象)" labels={labels} lines={cpuLines} />
+                            <MultiLineTrendChart title="内存使用率趋势图 (所有异常对象)" labels={labels} lines={memoryLines} />
+                            <MultiLineTrendChart title="错误率趋势图 (所有异常对象)" labels={labels} lines={errorLines} />
+                          </div>
+                        </div>
+
+                        {/* 3. 历史对比表 */}
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 历史对比表</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono tracking-tight mb-2">
+                            分析对象: {activeIp}
+                          </div>
+                          {isFailedNode ? (
+                            <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
+                              当前对象无可用历史对比数据
+                            </div>
+                          ) : (
+                            activeDetails.historyTable && activeDetails.historyTable.length > 0 ? (
+                              <AnalysisTable 
+                                title="" 
+                                columns={['指标', '当前值', '昨日同时间', '阈值', '对比结论']} 
+                                data={activeDetails.historyTable} 
+                              />
+                            ) : (
+                              <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
+                                当前对象无可用历史对比数据
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* failed 分支 */}
+                  {branch === 'failed' && (
+                    <div className="space-y-4">
+                      {data.stage2?.failedDistribution && (
+                        <AnalysisTable 
+                          title="失败对象分布表" 
+                          columns={['失败原因', '对象数量', '示例对象']} 
+                          data={data.stage2.failedDistribution} 
+                        />
+                      )}
+                      {data.stage2?.failedImpact && (
+                        <AnalysisTable 
+                          title="失败影响范围" 
+                          columns={['影响项', '内容']} 
+                          data={data.stage2.failedImpact} 
+                        />
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               )}
               {currentStep === 2 && (
@@ -3833,61 +5434,450 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
             </div>
           </div>
 
+          {/* Phase 3: 健康状态判断 / 根因分析 / 失败原因判断 */}
+          <div className="flex gap-4">
+            <div className="flex flex-col items-center gap-2">
+              <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>3</div>
+              <div className={`w-px flex-1 ${currentStep > 3 ? 'bg-purple-600' : 'bg-slate-800/50'}`} />
+            </div>
+            <div className="flex-1 min-w-0 pb-4">
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">
+                {branch === 'normal' ? '03 / 健康状态判断' : branch === 'abnormal' ? '03 / 根因分析' : '03 / 失败原因判断'}
+              </div>
+              {currentStep >= 3 && (
+                <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                  {/* normal 分支 */}
+                  {branch === 'normal' && (
+                    <div className="space-y-4">
+                      {data.stage3?.judgmentTable && (
+                        <AnalysisTable 
+                          title="健康判断表" 
+                          columns={['判断项', '结果', '说明']} 
+                          data={data.stage3.judgmentTable} 
+                        />
+                      )}
+                      {data.stage3?.evidenceList && (
+                        <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">关键依据</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage3.evidenceList.map((e: string, i: number) => (
+                              <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-blue-500" /> {e}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* abnormal 分支 */}
+                  {branch === 'abnormal' && (
+                    <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                      <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                        分析对象: {activeIp}
+                      </div>
+
+                      {(() => {
+                        const isFailedNode = activeDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                        
+                        if (isFailedNode) {
+                          return (
+                            <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                              当前对象为巡检失败，无法基于指标进行根因分析
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="space-y-6">
+                            {/* 1. 根因候选表 */}
+                            {activeDetails.diagnosis?.candidates && (
+                              <div className="space-y-2">
+                                <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
+                                  1. 根因候选表
+                                </div>
+                                <AnalysisTable 
+                                  title="" 
+                                  columns={['可能原因', '支撑证据', '说明']} 
+                                  data={activeDetails.diagnosis.candidates} 
+                                />
+                              </div>
+                            )}
+
+                            {/* 2. 关键证据总结 */}
+                            <div className="space-y-2">
+                              <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
+                                2. 关键证据总结
+                              </div>
+                              {activeDetails.diagnosis?.evidences ? (
+                                <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                  {activeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-left text-slate-500 text-xs">
+                                  <div className="font-bold text-slate-400 mb-1">当前对象缺少指标数据</div>
+                                  <div>无法生成资源类关键证据</div>
+                                  <div className="text-[10px] text-slate-600 mt-1">需要先恢复指标采集能力</div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 3. 未确认信息 */}
+                            {activeDetails.diagnosis?.unconfirmed && (
+                              <div className="space-y-2">
+                                <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
+                                  3. 未确认信息
+                                </div>
+                                <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                  {activeDetails.diagnosis.unconfirmed.map((e: string, i: number) => (
+                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {e}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* failed 分支 */}
+                  {branch === 'failed' && data.stage3 && (
+                    <div className="space-y-6">
+                      {/* 1. 失败原因归纳表 */}
+                      {data.stage3.reasonsTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 失败原因归纳表</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['失败原因', '失败对象数', '示例对象', '支撑信息', '说明']} 
+                            data={data.stage3.reasonsTable} 
+                          />
+                        </div>
+                      )}
+
+                      {/* 2. 失败原因占比 */}
+                      {data.stage3.ratioTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 失败原因占比</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['失败原因', '对象数', '占失败对象比例']} 
+                            data={data.stage3.ratioTable} 
+                          />
+                        </div>
+                      )}
+
+                      {/* 3. 失败原因判断 */}
+                      {data.stage3.judgments && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 失败原因判断</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage3.judgments.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0 mt-1.5" /> 
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 4. 未确认信息 */}
+                      {data.stage3.unconfirmed && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 未确认信息</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage3.unconfirmed.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0 mt-1.5" /> 
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 5. 阶段结论 */}
+                      {data.stage3.conclusion && (
+                        <div className="bg-gradient-to-r from-purple-500/[0.03] to-transparent border border-purple-500/10 rounded-xl p-4 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-purple-500/40 to-transparent" />
+                          <div className="text-[11px] text-slate-400 font-bold mb-2">5. 阶段结论</div>
+                          <p className="text-xs text-slate-200 font-bold leading-relaxed">{data.stage3.conclusion}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+              {currentStep === 3 && (
+                <div className="flex items-center gap-2 text-xs text-slate-500 uppercase font-black animate-pulse">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-600" /> 总结并生成排查建议中...
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Phase 4: 最终建议 */}
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-2">
               <div className={`w-6 h-6 rounded-full ${currentStep >= 4 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-all`}>4</div>
             </div>
-            <div className="flex-1">
-              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">04 / 最终建议</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold text-slate-300 uppercase tracking-wider mb-3">
+                {branch === 'normal' ? '04 / 巡检结论' : branch === 'abnormal' ? '04 / 最终建议' : '04 / 失败处理建议'}
+              </div>
               {currentStep >= 4 && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  {data.stage4?.summaryTable && (
-                    <AnalysisTable title="诊断问题概览" columns={['维度', '内容']} data={data.stage4.summaryTable} />
-                  )}
-                  {data.stage4?.recommendations && (
-                    <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500/40" />
-                        <span className="text-[11px] font-black text-amber-200/80 uppercase tracking-wider">处置建议与防范措施</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {data.stage4.recommendations.map((item: string, idx: number) => (
-                          <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
-                          </li>
-                        ))}
-                      </ul>
+                  {/* normal 分支 */}
+                  {branch === 'normal' && (
+                    <div className="space-y-4">
+                      {data.stage4?.verdictTable && (
+                        <AnalysisTable title="巡检结果概览" columns={['维度', '内容']} data={data.stage4.verdictTable} />
+                      )}
+                      
+                      {data.stage4?.verdictJudgments && (
+                        <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">当前判断</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage4.verdictJudgments.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {data.stage4?.verdictSuggestions && (
+                        <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">总体建议</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage4.verdictSuggestions.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" /> {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {data.stage4?.generalSuggestions && (
-                    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">系统持续改善总体建议</span>
+
+                  {/* abnormal 分支 */}
+                  {branch === 'abnormal' && activeDetails.verdict && (
+                    <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                      <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                        分析对象: {activeIp}
                       </div>
-                      <ul className="space-y-1.5">
-                        {data.stage4.generalSuggestions.map((item: string, idx: number) => (
-                          <li key={idx} className="text-xs text-slate-200 font-bold leading-relaxed flex items-center gap-2">
-                            <div className="w-1 h-1 bg-indigo-500 rounded-full shrink-0" /> {item}
-                          </li>
-                        ))}
-                      </ul>
+
+                      {/* 1. 问题概览 */}
+                      {activeDetails.verdict.summary && (
+                        <div className="space-y-2">
+                          <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
+                            1. 问题概览
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['维度', '内容']} 
+                            data={activeDetails.verdict.summary} 
+                          />
+                        </div>
+                      )}
+
+                      {/* 2. 关键发现 */}
+                      {activeDetails.verdict.findings && (
+                        <div className="space-y-2">
+                          <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
+                            2. 关键发现
+                          </div>
+                          <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                            {activeDetails.verdict.findings.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 3. 当前判断 */}
+                      {activeDetails.verdict.judgment && (
+                        <div className="space-y-2">
+                          <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="w-1 h-2.5 bg-purple-500 rounded-sm" />
+                            3. 当前判断
+                          </div>
+                          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                            <p className="text-xs text-slate-300 font-bold leading-relaxed">{activeDetails.verdict.judgment}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4. 总体建议 */}
+                      {activeDetails.verdict.recommendations && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 pl-3.5 my-3">
+                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                            <span className="text-[11px] font-bold text-slate-400">4. 总体建议</span>
+                          </div>
+                          <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
+                            <ul className="space-y-1.5">
+                              {activeDetails.verdict.recommendations.map((item: string, idx: number) => (
+                                <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 5. 分析边界说明 */}
+                      {activeDetails.verdict.boundary && activeDetails.verdict.boundary.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="w-1 h-2.5 bg-slate-500 rounded-sm" />
+                            5. 分析边界说明
+                          </div>
+                          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-1.5">
+                            <div>当前分析基于当前选中对象的巡检指标、趋势数据和历史对比结果生成。</div>
+                            <div>以下信息尚未纳入分析：</div>
+                            <ul className="list-disc pl-5 space-y-1">
+                              {activeDetails.verdict.boundary.map((item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              ))}
+                            </ul>
+                            <div className="pt-1.5 text-[10px] text-slate-500 italic">因此结论仅作为辅助判断依据。</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {data.stage4?.judgment && (
-                    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">诊断最终结论</span>
-                      </div>
-                      <p className="text-xs text-slate-300 font-bold leading-relaxed">{data.stage4.judgment}</p>
+
+                  {/* failed 分支 */}
+                  {branch === 'failed' && data.stage4 && (
+                    <div className="space-y-6">
+                      {/* 1. 失败结果概览 */}
+                      {data.stage4.verdictTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 失败结果概览</span>
+                          </div>
+                          <AnalysisTable 
+                            title="" 
+                            columns={['维度', '内容']} 
+                            data={data.stage4.verdictTable} 
+                          />
+                        </div>
+                      )}
+
+                      {/* 2. 关键发现 */}
+                      {data.stage4.findings && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">2. 关键发现</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage4.findings.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" /> 
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 3. 当前判断 */}
+                      {data.stage4.judgments && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 当前判断</span>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {data.stage4.judgments.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" /> 
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 4. 总体建议 */}
+                      {data.stage4.recommendationsTable && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 总体建议</span>
+                          </div>
+                          
+                          <AnalysisTable 
+                            title="" 
+                            columns={['失败原因', '建议动作']} 
+                            data={data.stage4.recommendationsTable} 
+                          />
+
+                          {data.stage4.supplementaryRecommendations && (
+                            <div className="bg-gradient-to-r from-rose-500/[0.03] to-transparent border border-rose-500/10 rounded-xl p-4 relative overflow-hidden mt-3">
+                              <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-rose-500/40 to-transparent" />
+                              <ul className="space-y-1.5">
+                                {data.stage4.supplementaryRecommendations.map((item: string, idx: number) => (
+                                  <li key={idx} className="text-[11px] text-slate-300 font-bold leading-relaxed flex items-start gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500/30 shrink-0 mt-1.5" /> 
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
+
                   <button
                     onClick={() => onAction?.('VIEW_REPORT', data)}
-                    className="w-full py-3 border border-slate-700 hover:border-indigo-500/50 text-slate-400 hover:text-indigo-400 text-xs font-black rounded-md transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2"
+                    className="w-full py-3 mt-4 border border-slate-700 hover:border-indigo-500/50 text-slate-400 hover:text-indigo-400 text-xs font-black rounded-md transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2"
                   >
                     <FileText size={14} /> 查看完整深度报告
                   </button>
@@ -3901,15 +5891,31 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
             </div>
           </div>
         </div>
+
+        {/* IP Modal */}
+        <AllObjectsModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={modalTitle}
+          objects={modalObjects}
+          selectedIp={activeIp}
+          onSelectIp={(ip: string) => setSelectedNodeIp(ip)}
+        />
+
+        <AllMetricsModal 
+          isOpen={isMetricsModalOpen}
+          onClose={() => setIsMetricsModalOpen(false)}
+          title={modalTitle}
+          data={modalMetrics}
+        />
       </div>
     );
   }
 
   // 默认原始告警分析模式
   const { topology, agents, conclusion } = data;
-
   return (
-    <div className="bg-[#111118] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans">
+    <div className="bg-[#111118] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl max-w-4xl font-sans text-left">
       <div className="p-4 border-b border-white/[0.05] bg-[#16161d] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
@@ -3928,7 +5934,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
         {/* Step 1: Topology Discovery */}
         <div className="flex gap-4">
           <div className="flex flex-col items-center gap-2">
-            <div className={`w-6 h-6 rounded-full ${currentStep >= 1 ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`}>1</div>
+            <div className={`w-6 h-6 rounded-full ${currentStep >= 1 ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`} >1</div>
             <div className={`w-px flex-1 ${currentStep > 1 ? 'bg-indigo-600' : 'bg-slate-800/50'}`} />
           </div>
           <div className="flex-1 pb-4">
@@ -3957,7 +5963,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
         {/* Step 2: Multi-Agent Diagnosis */}
         <div className="flex gap-4">
           <div className="flex flex-col items-center gap-2">
-            <div className={`w-6 h-6 rounded-full ${currentStep >= 2 ? 'bg-indigo-600 text-white shadow-[0_0_12px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`}>2</div>
+            <div className={`w-6 h-6 rounded-full ${currentStep >= 2 ? 'bg-indigo-600 text-white shadow-[0_0_12px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`} >2</div>
             <div className={`w-px flex-1 ${currentStep > 2 ? 'bg-indigo-600' : 'bg-slate-800/50'}`} />
           </div>
           <div className="flex-1 pb-4">
@@ -3983,9 +5989,9 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     <div className="mt-2 pt-2 border-t border-white/[0.05] flex justify-between items-center">
                       <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">置信度: 98%</span>
                       <div className="flex gap-1">
-                        <div className="w-1 h-1 rounded-full bg-blue-500" />
-                        <div className="w-1 h-1 rounded-full bg-blue-500/40" />
-                        <div className="w-1 h-1 rounded-full bg-blue-500/20" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500/20" />
                       </div>
                     </div>
                   </motion.div>
@@ -4003,7 +6009,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
         {/* Step 3: Conclusion & Action */}
         <div className="flex gap-4">
           <div className="flex flex-col items-center">
-            <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`}>3</div>
+            <div className={`w-6 h-6 rounded-full ${currentStep >= 3 ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-slate-800 text-slate-500'} flex items-center justify-center text-[10px] font-bold transition-colors`} >3</div>
           </div>
           <div className="flex-1">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">环节三：诊断结论与修复方案</div>
@@ -4019,33 +6025,6 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     {conclusion}
                   </p>
                 </div>
-
-                {/* 隐藏诊断分析环节3中的静态“推荐修复方案”预览列表 */}
-                {/* 
-                data.recommendations && (
-                  <div className="mb-5 space-y-3">
-                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <Zap size={12} className="text-purple-400" /> 推荐修复方案
-                    </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      {data.recommendations.map((rec: any, i: number) => (
-                        <div key={i} className="bg-[#1a1a24] border border-white/5 rounded-xl p-3 flex justify-between items-center group/item hover:border-purple-500/30 transition-all shadow-sm">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[11px] font-bold text-slate-200">{rec.title}</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${rec.risk === '低' || rec.risk === '极低' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'}`}>风险: {rec.risk}</span>
-                            </div>
-                            <div className="text-[10px] text-slate-500 font-medium italic">{rec.description}</div>
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-bold px-3 py-1 bg-white/5 rounded-lg opacity-0 group-item-hover:opacity-100 transition-opacity">
-                            预期效果: {rec.effect}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-                */}
 
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -4063,7 +6042,6 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     根因分析报告
                   </button>
 
-                  {/* 新增归档入口，现在位于右侧 */}
                   <KnowledgeArchiveSection data={data} />
                 </div>
               </motion.div>
@@ -4074,6 +6052,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 const LogAnalysisChatCard = ({ data, onAction }: any) => {
   const step = data.step || 0;
@@ -4897,13 +6877,27 @@ const InspectionPlanDetailDrawer = ({
 
 const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: any }) => {
   const [selectedReportId, setSelectedReportId] = useState<string>('');
+  const [selectedReportNodeIp, setSelectedReportNodeIp] = useState<string>('');
+  const [selectedMetric, setSelectedMetric] = useState('CPU');
+  const [isObjectsExpanded, setIsObjectsExpanded] = useState(false);
+  const [isReportMetricsModalOpen, setIsReportMetricsModalOpen] = useState(false);
+  const [reportModalMetrics, setReportModalMetrics] = useState<any[]>([]);
+  const [reportModalTitle, setReportModalTitle] = useState('');
   
   useEffect(() => {
-    if (data?.id) setSelectedReportId('current');
+    if (data?.id) {
+      setSelectedReportId('current');
+      setSelectedReportNodeIp('');
+    }
   }, [data?.id]);
 
   if (!data) return null;
   const isPhased = data.format === '0412_phased';
+  const branch = data.branch || 'abnormal';
+
+  const defaultReportSelectedIp = branch === 'abnormal' ? '172.30.34.73:8001' : branch === 'failed' ? '172.30.34.90:8001' : '';
+  const activeReportIp = selectedReportNodeIp || defaultReportSelectedIp;
+  const activeReportDetails = data.nodeDetails?.[activeReportIp] || getFallbackNodeDetails(activeReportIp, branch);
 
   // Get history from mock data based on task name if it's a phased report
   const historyData = isPhased ? (MOCK_INSPECTION_HISTORY[data.name] || []) : [];
@@ -4967,180 +6961,1163 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                 </div>
               </div>
 
-              <div className="p-10 space-y-12 max-w-4xl mx-auto flex-1">
+              <div className="p-10 space-y-12 max-w-4xl mx-auto flex-1 text-left font-sans relative">
                 {isPhased ? (
                   <>
-                    {/* Phase 1: Overview */}
+                    {/* Phase 1: 开始分析 */}
                     <section className="space-y-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">1. 巡检执行概览 (Executive Summary)</h3>
+                      <div className="flex items-center gap-3 border-b border-slate-800/40 pb-2 mb-4">
+                        <h3 className="text-base font-black text-slate-100 tracking-tight flex items-center gap-2">
+                          一、巡检基本状态概览 (Basic Status Overview)
+                        </h3>
                       </div>
 
-                      {/* （1）巡检计划信息 */}
-                      {data.stage1?.planInfo && (
-                        <AnalysisTable title="（1）巡检计划信息" columns={['字段', '内容']} data={data.stage1.planInfo} />
+                      {/* normal 分支 */}
+                      {branch === 'normal' && (
+                        <div className="space-y-4">
+                          {/* 1. 巡检计划信息 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2.5 mb-3">
+                              <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                            </div>
+                            <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <tbody>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                        正常 (normal)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-slate-800 text-slate-400">
+                                        普通 (info)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                          {/* 2. 巡检对象统计 */}
+                          {data.stage1?.objectStats && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
+                              </div>
+                              <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                                <table className="w-full text-left border-collapse text-xs">
+                                  <thead>
+                                    <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                      <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                        <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                        <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 3. 全部巡检对象列表 */}
+                          {data.stage1?.objectsTable && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                              </div>
+                              <AnalysisTable 
+                                title="" 
+                                columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                                data={data.stage1.objectsTable} 
+                              />
+                            </div>
+                          )}
+
+                          {/* 整体健康摘要 */}
+                          {data.stage1?.healthSummary && (
+                            <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4">
+                              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">整体健康摘要</div>
+                              <p className="text-xs text-slate-300 leading-relaxed font-medium">{data.stage1.healthSummary}</p>
+                            </div>
+                          )}
+                        </div>
                       )}
 
-                      {/* （2）详细分析 */}
-                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-2xl p-6 space-y-4">
-                        <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                          <span className="text-[12px] font-black text-slate-400 uppercase tracking-wider">（2）详细分析</span>
-                        </div>
-
-                        {/* 巡检对象总数 */}
-                        {data.stage1?.objectCount !== undefined && (
-                          <div className="text-xs font-bold text-slate-300">
-                            巡检对象总数：<span className="text-indigo-400 font-mono">{data.stage1.objectCount}</span>
+                      {/* abnormal 分支 */}
+                      {branch === 'abnormal' && (
+                        <div className="space-y-4">
+                          {/* 1. 巡检计划信息 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2.5 mb-3">
+                              <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                            </div>
+                            <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <tbody>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-amber-500/10 text-amber-400 border-amber-500/20">
+                                        异常 (abnormal)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-500 border-rose-500/20">
+                                        严重 (critical)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                        )}
 
-                        {/* 巡检对象表格 */}
-                        {data.stage1?.objectsTable && (
-                          <AnalysisTable title="" columns={['#', '巡检对象', '结果', '严重级别', '摘要']} data={data.stage1.objectsTable} />
-                        )}
-
-                        {/* 异常巡检对象卡片面板 */}
-                        {data.stage1?.abnormalDetail && (
-                          <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-5 space-y-4 mt-2">
-                            <div className="text-xs font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wide border-b border-slate-900 pb-2">
-                              <div className="w-1 h-3 bg-rose-500 rounded-sm" />
-                              异常巡检对象
-                            </div>
-
-                            {/* 网格行：状态、结果、严重级别 */}
-                            <div className="grid grid-cols-3 gap-4 bg-slate-950/20 p-3 rounded-md border border-slate-800/30 text-xs">
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">状态</span>
-                                <span className="text-slate-300 font-medium font-mono">
-                                  {data.stage1.abnormalDetail.status}
-                                </span>
+                          {/* 2. 巡检对象统计 */}
+                          {data.stage1?.objectStats && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
                               </div>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">结果</span>
-                                <span className="text-rose-400 font-bold font-mono">
-                                  {data.stage1.abnormalDetail.result}
-                                </span>
-                              </div>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">严重级别</span>
-                                <span className="text-amber-400 font-bold font-mono">
-                                  {data.stage1.abnormalDetail.severity}
-                                </span>
+                              <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                                <table className="w-full text-left border-collapse text-xs">
+                                  <thead>
+                                    <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                      <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                        <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                        <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
+                          )}
 
-                            {/* 各类长文本说明 */}
-                            <div className="space-y-3.5 text-xs">
-                              {data.stage1.abnormalDetail.errorMessage && (
-                                <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">错误信息</span>
-                                  <span className="font-mono text-slate-300 font-bold text-[11px] break-all bg-slate-950/50 px-2 py-1.5 rounded border border-slate-900">{data.stage1.abnormalDetail.errorMessage}</span>
-                                </div>
-                              )}
-                              {data.stage1.abnormalDetail.description && (
-                                <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">问题描述</span>
-                                  <span className="text-slate-300 leading-relaxed font-medium">{data.stage1.abnormalDetail.description}</span>
-                                </div>
-                              )}
-                              {data.stage1.abnormalDetail.impact && (
-                                <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase">影响范围</span>
-                                  <span className="text-slate-400 leading-relaxed font-medium">{data.stage1.abnormalDetail.impact}</span>
+                          {/* 3. 全部巡检对象列表 */}
+                          {data.stage1?.objectsTable && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-2">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                              </div>
+                              <AnalysisTable 
+                                title="" 
+                                columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                                data={isObjectsExpanded ? data.stage1.objectsTable : data.stage1.objectsTable.slice(0, 5)} 
+                              />
+                              {data.stage1.objectsTable.length > 5 && (
+                                <div className="flex justify-center mt-2.5">
+                                  <button 
+                                    onClick={() => setIsObjectsExpanded(!isObjectsExpanded)}
+                                    className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                                  >
+                                    {isObjectsExpanded ? '收起巡检对象列表 ↑' : '查看全部巡检对象列表 ↓'}
+                                  </button>
                                 </div>
                               )}
                             </div>
+                          )}
 
-                            {/* 指标子表 */}
-                            {data.stage1?.runtimeMetrics && (
-                              <div className="mt-4 border-t border-slate-800/40 pt-4">
-                                <AnalysisTable title="指标" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={data.stage1.runtimeMetrics} />
+                          {/* 4. 巡检对象分析 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
+                            <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 巡检对象分析</span>
+                            </div>
+
+                            {/* （1）重点分析对象列表 */}
+                            {data.priorityObjects && (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 pl-3.5 my-3">
+                                  <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                  <span className="text-[11px] font-bold text-slate-400">（1）异常对象列表</span>
+                                </div>
+                                <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                                  <table className="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                      <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 font-bold uppercase tracking-wider">
+                                        <th className="px-3.5 py-2">#</th>
+                                        <th className="px-3.5 py-2">对象</th>
+                                        <th className="px-3.5 py-2">类型</th>
+                                        <th className="px-3.5 py-2">严重级别</th>
+                                        <th className="px-3.5 py-2">异常指标</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {data.priorityObjects.slice(0, 5).map((row: any, idx: number) => {
+                                        const isSelected = activeReportIp === row.ip;
+                                        return (
+                                          <tr 
+                                            key={idx} 
+                                            onClick={() => setSelectedReportNodeIp(row.ip)}
+                                            className={`border-b border-slate-800/30 last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10 font-bold' : ''}`}
+                                          >
+                                            <td className="px-3.5 py-2 text-slate-500">{idx + 1}</td>
+                                            <td className="px-3.5 py-2 font-mono text-slate-200">{row.ip}</td>
+                                            <td className="px-3.5 py-2">
+                                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                                row.type === 'normal' || row.reason === 'normal' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                row.type === 'failed' || row.reason === '连接超时' || row.reason === 'Agent 离线' ? 'bg-rose-500/10 text-rose-400' :
+                                                'bg-amber-500/10 text-amber-400'
+                                              }`}>
+                                                {row.type === 'normal' ? '正常' : row.type === 'abnormal' ? '异常' : row.type === 'failed' ? '失败' : (row.type || row.reason)}
+                                              </span>
+                                            </td>
+                                            <td className="px-3.5 py-2">
+                                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                                row.severity === 'info' ? 'bg-slate-800 text-slate-400' :
+                                                row.severity === 'warning' ? 'bg-amber-500/10 text-amber-550' :
+                                                'bg-rose-500/10 text-rose-500'
+                                              }`}>
+                                                {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
+                                              </span>
+                                            </td>
+                                            <td className="px-3.5 py-2">
+                                              {row.reason === 'CPU=92%，RSS=1821MB' || row.reason === 'CPU=92%, RSS=1821MB' ? (
+                                                <>
+                                                  <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">CPU</span>
+                                                  <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] font-bold ml-1">内存</span>
+                                                </>
+                                              ) : row.reason === 'FD=980 接近上限' ? (
+                                                <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">FD上限</span>
+                                              ) : row.reason === '连接超时' || row.reason === 'Agent 离线' ? (
+                                                <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 border border-slate-700/50 rounded text-[10px] font-bold">{row.reason}</span>
+                                              ) : (
+                                                <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">{row.reason || row.impact}</span>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
                               </div>
                             )}
 
-                            {/* 异常指标 */}
-                            {data.stage1?.anomalies && (
-                              <div className="mt-4 border-t border-slate-800/40 pt-4">
-                                <div className="text-[10px] text-rose-400 font-black uppercase tracking-wider mb-2">异常指标</div>
-                                <ul className="space-y-1.5">
-                                  {data.stage1.anomalies.map((item: string, idx: number) => (
-                                    <li key={idx} className="text-xs text-rose-300 font-medium leading-relaxed flex items-start gap-1.5">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
-                                      <span>{item}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                            {/* （2）当前对象详情 */}
+                            <div className="space-y-3 pt-4 border-t border-slate-800/40">
+                              <div className="flex items-center gap-2 pl-3.5 my-3">
+                                <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                <span className="text-[11px] font-bold text-slate-400">（2）异常对象详情</span>
+                              </div>
+                              
+                              <div className="flex overflow-x-auto no-scrollbar border-b border-slate-800/60 gap-1 mb-2 p-0.5">
+                                {data.priorityObjects.map((obj: any) => {
+                                  const isSelected = activeReportIp === obj.ip;
+                                  const isFailed = obj.type === 'failed' || obj.reason === '连接超时' || obj.reason === 'Agent 离线';
+                                  return (
+                                    <button
+                                      key={obj.ip}
+                                      onClick={() => setSelectedReportNodeIp(obj.ip)}
+                                      className={`px-3.5 py-2 text-[10px] font-mono font-bold tracking-tight rounded-t-lg border-t border-x transition-all flex items-center gap-1.5 relative top-[1px] ${
+                                        isSelected 
+                                          ? 'bg-slate-900/60 border-slate-800 text-slate-200 shadow-inner' 
+                                          : 'bg-transparent border-transparent text-slate-500 hover:text-slate-400'
+                                      }`}
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                      <span className="font-mono">{obj.ip}</span>
+                                      <span className="opacity-70">
+                                        ({isFailed ? '失败' : '异常'})
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Subordinate details card panel representing active tab state */}
+                              <div className="bg-slate-950/40 border border-slate-800/50 rounded-xl p-4 mt-2.5 space-y-5">
+                                {/* 运行时基础指标 */}
+                                {activeReportDetails.baseMetrics && (
+                                  <div className="space-y-2.5">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-blue-500/60" />
+                                      运行时基础指标
+                                    </div>
+                                    <AnalysisTable title="" columns={['指标名称', '字段 Key', '当前值', '单位 / 状态说明']} data={activeReportDetails.baseMetrics} />
+                                  </div>
+                                )}
+
+                                {/* 异常判断指标 */}
+                                {activeReportDetails.evalMetrics && (
+                                  <div className="space-y-2.5 pt-4 border-t border-slate-800/30">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-blue-500/60" />
+                                      异常判断指标
+                                    </div>
+                                    <AnalysisTable title="" columns={['指标', '当前值', '阈值', '状态']} data={activeReportDetails.evalMetrics} />
+                                  </div>
+                                )}
+
+                                {/* 运行时未采集指标 */}
+                                {activeReportDetails.uncollectedMetrics && (
+                                  <div className="space-y-2.5 pt-4 border-t border-slate-800/30">
+                                    <div className="text-[10px] font-bold text-rose-450 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-rose-500/60" />
+                                      运行时未采集指标
+                                    </div>
+                                    <AnalysisTable title="" columns={['检查项', '是否采集', '说明']} data={activeReportDetails.uncollectedMetrics} />
+                                  </div>
+                                )}
+
+                                {/* 异常判断摘要 */}
+                                {activeReportDetails.anomalies && activeReportDetails.anomalies.length > 0 && (
+                                  <div className="space-y-2 pt-4 border-t border-slate-800/30">
+                                    <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-rose-500/60" />
+                                      异常判断摘要
+                                    </div>
+                                    <ul className="space-y-1.5 bg-rose-500/[0.01] border border-rose-500/10 rounded-xl p-3.5">
+                                      {activeReportDetails.anomalies.map((item: string, idx: number) => (
+                                        <li key={idx} className="text-xs text-rose-300 font-medium flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                                          {item}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* failed 分支 */}
+                      {branch === 'failed' && (
+                        <div className="space-y-4">
+                          {/* 1. 巡检计划信息 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2.5 mb-3">
+                              <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 巡检计划信息</span>
+                            </div>
+                            <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <tbody>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">巡检计划名称</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.name}</td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行结果</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-400 border-rose-500/20">
+                                        失败 (failed)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  <tr className="border-b border-slate-800/30">
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">执行时间</td>
+                                    <td className="px-3.5 py-2 font-medium text-slate-200">{data.updatedAt}</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
+                                    <td className="px-3.5 py-2 font-medium">
+                                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase bg-rose-500/10 text-rose-500 border-rose-500/20">
+                                        严重 (critical)
+                                      </span>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                          {/* 2. 巡检对象统计 */}
+                          {data.stage1?.objectStats && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 巡检对象统计</span>
+                              </div>
+                              <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                                <table className="w-full text-left border-collapse text-xs">
+                                  <thead>
+                                    <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400">
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider">统计项</th>
+                                      <th className="px-3.5 py-2 font-bold uppercase tracking-wider text-right">数量</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {data.stage1.objectStats.map((row: any[], idx: number) => (
+                                      <tr key={idx} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
+                                        <td className="px-3.5 py-2 font-medium text-slate-400">{row[0]}</td>
+                                        <td className="px-3.5 py-2 font-mono text-slate-200 text-right">{row[1]}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 3. 全部巡检对象列表 */}
+                          {data.stage1?.objectsTable && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-2">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                              </div>
+                              <AnalysisTable 
+                                title="" 
+                                columns={['#', '巡检对象', '结果', '严重级别', '摘要']} 
+                                data={isObjectsExpanded ? data.stage1.objectsTable : data.stage1.objectsTable.slice(0, 5)} 
+                              />
+                              {data.stage1.objectsTable.length > 5 && (
+                                <div className="flex justify-center mt-2.5">
+                                  <button 
+                                    onClick={() => setIsObjectsExpanded(!isObjectsExpanded)}
+                                    className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                                  >
+                                    {isObjectsExpanded ? '收起巡检对象列表 ↑' : '查看全部巡检对象列表 ↓'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* 4. 重点失败对象 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
+                            <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 重点失败对象</span>
+                            </div>
+
+                            {/* （1）重点失败对象列表 */}
+                            {data.priorityObjects && (
+                              <div className="space-y-3">
+                                <div className="text-[10px] font-black text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <div className="w-1.5 h-2.5 bg-rose-500 rounded-sm" />
+                                  （1）重点失败对象列表
+                                </div>
+                                <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/10 overflow-hidden">
+                                  <table className="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                      <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 font-bold uppercase tracking-wider">
+                                        <th className="px-3.5 py-2">#</th>
+                                        <th className="px-3.5 py-2">对象</th>
+                                        <th className="px-3.5 py-2">失败原因</th>
+                                        <th className="px-3.5 py-2">严重级别</th>
+                                        <th className="px-3.5 py-2">影响</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {data.priorityObjects.slice(0, 5).map((row: any, idx: number) => {
+                                        const isSelected = activeReportIp === row.ip;
+                                        return (
+                                          <tr 
+                                            key={idx} 
+                                            onClick={() => setSelectedReportNodeIp(row.ip)}
+                                            className={`border-b border-slate-800/30 last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10 font-bold' : ''}`}
+                                          >
+                                            <td className="px-3.5 py-2 text-slate-500">{idx + 1}</td>
+                                            <td className="px-3.5 py-2 font-mono text-slate-200">{row.ip}</td>
+                                            <td className="px-3.5 py-2">
+                                              <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/10 text-rose-400">
+                                                {row.reason}
+                                              </span>
+                                            </td>
+                                            <td className="px-3.5 py-2">
+                                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                                row.severity === 'info' ? 'bg-slate-800 text-slate-400' :
+                                                row.severity === 'warning' ? 'bg-amber-500/10 text-amber-550' :
+                                                'bg-rose-500/10 text-rose-500'
+                                              }`}>
+                                                {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
+                                              </span>
+                                            </td>
+                                            <td className="px-3.5 py-2 text-slate-300 font-bold">{row.impact}</td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
                               </div>
                             )}
-                          </div>
-                        )}
-                      </div>
-                    </section>
 
-                    {/* Phase 2: Evidence Gallery */}
-                    <section>
-                      <div className="flex items-center gap-3 mb-8">
-                        <div className="w-1.5 h-6 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">2. 深度证据链 (Deep Evidence Chain)</h3>
-                      </div>
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                          {data.stage2?.charts?.map((chart: any, i: number) => (
-                            <div key={i} className="bg-black/30 border border-white/5 rounded-2xl p-4">
-                              <AnalysisTrendChart {...chart} />
+                            {/* （2）当前对象详情 */}
+                            <div className="space-y-3 pt-4 border-t border-slate-800/40">
+                              <div className="text-[10px] font-black text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <div className="w-1.5 h-2.5 bg-rose-500 rounded-sm" />
+                                （2）当前对象详情
+                              </div>
+                              <div className="flex overflow-x-auto no-scrollbar border-b border-slate-800/60 gap-1 mb-2 p-0.5">
+                                {data.priorityObjects.map((obj: any) => {
+                                  const isSelected = activeReportIp === obj.ip;
+                                  const isFailed = obj.type === 'failed' || obj.reason === '连接超时' || obj.reason === 'Agent 离线';
+                                  return (
+                                    <button
+                                      key={obj.ip}
+                                      onClick={() => setSelectedReportNodeIp(obj.ip)}
+                                      className={`px-3.5 py-2 text-[10px] font-mono font-bold tracking-tight rounded-t-lg border-t border-x transition-all flex items-center gap-1.5 relative top-[1px] ${
+                                        isSelected 
+                                          ? 'bg-slate-900/60 border-slate-800 text-slate-200 shadow-inner' 
+                                          : 'bg-transparent border-transparent text-slate-500 hover:text-slate-400'
+                                      }`}
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                      <span className="font-mono">{obj.ip}</span>
+                                      <span className="opacity-70">
+                                        ({isFailed ? '失败' : '异常'})
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {activeReportDetails.uncollectedMetrics && (
+                                <div className="pt-3 border-t border-slate-800/40">
+                                  <AnalysisTable title="未采集指标说明" columns={['检查项', '是否采集', '说明']} data={activeReportDetails.uncollectedMetrics} />
+                                </div>
+                              )}
                             </div>
-                          ))}
+                          </div>
                         </div>
-                        {data.stage2?.comparisonTable && <AnalysisTable title="（1）历史趋势对比明细" columns={['指标', '当前值', '昨日同期', '阈值']} data={data.stage2.comparisonTable} />}
-                        {data.stage2?.correlationTable && <AnalysisTable title="（2）多维度指标关联分析" columns={['维度', '状态', '趋势', '关联性']} data={data.stage2.correlationTable} />}
-                      </div>
+                      )}
                     </section>
 
-                    {/* Phase 3: Reasoning */}
-                    <section>
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-1.5 h-6 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">3. 归因推演逻辑 (Diagnosis Reasoning)</h3>
+                    {/* Phase 2: 分析指标发展路径 / 路径与证据探索 / 失败证据说明 */}
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-3 border-b border-slate-800/40 pb-2 mb-4">
+                        <h3 className="text-base font-black text-slate-100 tracking-tight flex items-center gap-2">
+                          二、{branch === 'normal' ? '指标健康与趋势' : branch === 'abnormal' ? '指标趋势与数据演进' : '采集失败证据说明'} (Trends & Evidences)
+                        </h3>
                       </div>
-                      <div className="space-y-4">
-                        {data.stage3?.candidateTable && <AnalysisTable title="分析候选原因与权重" columns={['可能原因', '证据强度', '推演结论']} data={data.stage3.candidateTable} />}
-                        <div className="bg-slate-900/50 border border-white/[0.03] rounded-2xl p-8 relative overflow-hidden">
-                          <div className="absolute top-0 right-0 p-4 opacity-5"><Brain size={48} /></div>
-                          <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">关键异常链路证据汇总</div>
-                          <ul className="space-y-4">
-                            {data.stage3?.evidenceList?.map((e: string, i: number) => (
-                              <li key={i} className="text-sm text-slate-300 flex items-start gap-3 group">
-                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0 group-hover:scale-150 transition-transform" />
-                                <span className="leading-relaxed leading-6">{e}</span>
-                              </li>
-                            ))}
-                          </ul>
+
+                      {/* normal 分支 */}
+                      {branch === 'normal' && (
+                        <div className="space-y-4">
+                          {data.stage2?.trendTable && (
+                            <AnalysisTable 
+                              title="CPU 使用率趋势概览（近 30 分钟）" 
+                              columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
+                              data={data.stage2.trendTable} 
+                            />
+                          )}
+                          {data.stage2?.trendSummary && (
+                            <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 mt-2">
+                              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">健康趋势摘要</div>
+                              <p className="text-xs text-slate-300 leading-relaxed font-medium">{data.stage2.trendSummary}</p>
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
+
+                      {/* abnormal 分支 */}
+                      {branch === 'abnormal' && (() => {
+                        const abnormalIps = ['172.30.34.73:8001', '172.30.34.81:8001'];
+                        const labels = ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'];
+                        
+                        const cpuLines = abnormalIps.map((ip, idx) => {
+                          const details = data.nodeDetails?.[ip] || getFallbackNodeDetails(ip, 'abnormal');
+                          const chart = details?.charts?.find((c: any) => c.title.includes('CPU'));
+                          return {
+                            name: ip,
+                            data: chart ? chart.data : [0,0,0,0,0,0,0],
+                            color: idx === 0 ? '#f43f5e' : '#3b82f6'
+                          };
+                        });
+                        
+                        const memoryLines = abnormalIps.map((ip, idx) => {
+                          const details = data.nodeDetails?.[ip] || getFallbackNodeDetails(ip, 'abnormal');
+                          const chart = details?.charts?.find((c: any) => c.title.includes('内存') || c.title.includes('Memory'));
+                          return {
+                            name: ip,
+                            data: chart ? chart.data : [0,0,0,0,0,0,0],
+                            color: idx === 0 ? '#f43f5e' : '#3b82f6'
+                          };
+                        });
+
+                        const errorLines = [
+                          { name: '172.30.34.73:8001', data: [0.5, 0.8, 1.0, 1.5, 2.2, 2.8, 3.2], color: '#f43f5e' },
+                          { name: '172.30.34.81:8001', data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], color: '#3b82f6' }
+                        ];
+
+                        const isFailedNode = activeReportDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+
+                        return (
+                          <div className="space-y-6">
+                            {/* 1. 指标趋势概览表 */}
+                            {data.stage2?.trendTable && (
+                              <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                                <div className="flex items-center gap-2.5 mb-3">
+                                  <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                  <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 指标趋势概览表</span>
+                                </div>
+                                <AnalysisTable 
+                                  title="" 
+                                  columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
+                                  data={data.stage2.trendTable.slice(0, 10)} 
+                                />
+                                {data.stage2.trendTable.length > 10 && (
+                                  <div className="flex justify-center mt-2.5">
+                                    <button 
+                                      onClick={() => {
+                                        setReportModalTitle('指标趋势概览表 - 全部指标数据');
+                                        setReportModalMetrics(data.stage2.trendTable);
+                                        setIsReportMetricsModalOpen(true);
+                                      }}
+                                      className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
+                                    >
+                                      查看全部指标 ↓
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* 2. 异常对象趋势图 */}
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 异常对象趋势图</span>
+                              </div>
+                              <div className="space-y-3">
+                                <MultiLineTrendChart title="CPU 使用率趋势图 (所有异常对象)" labels={labels} lines={cpuLines} />
+                                <MultiLineTrendChart title="内存使用率趋势图 (所有异常对象)" labels={labels} lines={memoryLines} />
+                                <MultiLineTrendChart title="错误率趋势图 (所有异常对象)" labels={labels} lines={errorLines} />
+                              </div>
+                            </div>
+
+                            {/* 3. 历史对比表 */}
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 历史对比表</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono tracking-tight mb-2">
+                                分析对象: {activeReportIp}
+                              </div>
+                              {isFailedNode ? (
+                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
+                                  当前对象无可用历史对比数据
+                                </div>
+                              ) : (
+                                activeReportDetails.historyTable && activeReportDetails.historyTable.length > 0 ? (
+                                  <AnalysisTable 
+                                    title="" 
+                                    columns={['指标', '当前值', '昨日同时间', '阈值', '对比结论']} 
+                                    data={activeReportDetails.historyTable} 
+                                  />
+                                ) : (
+                                  <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
+                                    当前对象无可用历史对比数据
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* failed 分支 */}
+                      {branch === 'failed' && (
+                        <div className="space-y-4">
+                          {data.stage2?.failedDistribution && (
+                            <AnalysisTable 
+                              title="失败对象分布表" 
+                              columns={['失败原因', '对象数量', '示例对象']} 
+                              data={data.stage2.failedDistribution} 
+                            />
+                          )}
+                          {data.stage2?.failedImpact && (
+                            <AnalysisTable 
+                              title="失败影响范围" 
+                              columns={['影响项', '内容']} 
+                              data={data.stage2.failedImpact} 
+                            />
+                          )}
+                        </div>
+                      )}
                     </section>
 
-                    {/* Phase 4: Conclusion */}
-                    <section className="pb-20">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">4. 巡检审定结论 (Final Verdict)</h3>
+                    {/* Phase 3: 健康状态判断 / 根因分析 / 失败原因判断 */}
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-3 border-b border-slate-800/40 pb-2 mb-4">
+                        <h3 className="text-base font-black text-slate-100 tracking-tight flex items-center gap-2">
+                          三、{branch === 'normal' ? '健康状态审查' : branch === 'abnormal' ? '深度根因剖析与诊断依据' : '原因归纳与排查建议'} (Diagnostics & Analysis)
+                        </h3>
                       </div>
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-10 relative overflow-hidden mb-8 group">
-                        <div className="absolute -bottom-8 -right-8 opacity-5 group-hover:opacity-10 transition-opacity"><Brain size={160} /></div>
-                        <div className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-4">AI 专家系统终审意见</div>
-                        <p className="text-xl text-emerald-50/90 font-bold leading-relaxed italic relative z-10 antialiased">
-                          “{data.stage4?.judgment}”
-                        </p>
+
+                      {/* normal 分支 */}
+                      {branch === 'normal' && (
+                        <div className="space-y-4">
+                          {data.stage3?.judgmentTable && (
+                            <AnalysisTable 
+                              title="健康判断表" 
+                              columns={['判断项', '结果', '说明']} 
+                              data={data.stage3.judgmentTable} 
+                            />
+                          )}
+                          {data.stage3?.evidenceList && (
+                            <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">关键依据</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {data.stage3.evidenceList.map((e: string, i: number) => (
+                                  <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-blue-500" /> {e}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* abnormal 分支 */}
+                      {branch === 'abnormal' && (
+                        <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                            分析对象: {activeReportIp}
+                          </div>
+
+                          {(() => {
+                            const isFailedNode = activeReportDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                            
+                            if (isFailedNode) {
+                              return (
+                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                                  当前对象为巡检失败，无法基于指标进行根因分析
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="space-y-6">
+                                {/* 1. 根因候选表 */}
+                                {activeReportDetails.diagnosis?.candidates && (
+                                  <div className="space-y-2">
+                                    <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
+                                      1. 根因候选表
+                                    </div>
+                                    <AnalysisTable 
+                                      title="" 
+                                      columns={['可能原因', '支撑证据', '说明']} 
+                                      data={activeReportDetails.diagnosis.candidates} 
+                                    />
+                                  </div>
+                                )}
+
+                                {/* 2. 关键证据总结 */}
+                                <div className="space-y-2">
+                                  <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
+                                    2. 关键证据总结
+                                  </div>
+                                  {activeReportDetails.diagnosis?.evidences ? (
+                                    <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                      {activeReportDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-left text-slate-500 text-xs">
+                                      <div className="font-bold text-slate-400 mb-1">当前对象缺少指标数据</div>
+                                      <div>无法生成资源类关键证据</div>
+                                      <div className="text-[10px] text-slate-600 mt-1">需要先恢复指标采集能力</div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* 3. 未确认信息 */}
+                                {activeReportDetails.diagnosis?.unconfirmed && (
+                                  <div className="space-y-2">
+                                    <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
+                                      3. 未确认信息
+                                    </div>
+                                    <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                      {activeReportDetails.diagnosis.unconfirmed.map((e: string, i: number) => (
+                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {e}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                      {/* failed 分支 */}
+                      {branch === 'failed' && data.stage3 && (
+                        <div className="space-y-6">
+                          {/* 1. 失败原因归纳表 */}
+                          {data.stage3.reasonsTable && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 失败原因归纳表</span>
+                              </div>
+                              <AnalysisTable 
+                                title="" 
+                                columns={['失败原因', '失败对象数', '示例对象', '支撑信息', '说明']} 
+                                data={data.stage3.reasonsTable} 
+                              />
+                            </div>
+                          )}
+
+                          {/* 2. 失败原因占比 */}
+                          {data.stage3.ratioTable && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 失败原因占比</span>
+                              </div>
+                              <AnalysisTable 
+                                title="" 
+                                columns={['失败原因', '对象数', '占失败对象比例']} 
+                                data={data.stage3.ratioTable} 
+                              />
+                            </div>
+                          )}
+
+                          {/* 3. 失败原因判断 */}
+                          {data.stage3.judgments && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 失败原因判断</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {data.stage3.judgments.map((item: string, idx: number) => (
+                                  <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0 mt-1.5" /> 
+                                    <span className="leading-relaxed">{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* 4. 未确认信息 */}
+                          {data.stage3.unconfirmed && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 未确认信息</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {data.stage3.unconfirmed.map((item: string, idx: number) => (
+                                  <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0 mt-1.5" /> 
+                                    <span className="leading-relaxed">{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* 5. 阶段结论 */}
+                          {data.stage3.conclusion && (
+                            <div className="bg-gradient-to-r from-purple-500/[0.03] to-transparent border border-purple-500/10 rounded-xl p-4 relative overflow-hidden">
+                              <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-purple-500/40 to-transparent" />
+                              <div className="text-[11px] text-slate-400 font-bold mb-2">5. 阶段结论</div>
+                              <p className="text-xs text-slate-200 font-bold leading-relaxed">{data.stage3.conclusion}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </section>
+
+                    {/* Phase 4: 最终建议 */}
+                    <section className="space-y-6 pb-6">
+                      <div className="flex items-center gap-3 border-b border-slate-800/40 pb-2 mb-4">
+                        <h3 className="text-base font-black text-slate-100 tracking-tight flex items-center gap-2">
+                          四、{branch === 'normal' ? '审定结论与后续策略' : branch === 'abnormal' ? '处置决策与修复方案' : '失败总结与自愈处置'} (Verdict & Remediation)
+                        </h3>
                       </div>
-                      {data.stage4?.summaryTable && <AnalysisTable title="巡检判定维表明细" columns={['评估维度', '自动化判定结果']} data={data.stage4.summaryTable} />}
+
+                      {/* normal 分支 */}
+                      {branch === 'normal' && (
+                        <div className="space-y-4">
+                          {data.stage4?.verdictTable && (
+                            <AnalysisTable title="巡检结果概览" columns={['维度', '内容']} data={data.stage4.verdictTable} />
+                          )}
+                          
+                           {data.stage4?.verdictJudgments && (
+                            <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">当前判断</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {data.stage4.verdictJudgments.map((item: string, idx: number) => (
+                                  <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {data.stage4?.verdictSuggestions && (
+                            <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">总体建议</span>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {data.stage4.verdictSuggestions.map((item: string, idx: number) => (
+                                  <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" /> {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                       {/* abnormal 分支 */}
+                       {branch === 'abnormal' && activeReportDetails.verdict && (
+                         <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                           <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                             分析对象: {activeReportIp}
+                           </div>
+
+                           {/* 1. 问题概览 */}
+                           {activeReportDetails.verdict.summary && (
+                             <div className="space-y-2">
+                               <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                                 <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
+                                 1. 问题概览
+                               </div>
+                               <AnalysisTable 
+                                 title="" 
+                                 columns={['维度', '内容']} 
+                                 data={activeReportDetails.verdict.summary} 
+                               />
+                             </div>
+                           )}
+
+                           {/* 2. 关键发现 */}
+                           {activeReportDetails.verdict.findings && (
+                             <div className="space-y-2">
+                               <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                                 <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
+                                 2. 关键发现
+                               </div>
+                               <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                 {activeReportDetails.verdict.findings.map((item: string, idx: number) => (
+                                   <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
+                                   </li>
+                                 ))}
+                               </ul>
+                             </div>
+                           )}
+
+                           {/* 3. 当前判断 */}
+                           {activeReportDetails.verdict.judgment && (
+                             <div className="space-y-2">
+                               <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                 <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
+                                 3. 当前判断
+                               </div>
+                               <div className="bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                 <p className="text-xs text-slate-300 font-bold leading-relaxed">{activeReportDetails.verdict.judgment}</p>
+                               </div>
+                             </div>
+                           )}
+
+                           {/* 4. 总体建议 */}
+                           {activeReportDetails.verdict.recommendations && (
+                             <div className="space-y-2">
+                               <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                 <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
+                                 4. 总体建议
+                               </div>
+                               <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
+                                 <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
+                                 <ul className="space-y-1.5">
+                                   {activeReportDetails.verdict.recommendations.map((item: string, idx: number) => (
+                                     <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
+                                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
+                                     </li>
+                                   ))}
+                                 </ul>
+                               </div>
+                             </div>
+                           )}
+
+                           {/* 5. 分析边界说明 */}
+                           {activeReportDetails.verdict.boundary && activeReportDetails.verdict.boundary.length > 0 && (
+                             <div className="space-y-2">
+                               <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                 <div className="w-1 h-2.5 bg-slate-500 rounded-sm" />
+                                 5. 分析边界说明
+                               </div>
+                               <div className="bg-[#0a0a0f] border border-slate-800 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-1.5">
+                                 <div>当前分析基于当前选中对象的巡检指标、趋势数据和历史对比结果生成。</div>
+                                 <div>以下信息尚未纳入分析：</div>
+                                 <ul className="list-disc pl-5 space-y-1">
+                                   {activeReportDetails.verdict.boundary.map((item: string, idx: number) => (
+                                     <li key={idx}>{item}</li>
+                                   ))}
+                                 </ul>
+                                 <div className="pt-1.5 text-[10px] text-slate-500 italic">因此结论仅作为辅助判断依据。</div>
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                       )}
+
+                       {/* failed 分支 */}
+                       {branch === 'failed' && data.stage4 && (
+                         <div className="space-y-6">
+                           {/* 1. 失败结果概览 */}
+                           {data.stage4.verdictTable && (
+                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                               <div className="flex items-center gap-2.5 mb-3">
+                                 <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 失败结果概览</span>
+                               </div>
+                               <AnalysisTable 
+                                 title="" 
+                                 columns={['维度', '内容']} 
+                                 data={data.stage4.verdictTable} 
+                               />
+                             </div>
+                           )}
+
+                           {/* 2. 关键发现 */}
+                           {data.stage4.findings && (
+                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                               <div className="flex items-center gap-2 mb-3">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">2. 关键发现</span>
+                               </div>
+                               <ul className="space-y-1.5">
+                                 {data.stage4.findings.map((item: string, idx: number) => (
+                                   <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                     <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" /> 
+                                     <span className="leading-relaxed">{item}</span>
+                                   </li>
+                                 ))}
+                               </ul>
+                             </div>
+                           )}
+
+                           {/* 3. 当前判断 */}
+                           {data.stage4.judgments && (
+                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                               <div className="flex items-center gap-2 mb-3">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 当前判断</span>
+                               </div>
+                               <ul className="space-y-1.5">
+                                 {data.stage4.judgments.map((item: string, idx: number) => (
+                                   <li key={idx} className="text-xs text-slate-200 font-bold flex items-start gap-2">
+                                     <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" /> 
+                                     <span className="leading-relaxed">{item}</span>
+                                   </li>
+                                 ))}
+                               </ul>
+                             </div>
+                           )}
+
+                           {/* 4. 总体建议 */}
+                           {data.stage4.recommendationsTable && (
+                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                               <div className="flex items-center gap-2.5 mb-3">
+                                 <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+                                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 总体建议</span>
+                               </div>
+                               
+                               <AnalysisTable 
+                                 title="" 
+                                 columns={['失败原因', '建议动作']} 
+                                 data={data.stage4.recommendationsTable} 
+                               />
+
+                               {data.stage4.supplementaryRecommendations && (
+                                 <div className="bg-gradient-to-r from-rose-500/[0.03] to-transparent border border-rose-500/10 rounded-xl p-4 relative overflow-hidden mt-3">
+                                   <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-rose-500/40 to-transparent" />
+                                   <ul className="space-y-1.5">
+                                     {data.stage4.supplementaryRecommendations.map((item: string, idx: number) => (
+                                       <li key={idx} className="text-[11px] text-slate-300 font-bold leading-relaxed flex items-start gap-2">
+                                         <div className="w-1.5 h-1.5 rounded-full bg-rose-500/30 shrink-0 mt-1.5" /> 
+                                         <span>{item}</span>
+                                       </li>
+                                     ))}
+                                   </ul>
+                                 </div>
+                               )}
+                             </div>
+                           )}
+                         </div>
+                       )}
+                     
+                     {/* Report Footer / Signature / Disclaimer */}
+                     <div className="border-t border-slate-800/60 pt-6 mt-12 text-[10px] text-slate-500 font-mono space-y-2 pb-16">
+                       <div className="flex justify-between items-center">
+                         <span>报告审定签名: SRE-AI AUTOPILOT ENGINE V3.2</span>
+                         <span>数据源校验: PROMETHEUS / TEGRAF API OK</span>
+                       </div>
+                       <p className="leading-relaxed">
+                         声明：本诊断报告是基于当前检查点前后30分钟内的时序指标、进程日志及配置快照，通过AI自愈分析引擎自动推导生成。报告中的诊断候选根因、置信度及操作命令仅作为辅助排查决策参考，高危变更执行前请由人工二次核验确认，本系统不对执行变更产生的二次影响承担责任。
+                       </p>
+                     </div>
                     </section>
                   </>
                 ) : (
                   <>
-                    {/* Section 1: Fault Overview (故障概述) */}
-                    <section>
+                    {/* Section 1: Fault Overview */}
+                    <section className="space-y-6">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                           <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
@@ -5148,135 +8125,123 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                         {data.confidence && (
                           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">分析置信度: {data.confidence}%</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            <span className="text-[10px] font-bold text-emerald-400">AI 置信度: {data.confidence}</span>
                           </div>
                         )}
                       </div>
-                      <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Zap size={80} /></div>
-                        <p className="text-base text-blue-100/80 leading-relaxed font-bold italic relative z-10">
-                          {data.faultOverview || data.conclusion || "本次故障由系统组件异常引起，已自动完成链路锁定与根因推导。"}
-                        </p>
-                      </div>
-                  </section>
 
-                  {/* Section 2: Impact Scope (影响范围) */}
-                  <section>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-6 bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-                      <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">2. 影响范围 (Impact Scope)</h3>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
-                        <div className="text-[10px] font-black text-rose-500 uppercase mb-2">受波及服务节点</div>
-                        <div className="flex flex-wrap gap-2">
-                          {(data.impactScope?.nodes || ['vserver-prod']).map((node: string, i: number) => (
-                            <span key={i} className="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded text-[10px] font-mono border border-rose-500/20">{node}</span>
-                          ))}
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="p-4 bg-slate-900/40 border border-white/[0.03] rounded-xl">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">故障时间</div>
+                            <div className="text-sm font-medium text-slate-200">{data.updatedAt || new Date().toLocaleString()}</div>
+                          </div>
+                          <div className="p-4 bg-slate-900/40 border border-white/[0.03] rounded-xl">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">受影响节点</div>
+                            <div className="text-sm font-medium text-slate-200 font-mono italic">{data.node || 'payment-gateway-0'}</div>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="p-4 bg-slate-900/40 border border-white/[0.03] rounded-xl">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">故障现象</div>
+                            <div className="text-sm font-medium text-slate-200">{data.summary || '未知异常'}</div>
+                          </div>
+                          <div className="p-4 bg-slate-900/40 border border-white/[0.03] rounded-xl">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">诊断引擎</div>
+                            <div className="text-sm font-medium text-slate-200">多智能体协同诊断引擎 (V3.2)</div>
+                          </div>
                         </div>
                       </div>
-                      <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
-                        <div className="text-[10px] font-black text-rose-500 uppercase mb-2">影响用户规模</div>
-                        <div className="text-xl font-black text-slate-200">{data.impactScope?.userVolume || '暂无统计'}</div>
-                      </div>
-                      <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
-                        <div className="text-[10px] font-black text-rose-500 uppercase mb-2">故障定级</div>
-                        <div className="text-lg font-black text-rose-400 tracking-tighter">{data.impactScope?.level || 'P2'}</div>
-                      </div>
-                    </div>
-                  </section>
+                    </section>
 
-                  {/* Section 3: Root Cause Analysis (根因分析) */}
-                  <section>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-6 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                      <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">3. 根因深度剖析 (Root Cause Analysis)</h3>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-5"><Brain size={64} /></div>
-                        <div className="text-xs font-black text-amber-500 uppercase tracking-widest mb-3">核心诊断结论 (Core Conclusion)</div>
-                        <p className="text-base text-amber-50/90 font-bold leading-relaxed">{data.rootCause?.coreConclusion || data.conclusion}</p>
+                    {/* Section 2: Fault Details */}
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-6 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">2. 故障详情与链路 (Fault Details & Trace)</h3>
                       </div>
-
-                      <div className="bg-black/20 border border-slate-800 rounded-2xl p-6">
-                        <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                          <Activity size={14} className="text-amber-500" /> 故障传播链 (Propagation Chain)
-                        </div>
-                        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
-                          {(data.rootCause?.propagationChain || [
-                            { from: '入口服务', to: '业务应用', reason: '请求超时', status: 'error' },
-                            { from: '业务应用', to: '数据库', reason: '连接拒绝', status: 'active' }
-                          ]).map((item: any, i: number) => (
+                      
+                      <div className="p-5 bg-slate-900/20 border border-white/[0.05] rounded-2xl space-y-4">
+                        <div className="text-xs text-slate-400 font-medium">✨ 受影响拓扑节点分布：</div>
+                        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scroll-hidden py-1">
+                          {(data.topology || ['服务A', '服务B', '服务C']).map((node: string, i: number) => (
                             <React.Fragment key={i}>
-                              <div className="flex flex-col items-center gap-3 shrink-0">
-                                <div className={`px-4 py-2 rounded-xl border ${item.status === 'error' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'} text-xs font-bold tracking-tight shadow-sm`}>
-                                  {item.from}
-                                </div>
-                                <span className="text-[10px] text-slate-500 font-mono italic tracking-tighter opacity-80">{item.reason}</span>
+                              <div className="p-2.5 rounded-lg bg-slate-950/40 border border-slate-800/80 flex items-center gap-2 font-mono italic text-xs text-slate-200">
+                                <Monitor size={12} className="text-blue-400" />
+                                {node}
                               </div>
-                              {i < (data.rootCause?.propagationChain?.length || 2) - 1 && (
-                                <ArrowRight size={16} className="text-slate-700 mt-[-18px]" />
-                              )}
-                              {i === (data.rootCause?.propagationChain?.length || 2) - 1 && (
-                                <React.Fragment>
-                                  <ArrowRight size={16} className="text-slate-700 mt-[-18px]" />
-                                  <div className="px-4 py-2 rounded-xl border bg-slate-800 border-slate-700 text-slate-400 text-xs font-bold tracking-tight">
-                                    {item.to}
-                                  </div>
-                                </React.Fragment>
-                              )}
+                              {i < (data.topology?.length || 0) - 1 && <ArrowRight size={14} className="text-slate-700 shrink-0" />}
                             </React.Fragment>
                           ))}
                         </div>
                       </div>
+                    </section>
 
-                      {data.rootCause?.evidenceMetrics && (
-                        <AnalysisTable 
-                          title="关键证据指标" 
-                          columns={['监控指标', '当前值', '基准线', '异常状态']} 
-                          data={data.rootCause.evidenceMetrics} 
-                        />
-                      )}
-                    </div>
-                  </section>
+                    {/* Section 3: Root Cause Analysis */}
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-6 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">3. 根因推导与依据 (Root Cause Analysis)</h3>
+                      </div>
 
-                  {/* Section 4: Handling Suggestions (处理方案) */}
-                  <section className="pb-20">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                      <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">4. 处理建议与修复方案 (Actionable Plans)</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {(data.recommendations || [
-                        { title: '建议一', description: '描述信息', risk: '低' },
-                        { title: '建议二', description: '描述信息', risk: '高' }
-                      ]).map((rec: any, i: number) => (
-                        <div key={i} className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-5 hover:bg-emerald-500/[0.08] transition-all group">
-                          <div className="flex justify-between items-start mb-3">
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${rec.risk === '低' || rec.risk === '极低' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'}`}>Risk: {rec.risk}</span>
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Zap size={14} />
-                            </div>
-                          </div>
-                          <h4 className="text-sm font-bold text-slate-200 mb-1.5">{rec.title}</h4>
-                          <p className="text-xs text-slate-500 leading-relaxed font-medium">{rec.description}</p>
+                      <div className="p-5 bg-amber-500/[0.03] border border-amber-500/10 rounded-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
+                        <h4 className="text-sm font-black text-amber-400 mb-3 flex items-center gap-2">智能诊断链条记录</h4>
+                        <div className="space-y-4 text-xs text-slate-300 font-medium leading-relaxed">
+                          <p>{data.conclusion || '诊断中...'}</p>
                         </div>
-                      ))}
-                    </div>
-                  </section>
-                </>
-              )}
+                      </div>
+                    </section>
+
+                    {/* Section 4: Self-Healing Suggestion */}
+                    <section className="space-y-6 pb-20">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                        <h3 className="text-lg font-bold text-slate-100 uppercase tracking-tight">4. 处置建议与一键自愈 (Remediation & Self-Healing)</h3>
+                      </div>
+
+                      {data.recommendations && data.recommendations.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">智能决策推荐的处置动作</div>
+                          <div className="grid gap-3">
+                            {data.recommendations.map((rec: any, i: number) => (
+                              <div key={i} className="p-4 bg-slate-900/40 border border-white/[0.03] rounded-xl flex items-center justify-between group hover:border-emerald-500/20 transition-all">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-xs font-bold text-slate-200">{rec.action}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${rec.risk === '低' || rec.risk === '极低' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'}`}>Risk: {rec.risk}</span>
+                                  </div>
+                                  <p className="text-xs text-slate-500 font-medium">{rec.desc}</p>
+                                </div>
+                                <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-emerald-950/20 border border-emerald-500/10">
+                                  <Zap size={12} fill="currentColor" /> 执行
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </section>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
         </>
       )}
+      
+      <AllMetricsModal 
+        isOpen={isReportMetricsModalOpen}
+        onClose={() => setIsReportMetricsModalOpen(false)}
+        title={reportModalTitle}
+        data={reportModalMetrics}
+      />
     </AnimatePresence>
   );
 };
+
+
 
 const AnalysisTable = ({ title, columns, data }: { title?: string, columns: string[], data: any[][] }) => (
   <div className="w-full my-3">
@@ -5298,25 +8263,40 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
         <tbody>
           {data.map((row, i) => (
             <tr key={i} className="border-b border-slate-800/30 last:border-0 hover:bg-white/[0.01]">
-              {row.map((cell, j) => (
-                <td key={j} className="px-3.5 py-2 text-xs font-medium whitespace-nowrap text-slate-300">
-                  {cell === '异常' || cell === '未存活' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
-                      {cell}
-                    </span>
-                  ) : cell === '偏高' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
-                      {cell}
-                    </span>
-                  ) : cell === '正常' || cell === '存活' ? (
-                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
-                      {cell}
-                    </span>
-                  ) : (
-                    cell
-                  )}
-                </td>
-              ))}
+              {row.map((cell, j) => {
+                let displayCell = cell;
+                if (cell === 'normal') displayCell = '正常';
+                else if (cell === 'abnormal') displayCell = '异常';
+                else if (cell === 'failed') displayCell = '失败';
+                else if (cell === 'completed') displayCell = '已完成';
+                else if (cell === 'warning') displayCell = '警告';
+                else if (cell === 'critical') displayCell = '严重';
+                else if (cell === 'info') displayCell = '普通';
+
+                return (
+                  <td key={j} className="px-3.5 py-2 text-xs font-medium text-slate-300 break-words whitespace-normal min-w-[80px]">
+                    {displayCell === '异常' || displayCell === '未存活' || displayCell === '失败' || displayCell === '严重' ? (
+                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
+                        {displayCell}
+                      </span>
+                    ) : displayCell === '偏高' || displayCell === '警告' ? (
+                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
+                        {displayCell}
+                      </span>
+                    ) : displayCell === '正常' || displayCell === '存活' || displayCell === '已完成' || displayCell === '普通' ? (
+                      <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase ${
+                        displayCell === '普通' 
+                          ? 'bg-slate-800 text-slate-400 border-slate-700/50' 
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      }`}>
+                        {displayCell}
+                      </span>
+                    ) : (
+                      displayCell
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -8199,34 +11179,12 @@ const INITIAL_INSPECTION_TASKS = [
           { name: 'RESTART_LIMIT', value: '3', editable: true },
           { name: 'NAMESPACE', value: 'production', editable: false }
         ]
-      },
-      {
-        taskId: 'TASK-MYSQL-01',
-        name: 'MySQL 支付慢查询审计',
-        description: '捕获涉及支付核心账户表的慢日志和死锁记录',
-        resourceType: 'MySQL 实例',
-        target: 'MySQL-Order-Primary',
-        scriptType: 'python',
-        scriptContent: 'import time\n# 模拟数据库慢 SQL 检查\nprint("Scanning order db for queries exceeding 2s...")',
-        variables: [
-          { name: 'SLOW_LIMIT_SEC', value: '2', editable: true }
-        ]
-      },
-      {
-        taskId: 'TASK-HOST-01',
-        name: '网关外部 SLB 网络时延核查',
-        description: '测量 SLB 边缘节点到服务内部 VPC 网络包传输往返时延',
-        resourceType: '主机/SLB',
-        target: '默认服务器节点-01',
-        scriptType: 'shell',
-        scriptContent: '#!/bin/bash\nping -c 10 slb.external.node.connection',
-        variables: [
-          { name: 'WARN_LATENCY_MS', value: '100', editable: true }
-        ]
       }
     ]
   },
   {
+    id: 'PLAN-002',
+    planId: 'PLAN-ID-2000',
     name: '数据库慢查询扫描',
     target: '实例 (MySQL-Order-Primary)',
     status: '异常',
@@ -8238,35 +11196,44 @@ const INITIAL_INSPECTION_TASKS = [
     updatedAt: '2024-04-12 13:50:45',
     nextExecutionTime: '2026-06-04 02:00:00',
     availableDates: ['2024-04-12', '2024-04-11', '2024-04-09'],
-    hasReport: true
+    hasReport: true,
+    tasks: []
   },
   {
+    id: 'PLAN-003',
+    planId: 'PLAN-ID-3000',
     name: '全站 SSL 证书有效性监控',
     target: '主机 (Slb-External-Node)',
-    status: '异常',
+    status: '失败',
     inspectionStatus: '已结束',
     executionType: 'immediate',
-    riskLevel: '低',
+    riskLevel: '高',
     rules: ['剩余天数 < 30', '证书链完整性', '算法强度'],
-    summary: '有 2 个域名的证书即将于 15 天后过期，请及时更新。',
+    summary: '有多个节点 Agent 离线，网络握手超时，部分高特权系统指标未采集成功。',
     updatedAt: '2024-04-12 10:20:00',
     availableDates: ['2024-04-12', '2024-04-10', '2024-04-08'],
-    hasReport: true
+    hasReport: true,
+    tasks: []
   },
   {
+    id: 'PLAN-004',
+    planId: 'PLAN-ID-4000',
     name: '基础架构存储空间巡检',
     target: '集群 (Ceph-Storage-01)',
     status: '健康',
-    inspectionStatus: '待巡检',
+    inspectionStatus: '已结束',
     executionType: 'scheduled',
     riskLevel: '低',
     rules: ['分区使用率 > 80%', 'IOPS 饱和度', '持久化延迟'],
-    summary: '存储系统各分区使用率均在 60% 以下，IOPS 及延时指标正常。',
+    summary: '存储系统各分区使用率均在 60% 以下，IOPS 及延时指标正常，整体运行稳定。',
     updatedAt: '2024-04-12 09:15:33',
     nextExecutionTime: '2026-06-04 06:00:00',
-    availableDates: ['2024-04-12', '2024-04-11', '2024-04-07']
+    availableDates: ['2024-04-12', '2024-04-11', '2024-04-07'],
+    tasks: []
   },
   {
+    id: 'PLAN-005',
+    planId: 'PLAN-ID-5000',
     name: '消息队列集群堆积巡检',
     target: '集群 (Kafka-Prod-Main)',
     status: '异常',
@@ -8275,9 +11242,12 @@ const INITIAL_INSPECTION_TASKS = [
     riskLevel: '中',
     rules: ['落后 Offset > 100w', '分区均衡度', 'ISR 副本状态'],
     summary: '检测到 billing-topic 存在消费延迟，Offset 堆积量达 250w，疑似下游消费能力不足。',
-    updatedAt: '2024-04-12 15:30:12'
+    updatedAt: '2024-04-12 15:30:12',
+    tasks: []
   },
   {
+    id: 'PLAN-006',
+    planId: 'PLAN-ID-6000',
     name: '入口网关 Nginx 并发连接核查',
     target: '主机 (Nginx-LB-01)',
     status: '异常',
@@ -8287,7 +11257,8 @@ const INITIAL_INSPECTION_TASKS = [
     rules: ['Active Connections', 'Waiting Connections', 'Error Rate'],
     summary: '当前活动连接数接近系统限额 (80%)，建议检查连接复用配置。',
     updatedAt: '2024-04-12 16:45:00',
-    nextExecutionTime: '—'
+    nextExecutionTime: '—',
+    tasks: []
   }
 ];
 
@@ -12820,10 +15791,11 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.map((plan: any) => {
+          const loadedPlans = parsed.map((plan: any) => {
             // 从默认数据中找到对应项，用于补全新增字段
             const matched = INITIAL_INSPECTION_TASKS.find(p => p.name === plan.name);
             const base = matched ? {
+              status: matched.status,
               executionType: matched.executionType,
               inspectionStatus: matched.inspectionStatus,
               nextExecutionTime: matched.nextExecutionTime,
@@ -12869,6 +15841,8 @@ export default function App() {
             }
             return { ...plan, ...base };
           });
+          const missingPlans = INITIAL_INSPECTION_TASKS.filter(p => !loadedPlans.some(lp => lp.name === p.name));
+          return [...loadedPlans, ...missingPlans];
         }
       } catch (e) {
         console.error(e);
@@ -14263,268 +17237,54 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
 
       const aiMsgId = `insp-ai-${Date.now()}`;
 
-      // Step 1: Initialization (1s)
+      const fullAnalysisData = generateInspectionAnalysisData(task);
+
       setTimeout(() => {
         addMessage({
           id: aiMsgId,
           type: 'ai',
           contentType: 'analysis',
-          content: `正在识别巡检对象 [${task.target}] 并加载指标快照...`,
+          content: `收集并分析巡检对象状态中...`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           data: {
-            format: '0412_phased',
-            currentStep: 1,
-            stage1: {
-              planInfo: [
-                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
-                ['执行结果', 'abnormal'],
-                ['执行时间', 'warning'],
-                ['总实例数', '1'],
-                ['正常实例数', '0'],
-                ['异常实例数', '1'],
-                ['失败实例数', '0']
-              ],
-              objectCount: 23,
-              objectsTable: [
-                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
-                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
-                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
-              ],
-              abnormalDetail: {
-                status: 'completed',
-                result: 'abnormal',
-                severity: 'warning',
-                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
-                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
-                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
-              },
-              runtimeMetrics: [
-                ['FD 数', 'fd_count', '19', '个'],
-                ['进程 ID', 'pid', '1', '-'],
-                ['进程存活状态', 'process_alive', 'true', '存活'],
-                ['RSS 内存', 'rss_mb', '1821', 'MB'],
-                ['线程数', 'threads', '7', '个']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
-              ]
-            }
+            ...fullAnalysisData,
+            currentStep: 1
           }
         });
-      }, 1000);
+      }, 1500);
 
-      // Step 2: Exploration (3.5s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
+          content: `分析指标变化趋势与关联特征中...`,
           data: {
-            format: '0412_phased',
-            currentStep: 2,
-            stage1: {
-              planInfo: [
-                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
-                ['执行结果', 'abnormal'],
-                ['执行时间', 'warning'],
-                ['总实例数', '1'],
-                ['正常实例数', '0'],
-                ['异常实例数', '1'],
-                ['失败实例数', '0']
-              ],
-              objectCount: 23,
-              objectsTable: [
-                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
-                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
-                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
-              ],
-              abnormalDetail: {
-                status: 'completed',
-                result: 'abnormal',
-                severity: 'warning',
-                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
-                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
-                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
-              },
-              runtimeMetrics: [
-                ['FD 数', 'fd_count', '19', '个'],
-                ['进程 ID', 'pid', '1', '-'],
-                ['进程存活状态', 'process_alive', 'true', '存活'],
-                ['RSS 内存', 'rss_mb', '1821', 'MB'],
-                ['线程数', 'threads', '7', '个']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
-              ]
-            },
-            stage2: {
-              charts: [
-                {
-                  title: 'CPU 使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [65, 70, 75, 82, 88, 90, 92],
-                  events: [{ time: '10:15', label: '异常开始' }]
-                },
-                {
-                  title: '内存使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [60, 65, 70, 75, 80, 85, 88]
-                }
-              ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
-            }
+            ...fullAnalysisData,
+            currentStep: 2
           }
         });
       }, 3500);
 
-      // Step 3: Diagnosis (6s)
       setTimeout(() => {
         updateMessage(aiMsgId, {
+          content: `通过推演推导根因或异常原因中...`,
           data: {
-            format: '0412_phased',
-            currentStep: 3,
-            stage1: {
-              planInfo: [
-                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
-                ['执行结果', 'abnormal'],
-                ['执行时间', 'warning'],
-                ['总实例数', '1'],
-                ['正常实例数', '0'],
-                ['异常实例数', '1'],
-                ['失败实例数', '0']
-              ],
-              objectCount: 23,
-              objectsTable: [
-                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
-                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
-                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
-              ],
-              abnormalDetail: {
-                status: 'completed',
-                result: 'abnormal',
-                severity: 'warning',
-                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
-                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
-                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
-              },
-              runtimeMetrics: [
-                ['FD 数', 'fd_count', '19', '个'],
-                ['进程 ID', 'pid', '1', '-'],
-                ['进程存活状态', 'process_alive', 'true', '存活'],
-                ['RSS 内存', 'rss_mb', '1821', 'MB'],
-                ['线程数', 'threads', '7', '个']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
-              ]
-            },
-            stage2: {
-              charts: [
-                {
-                  title: 'CPU 使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [65, 70, 75, 82, 88, 90, 92],
-                  events: [{ time: '10:15', label: '异常开始' }]
-                },
-                {
-                  title: '内存使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [60, 65, 70, 75, 80, 85, 88]
-                }
-              ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
-            },
-            stage3: {
-              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
-              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
-            }
+            ...fullAnalysisData,
+            currentStep: 3
           }
         });
       }, 6000);
 
-      // Step 4: Conclusion (8.5s)
       setTimeout(() => {
         setIsAIProcessing(false);
         setInspectionAnalysisStatus(prev => ({ ...prev, [task.name]: 'completed' }));
         updateMessage(aiMsgId, {
+          content: `总结并生成排查建议中...`,
           data: {
-            format: '0412_phased',
-            currentStep: 4,
-            stage1: {
-              planInfo: [
-                ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
-                ['执行结果', 'abnormal'],
-                ['执行时间', 'warning'],
-                ['总实例数', '1'],
-                ['正常实例数', '0'],
-                ['异常实例数', '1'],
-                ['失败实例数', '0']
-              ],
-              objectCount: 23,
-              objectsTable: [
-                ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
-                ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
-                ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
-              ],
-              abnormalDetail: {
-                status: 'completed',
-                result: 'abnormal',
-                severity: 'warning',
-                errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
-                description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
-                impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
-              },
-              runtimeMetrics: [
-                ['FD 数', 'fd_count', '19', '个'],
-                ['进程 ID', 'pid', '1', '-'],
-                ['进程存活状态', 'process_alive', 'true', '存活'],
-                ['RSS 内存', 'rss_mb', '1821', 'MB'],
-                ['线程数', 'threads', '7', '个']
-              ],
-              anomalies: [
-                'CPU 使用率异常升高（92%）',
-                '内存使用率接近上限（88%）'
-              ]
-            },
-            stage2: {
-              charts: [
-                {
-                  title: 'CPU 使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [65, 70, 75, 82, 88, 90, 92],
-                  events: [{ time: '10:15', label: '异常开始' }]
-                },
-                {
-                  title: '内存使用率趋势 (近30分钟)',
-                  labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-                  data: [60, 65, 70, 75, 80, 85, 88]
-                }
-              ],
-              comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
-              correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
-            },
-            stage3: {
-              candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
-              evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
-            },
-            stage4: {
-              summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
-              recommendations: [
-                '由于内存持续上涨且无 GC 迹象，可能存在内存泄漏，建议人工介入 Dump 堆内存进行分析',
-                'CPU 负载已超 90% 并伴随大量错误，建议临时扩容或重启服务以保证可用性'
-              ],
-              generalSuggestions: [
-                '检查近期是否上线了新的代码版本，尤其是涉及缓存或线程池的相关改动',
-                '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
-                '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
-              ],
-              judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。'
-            }
+            ...fullAnalysisData,
+            currentStep: 4
           }
         });
       }, 8500);
+
       return;
     }
 
@@ -14701,7 +17461,13 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }
 
     if (action === 'NOT_EXECUTE_HEAL_FLOW') {
-      setShowNotExecuteDialog(data);
+      addMessage({
+        id: `not-execute-flow-${Date.now()}`,
+        type: 'ai',
+        contentType: 'text',
+        content: '该方案暂时不执行，稍后您可在告警卡片上重新发起。',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
       return;
     }
 
@@ -15074,80 +17840,12 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
     }
 
     if (action === 'VIEW_REPORT') {
+      const fullAnalysisData = generateInspectionAnalysisData(data);
       const enrichedData = {
         format: '0412_phased',
         currentStep: 4,
-        ...data,
-        stage1: data.stage1 || {
-          planInfo: [
-            ['巡检计划名称', 'Python 应用综合巡检巡检计划_20260612_152439'],
-            ['执行结果', 'abnormal'],
-            ['执行时间', 'warning'],
-            ['总实例数', '1'],
-            ['正常实例数', '0'],
-            ['异常实例数', '1'],
-            ['失败实例数', '0']
-          ],
-          objectCount: 23,
-          objectsTable: [
-            ['1', '172.30.34.73:8001', 'abnormal', 'critical', 'RSS=1821MB CPU=92%'],
-            ['2', '172.30.34.81:8001', 'abnormal', 'critical', 'FD=980 接近上限'],
-            ['3', '172.30.34.90:8001', 'failed', 'critical', '连接超时']
-          ],
-          abnormalDetail: {
-            status: 'completed',
-            result: 'abnormal',
-            severity: 'warning',
-            errorMessage: 'Python: RSS=1821MB threads=7 fd=19',
-            description: '巡检代理(Agent)处于离线状态，无法在目标主机上执行任何检查脚本。这意味着预设的内存使用(RSS)、线程数、文件句柄数等关键指标均无法采集 and 评估。',
-            impact: '所有配置的检查项都无法执行，包括：RSS内存监控（告警阈值：1024MB，严重阈值：2048MB）；线程数监控（告警阈值：200）；文件句柄数监控（告警阈值：4096）'
-          },
-          runtimeMetrics: [
-            ['FD 数', 'fd_count', '19', '个'],
-            ['进程 ID', 'pid', '1', '-'],
-            ['进程存活状态', 'process_alive', 'true', '存活'],
-            ['RSS 内存', 'rss_mb', '1821', 'MB'],
-            ['线程数', 'threads', '7', '个']
-          ],
-          anomalies: [
-            'CPU 使用率异常升高（92%）',
-            '内存使用率接近上限（88%）'
-          ]
-        },
-        stage2: data.stage2 || {
-          charts: [
-            {
-              title: 'CPU 使用率趋势 (近30分钟)',
-              labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-              data: [65, 70, 75, 82, 88, 90, 92],
-              events: [{ time: '10:15', label: '异常开始' }]
-            },
-            {
-              title: '内存使用率趋势 (近30分钟)',
-              labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30'],
-              data: [60, 65, 70, 75, 80, 85, 88]
-            }
-          ],
-          comparisonTable: [['CPU使用率', '92%', '68%', '80%'], ['内存使用率', '88%', '64%', '80%'], ['错误率', '3.2%', '0.8%', '1%']],
-          correlationTable: [['CPU', '高', '持续上升', '与线程数正相关'], ['内存', '高', '持续上升', '无明显 GC 回收'], ['错误率', '异常', '波动上升', '与流量无直接关联']]
-        },
-        stage3: data.stage3 || {
-          candidateTable: [['资源压力', 'CPU + 内存同步上升', '资源占用持续增加'], ['异常负载', '错误率上升', '但未与流量直接关联']],
-          evidenceList: ['CPU 与内存呈现高度同步上升趋势', '内存未观测到明显回收行为', '错误率存在异常波动']
-        },
-        stage4: data.stage4 || {
-          summaryTable: [['问题类型', '资源使用异常'], ['影响范围', '当前服务实例'], ['状态', '持续中']],
-          recommendations: [
-            '由于内存持续上涨且无 GC 迹象，可能存在内存泄漏，建议人工介入 Dump 堆内存进行分析',
-            'CPU 负载已超 90% 并伴随大量错误，建议临时扩容或重启服务以保证可用性'
-          ],
-          generalSuggestions: [
-            '检查近期是否上线了新的代码版本，尤其是涉及缓存或线程池的相关改动',
-            '持续关注 JVM/Python 运行时的 GC 状况与线程数变化',
-            '开启更细粒度的 APM 追踪以定位具体错误接口的慢调用'
-          ],
-          judgment: '基于当前指标趋势与关联分析，初步判断存在资源压力风险，可能影响服务稳定性。建议查看详细日志并关注近期变更。'
-        }
+        ...fullAnalysisData,
+        ...data
       };
       setActiveReportData(enrichedData);
       setIsReportDrawerOpen(true);
