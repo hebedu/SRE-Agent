@@ -4568,6 +4568,74 @@ const AllMetricsModal = ({ isOpen, onClose, title, data }: any) => {
 };
 
 
+const MultiLineTrendChart = ({ title, labels, lines, events }: {
+  title: string,
+  labels: string[],
+  lines: { name: string, data: number[], color: string }[],
+  events?: { time: string, label: string }[]
+}) => {
+  const allData = lines.flatMap(l => l.data);
+  const max = Math.max(...allData, 100);
+  const min = 0;
+
+  return (
+    <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 text-left font-sans">
+      <div className="border-b border-slate-800/40 pb-2 mb-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <Activity size={12} className="text-blue-500" /> {title}
+          </h4>
+          <span className="text-[9px] font-mono text-slate-500 bg-slate-900/60 border border-slate-800/50 rounded px-1.5 py-0.5 shrink-0">
+            10:00 - 10:30
+          </span>
+        </div>
+      </div>
+      <div className="relative h-24 w-full">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+          <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+          <line x1="0" y1="80" x2="100" y2="80" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+
+          {lines.map((l, lineIdx) => {
+            const points = l.data.map((val, i) => {
+              const x = (i / (l.data.length - 1)) * 100;
+              const y = 100 - ((val - min) / (max - min)) * 100;
+              return `${x},${y}`;
+            }).join(' ');
+
+            return (
+              <polyline
+                key={lineIdx}
+                points={points}
+                fill="none"
+                stroke={l.color}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            );
+          })}
+        </svg>
+      </div>
+      <div className="flex justify-between text-[8px] text-slate-600 font-mono mt-1.5">
+        <span>{labels[0]}</span>
+        <span>{labels[Math.floor(labels.length / 2)]}</span>
+        <span>{labels[labels.length - 1]}</span>
+      </div>
+      <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 items-center justify-center mt-3 pt-2 border-t border-slate-800/40">
+        {lines.map((l, idx) => (
+          <div key={idx} className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800/50 shadow-inner">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.color }} />
+            <span className="font-mono">{l.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+
 
 const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   const currentStep = data.currentStep || 0;
