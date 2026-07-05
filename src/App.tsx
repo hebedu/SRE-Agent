@@ -4517,38 +4517,35 @@ const AllMetricsModal = ({ isOpen, onClose, title, data }: any) => {
                 <th className="px-3 py-2">#</th>
                 <th className="px-3 py-2">巡检对象</th>
                 <th className="px-3 py-2">10:00</th>
-                <th className="px-3 py-2">10:05</th>
                 <th className="px-3 py-2">10:10</th>
-                <th className="px-3 py-2">10:15</th>
                 <th className="px-3 py-2">10:20</th>
-                <th className="px-3 py-2">10:25</th>
                 <th className="px-3 py-2">10:30</th>
                 <th className="px-3 py-2">趋势</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((row: any, i: number) => {
+                // If the row data passed in is already mapped to 6 elements, use them directly.
+                // Otherwise, map them on the fly.
+                const mappedRow = row.length === 6 ? row : [row[0], row[1], row[3], row[5], row[7], row[8]];
                 return (
                   <tr 
                     key={i} 
                     className="border-b border-slate-800/30 last:border-0 hover:bg-blue-600/5 transition-colors"
                   >
                     <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                    <td className="px-3 py-2 font-mono text-slate-200">{row[0]}</td>
-                    <td className="px-3 py-2 text-slate-300">{row[1]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[2]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[3]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[4]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[5]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[6]}%</td>
-                    <td className="px-3 py-2 text-slate-300">{row[7]}%</td>
+                    <td className="px-3 py-2 font-mono text-slate-200">{mappedRow[0]}</td>
+                    <td className="px-3 py-2 text-slate-300">{mappedRow[1]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{mappedRow[2]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{mappedRow[3]}%</td>
+                    <td className="px-3 py-2 text-slate-300">{mappedRow[4]}%</td>
                     <td className="px-3 py-2">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
-                        row[8] === '平稳' ? 'bg-emerald-500/10 text-emerald-400' :
-                        row[8] === '稳步上升' ? 'bg-amber-500/10 text-amber-400' :
+                        mappedRow[5] === '平稳' ? 'bg-emerald-500/10 text-emerald-400' :
+                        mappedRow[5] === '稳步上升' ? 'bg-amber-500/10 text-amber-400' :
                         'bg-rose-500/10 text-rose-400'
                       }`}>
-                        {row[8]}
+                        {mappedRow[5]}
                       </span>
                     </td>
                   </tr>
@@ -4556,7 +4553,7 @@ const AllMetricsModal = ({ isOpen, onClose, title, data }: any) => {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="text-center py-8 text-slate-500">未找到匹配的指标数据</td>
+                  <td colSpan={7} className="text-center py-8 text-slate-500">未找到匹配的指标数据</td>
                 </tr>
               )}
             </tbody>
@@ -5268,8 +5265,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage2?.trendTable && (
                         <AnalysisTable 
                           title="CPU 使用率趋势概览（近 30 分钟）" 
-                          columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
-                          data={data.stage2.trendTable.slice(0, 5)} 
+                          columns={['巡检对象', '10:00', '10:10', '10:20', '10:30', '趋势']} 
+                          data={data.stage2.trendTable.slice(0, 5).map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]])} 
                         />
                       )}
                       <button 
@@ -5330,15 +5327,15 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                             </div>
                             <AnalysisTable 
                               title="" 
-                              columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
-                              data={data.stage2.trendTable.slice(0, 10)} 
+                              columns={['巡检对象', '10:00', '10:10', '10:20', '10:30', '趋势']} 
+                              data={data.stage2.trendTable.slice(0, 10).map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]])} 
                             />
                             {data.stage2.trendTable.length > 10 && (
                               <div className="flex justify-center mt-2.5">
                                 <button 
                                   onClick={() => {
                                     setModalTitle('指标趋势概览表 - 全部指标数据');
-                                    setModalMetrics(data.stage2.trendTable);
+                                    setModalMetrics(data.stage2.trendTable.map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]]));
                                     setIsMetricsModalOpen(true);
                                   }}
                                   className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
@@ -5487,7 +5484,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                      {/* abnormal 分支 */}
+                                                                        {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
                     <div className="space-y-6">
                       {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -5745,7 +5742,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                                      {/* abnormal 分支 */}
+                                                                        {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
                     <div className="space-y-6">
                       {/* 1. 问题汇总与关键发现 */}
@@ -6080,6 +6077,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7556,8 +7555,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage2?.trendTable && (
                             <AnalysisTable 
                               title="CPU 使用率趋势概览（近 30 分钟）" 
-                              columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
-                              data={data.stage2.trendTable} 
+                              columns={['巡检对象', '10:00', '10:10', '10:20', '10:30', '趋势']} 
+                              data={data.stage2.trendTable.map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]])} 
                             />
                           )}
                           {data.stage2?.trendSummary && (
@@ -7612,15 +7611,15 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                 </div>
                                 <AnalysisTable 
                                   title="" 
-                                  columns={['巡检对象', '10:00', '10:05', '10:10', '10:15', '10:20', '10:25', '10:30', '趋势']} 
-                                  data={data.stage2.trendTable.slice(0, 10)} 
+                                  columns={['巡检对象', '10:00', '10:10', '10:20', '10:30', '趋势']} 
+                                  data={data.stage2.trendTable.slice(0, 10).map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]])} 
                                 />
                                 {data.stage2.trendTable.length > 10 && (
                                   <div className="flex justify-center mt-2.5">
                                     <button 
                                       onClick={() => {
                                         setReportModalTitle('指标趋势概览表 - 全部指标数据');
-                                        setReportModalMetrics(data.stage2.trendTable);
+                                        setReportModalMetrics(data.stage2.trendTable.map((row: any) => [row[0], row[1], row[3], row[5], row[7], row[8]]));
                                         setIsReportMetricsModalOpen(true);
                                       }}
                                       className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-black/10"
@@ -7757,7 +7756,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                  {/* abnormal 分支 */}
+                                                                                        {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6">
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -8004,7 +8003,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                                                   {/* abnormal 分支 */}
+                                                                                         {/* abnormal 分支 */}
                       {branch === 'abnormal' && activeReportDetails.verdict && (
                         <div className="space-y-6">
                           {/* 1. 问题汇总与关键发现 */}
@@ -8300,6 +8299,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
