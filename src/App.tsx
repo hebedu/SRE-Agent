@@ -4409,15 +4409,16 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
 
 
 const getFallbackNodeDetails = (nodeIp: string, branch: string) => {
+  const isFailed = nodeIp === '172.30.34.90:8001' || branch === 'failed';
   return {
     detailTable: [
       ['对象', nodeIp],
-      ['状态', 'completed'],
-      ['结果', 'normal'],
-      ['严重级别', 'info'],
-      ['摘要', 'Python: RSS=512MB CPU=32%'],
-      ['问题描述', '该对象运行状态良好，各项指标均在安全阈值内。'],
-      ['影响范围', '无异常影响。']
+      ['状态', isFailed ? 'failed' : 'completed'],
+      ['结果', isFailed ? 'failed' : 'normal'],
+      ['严重级别', isFailed ? 'critical' : 'info'],
+      ['摘要', isFailed ? '连接超时' : 'Python: RSS=512MB CPU=32%'],
+      ['问题描述', isFailed ? '该对象巡检失败，无法连接到目标服务。' : '该对象运行状态良好，各项指标均在安全阈值内。'],
+      ['影响范围', isFailed ? '当前实例状态不可知，可能存在阻断风险。' : '无异常影响。']
     ],
     baseMetrics: [
       ['FD 数', 'fd_count', '15', '个'],
