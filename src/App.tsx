@@ -2957,12 +2957,20 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                     </div>
                     <div className="space-y-1.5 text-[10.5px]">
                       <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">恢复对象</span><span className="text-slate-200 font-medium">mysql-user-slave-01</span></div>
-                      <div className="flex justify-between"><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={new Date().toLocaleDateString()}>恢复时机: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">恢复脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title="SCR-MYSQL-CLEANUP-RB-v2.1">CLEAN-RB-v2.1</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">回滚对象</span><span className="text-slate-200 font-medium">mysql-user-slave-01</span></div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">回滚时间</span>
+                        <span className="text-slate-200 font-medium">
+                          {(() => {
+                            const now = new Date();
+                            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between"><span className="text-slate-400">回滚脚本</span><span className="text-indigo-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]" title="SCR-MYSQL-CLEANUP-RB-v2.1">CLEAN-RB-v2.1</span></div>
                     </div>
                     <div className="mt-2.5 space-y-1.5 border-t border-slate-800/40 pt-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">恢复脚本内容</div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">回滚脚本内容</div>
                       <pre className="p-3 bg-black/60 border border-slate-800/80 rounded-lg font-mono text-[10.5px] text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
 {`#!/bin/bash
 echo "[INFO] Starting rollback sequence for MySQL slave binlog sync..."
