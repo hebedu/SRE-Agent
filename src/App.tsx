@@ -5487,111 +5487,124 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                  {/* abnormal 分支 */}
+                                    {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
-                    <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                    <div className="space-y-6">
                       {data.priorityObjects && data.priorityObjects.length >= 2 ? (
-                        <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {data.priorityObjects.map((node: any) => {
-                              const isSelected = activeIp === node.ip;
-                              return (
-                                <button
-                                  key={node.ip}
-                                  onClick={() => setSelectedNodeIp(node.ip)}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                                    isSelected
-                                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
-                                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
-                                  }`}
-                                >
-                                  {node.ip}
-                                </button>
-                              );
-                            })}
-                          </div>
+                        <div className="space-y-6">
+                          {data.priorityObjects.map((node: any) => {
+                            const nodeIp = node.ip;
+                            const nodeDetails = data.nodeDetails?.[nodeIp] || getFallbackNodeDetails(nodeIp, branch);
+                            const isFailedNode = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                            
+                            return (
+                              <div key={nodeIp} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                                <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                  <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {nodeIp}</span>
+                                </div>
+
+                                {isFailedNode ? (
+                                  <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                                    当前对象为巡检失败，无法基于指标进行根因分析
+                                  </div>
+                                ) : (
+                                  <div className="space-y-4">
+                                    {/* 1. 根因候选表 */}
+                                    {nodeDetails.diagnosis?.candidates && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2 pl-3.5 my-2">
+                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                          <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
+                                        </div>
+                                        <AnalysisTable 
+                                          title="" 
+                                          columns={['可能原因', '支撑证据', '说明']} 
+                                          data={nodeDetails.diagnosis.candidates} 
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* 2. 关键证据总结 */}
+                                    {nodeDetails.diagnosis?.evidences && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2 pl-3.5 my-2">
+                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                          <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                        </div>
+                                        <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                          {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                            <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
-                        <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                          分析对象: {activeIp}
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                          <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {activeIp}</span>
+                          </div>
+                          
+                          {(() => {
+                            const isFailedNode = activeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                            if (isFailedNode) {
+                              return (
+                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                                  当前对象为巡检失败，无法基于指标进行根因分析
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="space-y-4">
+                                {/* 1. 根因候选表 */}
+                                {activeDetails.diagnosis?.candidates && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 pl-3.5 my-2">
+                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                      <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
+                                    </div>
+                                    <AnalysisTable 
+                                      title="" 
+                                      columns={['可能原因', '支撑证据', '说明']} 
+                                      data={activeDetails.diagnosis.candidates} 
+                                    />
+                                  </div>
+                                )}
+
+                                {/* 2. 关键证据总结 */}
+                                {activeDetails.diagnosis?.evidences && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 pl-3.5 my-2">
+                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                      <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                    </div>
+                                    <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                      {activeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
-
-                      {(() => {
-                        const isFailedNode = activeDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                        
-                        if (isFailedNode) {
-                          return (
-                            <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                              当前对象为巡检失败，无法基于指标进行根因分析
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="space-y-6">
-                            {/* 1. 根因候选表 */}
-                            {activeDetails.diagnosis?.candidates && (
-                              <div className="space-y-2">
-                                <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
-                                  1. 根因候选表
-                                </div>
-                                <AnalysisTable 
-                                  title="" 
-                                  columns={['可能原因', '支撑证据', '说明']} 
-                                  data={activeDetails.diagnosis.candidates} 
-                                />
-                              </div>
-                            )}
-
-                            {/* 2. 关键证据总结 */}
-                            <div className="space-y-2">
-                              <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
-                                2. 关键证据总结
-                              </div>
-                              {activeDetails.diagnosis?.evidences ? (
-                                <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                                  {activeDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-left text-slate-500 text-xs">
-                                  <div className="font-bold text-slate-400 mb-1">当前对象缺少指标数据</div>
-                                  <div>无法生成资源类关键证据</div>
-                                  <div className="text-[10px] text-slate-600 mt-1">需要先恢复指标采集能力</div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* 3. 未确认信息 */}
-                            {activeDetails.diagnosis?.unconfirmed && (
-                              <div className="space-y-2">
-                                <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
-                                  3. 未确认信息
-                                </div>
-                                <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                                  {activeDetails.diagnosis.unconfirmed.map((e: string, i: number) => (
-                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {e}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
                     </div>
                   )}
-
-                  {/* failed 分支 */}
+                  
+{/* failed 分支 */}
                   {branch === 'failed' && data.stage3 && (
                     <div className="space-y-6">
                       {/* 1. 失败原因归纳表 */}
@@ -5732,125 +5745,79 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                  {/* abnormal 分支 */}
+                                    {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
-                    <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                      {data.priorityObjects && data.priorityObjects.length >= 2 ? (
-                        <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {data.priorityObjects.map((node: any) => {
-                              const isSelected = activeIp === node.ip;
-                              return (
-                                <button
-                                  key={node.ip}
-                                  onClick={() => setSelectedNodeIp(node.ip)}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                                    isSelected
-                                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
-                                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
-                                  }`}
-                                >
-                                  {node.ip}
-                                </button>
-                              );
-                            })}
-                          </div>
+                    <div className="space-y-6">
+                      {/* 一、问题汇总与关键发现 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                          <div className="w-1.5 h-3.5 bg-blue-500 rounded-full" />
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">一、问题汇总与关键发现</span>
                         </div>
-                      ) : (
-                        <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                          分析对象: {activeIp}
-                        </div>
-                      )}
-
-                      {/* 1. 问题概览 */}
-                      {activeDetails.verdict.summary && (
-                        <div className="space-y-2">
-                          <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
-                            1. 问题概览
-                          </div>
-                          <AnalysisTable 
-                            title="" 
-                            columns={['维度', '内容']} 
-                            data={activeDetails.verdict.summary} 
-                          />
-                        </div>
-                      )}
-
-                      {/* 2. 关键发现 */}
-                      {activeDetails.verdict.findings && (
-                        <div className="space-y-2">
-                          <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
-                            2. 关键发现
-                          </div>
-                          <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                            {activeDetails.verdict.findings.map((item: string, idx: number) => (
-                              <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
-                              </li>
-                            ))}
+                        <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
+                          <p className="font-medium">
+                            经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例，核心关键发现如下：
+                          </p>
+                          <ul className="space-y-2.5">
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
+                              <span>
+                                对于 <strong className="font-mono text-rose-300">172.30.34.73:8001</strong>：系统检测到其 CPU 使用率异常升高（达 <strong>92%</strong>）且内存使用率接近上限（达 <strong>88%</strong>），呈现明显的双高压力，同时伴随错误率 the 异常波动。
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
+                              <span>
+                                对于 <strong className="font-mono text-rose-300">172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 <strong>980</strong> 并单调上升，已高度逼近单实例 resource 上限，存在显著的连接/句柄泄漏风险。
+                              </span>
+                            </li>
                           </ul>
+                          <p className="text-[11px] text-slate-400 border-t border-slate-800/40 pt-2 mt-1">
+                            ※ 总体判定：两台实例异常机制不同，但均有触发服务阻断或局部雪崩的高风险，需尽快执行相应的自愈或处置预案。
+                          </p>
                         </div>
-                      )}
+                      </div>
 
-                      {/* 3. 当前判断 */}
-                      {activeDetails.verdict.judgment && (
-                        <div className="space-y-2">
-                          <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <div className="w-1 h-2.5 bg-purple-500 rounded-sm" />
-                            3. 当前判断
-                          </div>
-                          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                            <p className="text-xs text-slate-300 font-bold leading-relaxed">{activeDetails.verdict.judgment}</p>
-                          </div>
+                      {/* 二、自愈与处置修复方案 */}
+                      <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                          <div className="w-1.5 h-3.5 bg-emerald-500 rounded-full" />
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">二、自愈与处置修复方案</span>
                         </div>
-                      )}
-
-                      {/* 4. 总体建议 */}
-                      {activeDetails.verdict.recommendations && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 pl-3.5 my-3">
-                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                            <span className="text-[11px] font-bold text-slate-400">4. 总体建议</span>
-                          </div>
-                          <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
-                            <ul className="space-y-1.5">
-                              {activeDetails.verdict.recommendations.map((item: string, idx: number) => (
-                                <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                        <div className="overflow-hidden border border-slate-800 rounded-xl bg-slate-950/10">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                              <tr className="border-b border-slate-800 bg-slate-950/30 text-slate-400 font-medium">
+                                <th className="px-3.5 py-2.5 font-semibold">异常实例</th>
+                                <th className="px-3.5 py-2.5 font-semibold">根因诊断结论</th>
+                                <th className="px-3.5 py-2.5 font-semibold">建议处置措施</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-slate-800/30 hover:bg-slate-900/10">
+                                <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.73:8001</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">系统资源双高压力，疑似内存泄漏与突增负载叠加。</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                  1. 建议人工介入 Dump 堆内存进行泄漏点分析；<br />
+                                  2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。
+                                </td>
+                              </tr>
+                              <tr className="hover:bg-slate-900/10">
+                                <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.81:8001</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。</td>
+                                <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                  1. 检查底层 TCP 连接及网络套接字释放逻辑；<br />
+                                  2. 在测试环境复现连接管理逻辑并定位未关闭连接句柄的代码段。
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
-                      )}
-
-                      {/* 5. 分析边界说明 */}
-                      {activeDetails.verdict.boundary && activeDetails.verdict.boundary.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <div className="w-1 h-2.5 bg-slate-500 rounded-sm" />
-                            5. 分析边界说明
-                          </div>
-                          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-1.5">
-                            <div>当前分析基于当前选中对象的巡检指标、趋势数据和历史对比结果生成。</div>
-                            <div>以下信息尚未纳入分析：</div>
-                            <ul className="list-disc pl-5 space-y-1">
-                              {activeDetails.verdict.boundary.map((item: string, idx: number) => (
-                                <li key={idx}>{item}</li>
-                              ))}
-                            </ul>
-                            <div className="pt-1.5 text-[10px] text-slate-500 italic">因此结论仅作为辅助判断依据。</div>
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   )}
-
-                  {/* failed 分支 */}
+                  
+{/* failed 分支 */}
                   {branch === 'failed' && data.stage4 && (
                     <div className="space-y-6">
                       {/* 1. 失败结果概览 */}
@@ -6113,6 +6080,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7786,111 +7755,124 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                      {/* abnormal 分支 */}
+                                            {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
-                        <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                        <div className="space-y-6">
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
-                            <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {data.priorityObjects.map((node: any) => {
-                                  const isSelected = activeReportIp === node.ip;
-                                  return (
-                                    <button
-                                      key={node.ip}
-                                      onClick={() => setSelectedReportNodeIp(node.ip)}
-                                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                                        isSelected
-                                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
-                                          : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
-                                      }`}
-                                    >
-                                      {node.ip}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                            <div className="space-y-6">
+                              {data.priorityObjects.map((node: any) => {
+                                const nodeIp = node.ip;
+                                const nodeDetails = data.nodeDetails?.[nodeIp] || getFallbackNodeDetails(nodeIp, branch);
+                                const isFailedNode = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                                
+                                return (
+                                  <div key={nodeIp} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                                    <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                      <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {nodeIp}</span>
+                                    </div>
+
+                                    {isFailedNode ? (
+                                      <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                                        当前对象为巡检失败，无法基于指标进行根因分析
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-4">
+                                        {/* 1. 根因候选表 */}
+                                        {nodeDetails.diagnosis?.candidates && (
+                                          <div className="space-y-2">
+                                            <div className="flex items-center gap-2 pl-3.5 my-2">
+                                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                              <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
+                                            </div>
+                                            <AnalysisTable 
+                                              title="" 
+                                              columns={['可能原因', '支撑证据', '说明']} 
+                                              data={nodeDetails.diagnosis.candidates} 
+                                            />
+                                          </div>
+                                        )}
+
+                                        {/* 2. 关键证据总结 */}
+                                        {nodeDetails.diagnosis?.evidences && (
+                                          <div className="space-y-2">
+                                            <div className="flex items-center gap-2 pl-3.5 my-2">
+                                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                              <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                            </div>
+                                            <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                              {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                                <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
-                            <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                              分析对象: {activeReportIp}
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
+                              <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {activeReportIp}</span>
+                              </div>
+                              
+                              {(() => {
+                                const isFailedNode = activeReportDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
+                                if (isFailedNode) {
+                                  return (
+                                    <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
+                                      当前对象为巡检失败，无法基于指标进行根因分析
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <div className="space-y-4">
+                                    {/* 1. 根因候选表 */}
+                                    {activeReportDetails.diagnosis?.candidates && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2 pl-3.5 my-2">
+                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                          <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
+                                        </div>
+                                        <AnalysisTable 
+                                          title="" 
+                                          columns={['可能原因', '支撑证据', '说明']} 
+                                          data={activeReportDetails.diagnosis.candidates} 
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* 2. 关键证据总结 */}
+                                    {activeReportDetails.diagnosis?.evidences && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2 pl-3.5 my-2">
+                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                          <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                        </div>
+                                        <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                          {activeReportDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                            <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
-
-                          {(() => {
-                            const isFailedNode = activeReportDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                            
-                            if (isFailedNode) {
-                              return (
-                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                                  当前对象为巡检失败，无法基于指标进行根因分析
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <div className="space-y-6">
-                                {/* 1. 根因候选表 */}
-                                {activeReportDetails.diagnosis?.candidates && (
-                                  <div className="space-y-2">
-                                    <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                      <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
-                                      1. 根因候选表
-                                    </div>
-                                    <AnalysisTable 
-                                      title="" 
-                                      columns={['可能原因', '支撑证据', '说明']} 
-                                      data={activeReportDetails.diagnosis.candidates} 
-                                    />
-                                  </div>
-                                )}
-
-                                {/* 2. 关键证据总结 */}
-                                <div className="space-y-2">
-                                  <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                    <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
-                                    2. 关键证据总结
-                                  </div>
-                                  {activeReportDetails.diagnosis?.evidences ? (
-                                    <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                      {activeReportDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-left text-slate-500 text-xs">
-                                      <div className="font-bold text-slate-400 mb-1">当前对象缺少指标数据</div>
-                                      <div>无法生成资源类关键证据</div>
-                                      <div className="text-[10px] text-slate-600 mt-1">需要先恢复指标采集能力</div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* 3. 未确认信息 */}
-                                {activeReportDetails.diagnosis?.unconfirmed && (
-                                  <div className="space-y-2">
-                                    <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                      <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
-                                      3. 未确认信息
-                                    </div>
-                                    <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                      {activeReportDetails.diagnosis.unconfirmed.map((e: string, i: number) => (
-                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" /> {e}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
                         </div>
                       )}
-
-                      {/* failed 分支 */}
+                      
+{/* failed 分支 */}
                       {branch === 'failed' && data.stage3 && (
                         <div className="space-y-6">
                           {/* 1. 失败原因归纳表 */}
@@ -8020,125 +8002,79 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                       {/* abnormal 分支 */}
-                       {branch === 'abnormal' && activeReportDetails.verdict && (
-                         <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
-                             <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
-                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
-                               <div className="flex flex-wrap gap-1.5">
-                                 {data.priorityObjects.map((node: any) => {
-                                   const isSelected = activeReportIp === node.ip;
-                                   return (
-                                     <button
-                                       key={node.ip}
-                                       onClick={() => setSelectedReportNodeIp(node.ip)}
-                                       className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                                         isSelected
-                                           ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
-                                           : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
-                                       }`}
-                                     >
-                                       {node.ip}
-                                     </button>
-                                   );
-                                 })}
-                               </div>
-                             </div>
-                           ) : (
-                             <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                               分析对象: {activeReportIp}
-                             </div>
-                           )}
+                                             {/* abnormal 分支 */}
+                      {branch === 'abnormal' && activeReportDetails.verdict && (
+                        <div className="space-y-6">
+                          {/* 一、问题汇总与关键发现 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                            <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                              <div className="w-1.5 h-3.5 bg-blue-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">一、问题汇总与关键发现</span>
+                            </div>
+                            <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
+                              <p className="font-medium">
+                                经巡检多维关联分析，当前巡检计划下共发现 <span className="text-rose-400 font-bold">2</span> 个异常实例，核心关键发现如下：
+                              </p>
+                              <ul className="space-y-2.5">
+                                <li className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
+                                  <span>
+                                    对于 <strong className="font-mono text-rose-300">172.30.34.73:8001</strong>：系统检测到其 CPU 使用率异常升高（达 <strong>92%</strong>）且内存使用率接近上限（达 <strong>88%</strong>），呈现明显的双高压力，同时伴随错误率 the 异常波动。
+                                  </span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
+                                  <span>
+                                    对于 <strong className="font-mono text-rose-300">172.30.34.81:8001</strong>：系统检测到其 activity 文件描述符数（FD Count）达到 <strong>980</strong> 并单调上升，已高度逼近单实例 resource 上限，存在显著 of 连接/句柄泄漏风险。
+                                  </span>
+                                </li>
+                              </ul>
+                              <p className="text-[11px] text-slate-400 border-t border-slate-800/40 pt-2 mt-1">
+                                ※ 总体判定：两台实例异常机制不同，但均有触发服务阻断或局部雪崩的高风险，需尽快执行相应的自愈或处置预案。
+                              </p>
+                            </div>
+                          </div>
 
-                           {/* 1. 问题概览 */}
-                           {activeReportDetails.verdict.summary && (
-                             <div className="space-y-2">
-                               <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                                 <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
-                                 1. 问题概览
-                               </div>
-                               <AnalysisTable 
-                                 title="" 
-                                 columns={['维度', '内容']} 
-                                 data={activeReportDetails.verdict.summary} 
-                               />
-                             </div>
-                           )}
-
-                           {/* 2. 关键发现 */}
-                           {activeReportDetails.verdict.findings && (
-                             <div className="space-y-2">
-                               <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                                 <div className="w-1 h-2.5 bg-emerald-500 rounded-sm" />
-                                 2. 关键发现
-                               </div>
-                               <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                 {activeReportDetails.verdict.findings.map((item: string, idx: number) => (
-                                   <li key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
-                                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" /> {item}
-                                   </li>
-                                 ))}
-                               </ul>
-                             </div>
-                           )}
-
-                           {/* 3. 当前判断 */}
-                           {activeReportDetails.verdict.judgment && (
-                             <div className="space-y-2">
-                               <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                 <div className="w-1.5 h-2.5 bg-purple-500 rounded-sm" />
-                                 3. 当前判断
-                               </div>
-                               <div className="bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                 <p className="text-xs text-slate-300 font-bold leading-relaxed">{activeReportDetails.verdict.judgment}</p>
-                               </div>
-                             </div>
-                           )}
-
-                           {/* 4. 总体建议 */}
-                           {activeReportDetails.verdict.recommendations && (
-                             <div className="space-y-2">
-                               <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                 <div className="w-1.5 h-2.5 bg-amber-500 rounded-sm" />
-                                 4. 总体建议
-                               </div>
-                               <div className="bg-gradient-to-r from-amber-500/[0.03] to-transparent border border-amber-500/10 rounded-xl p-4 relative overflow-hidden">
-                                 <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-amber-500/40 to-transparent" />
-                                 <ul className="space-y-1.5">
-                                   {activeReportDetails.verdict.recommendations.map((item: string, idx: number) => (
-                                     <li key={idx} className="text-[13px] text-slate-200 font-bold leading-relaxed flex items-center gap-2">
-                                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 shrink-0" /> {item}
-                                     </li>
-                                   ))}
-                                 </ul>
-                               </div>
-                             </div>
-                           )}
-
-                           {/* 5. 分析边界说明 */}
-                           {activeReportDetails.verdict.boundary && activeReportDetails.verdict.boundary.length > 0 && (
-                             <div className="space-y-2">
-                               <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                 <div className="w-1 h-2.5 bg-slate-500 rounded-sm" />
-                                 5. 分析边界说明
-                               </div>
-                               <div className="bg-[#0a0a0f] border border-slate-800 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-1.5">
-                                 <div>当前分析基于当前选中对象的巡检指标、趋势数据和历史对比结果生成。</div>
-                                 <div>以下信息尚未纳入分析：</div>
-                                 <ul className="list-disc pl-5 space-y-1">
-                                   {activeReportDetails.verdict.boundary.map((item: string, idx: number) => (
-                                     <li key={idx}>{item}</li>
-                                   ))}
-                                 </ul>
-                                 <div className="pt-1.5 text-[10px] text-slate-500 italic">因此结论仅作为辅助判断依据。</div>
-                               </div>
-                             </div>
-                           )}
-                         </div>
-                       )}
-
-                       {/* failed 分支 */}
+                          {/* 二、自愈与处置修复方案 */}
+                          <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
+                            <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
+                              <div className="w-1.5 h-3.5 bg-emerald-500 rounded-full" />
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">二、自愈与处置修复方案</span>
+                            </div>
+                            <div className="overflow-hidden border border-slate-800 rounded-xl bg-slate-950/10">
+                              <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                  <tr className="border-b border-slate-800 bg-slate-950/30 text-slate-400 font-medium">
+                                    <th className="px-3.5 py-2.5 font-semibold">异常实例</th>
+                                    <th className="px-3.5 py-2.5 font-semibold">根因诊断结论</th>
+                                    <th className="px-3.5 py-2.5 font-semibold">建议处置措施</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="border-b border-slate-800/30 hover:bg-slate-900/10">
+                                    <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.73:8001</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">系统资源双高压力，疑似内存泄漏与突增负载叠加。</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                      1. 建议人工介入 Dump 堆内存进行泄漏点分析；<br />
+                                      2. 临时进行实例重启或扩容释放 CPU / 内存压力，保障服务可用性。
+                                    </td>
+                                  </tr>
+                                  <tr className="hover:bg-slate-900/10">
+                                    <td className="px-3.5 py-3 font-mono text-slate-200 font-bold break-all whitespace-normal min-w-[120px]">172.30.34.81:8001</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[160px]">文件描述符计数（FD Count）单调递增，发生连接句柄泄漏。</td>
+                                    <td className="px-3.5 py-3 text-slate-300 break-words whitespace-normal min-w-[200px]">
+                                      1. 检查底层 TCP 连接及网络套接字释放逻辑；<br />
+                                      2. 在测试环境复现连接 management 逻辑并定位未关闭连接句柄的代码段。
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+{/* failed 分支 */}
                        {branch === 'failed' && data.stage4 && (
                          <div className="space-y-6">
                            {/* 1. 失败结果概览 */}
@@ -8362,6 +8298,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
