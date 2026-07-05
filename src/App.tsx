@@ -4281,7 +4281,6 @@ const generateInspectionAnalysisData = (task) => {
   };
 };
 
-
 const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelectIp }: any) => {
   const [search, setSearch] = useState('');
   const [filterResult, setFilterResult] = useState('全部');
@@ -4407,10 +4406,104 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
   );
 };
 
-
 const exportReport = (data: any, branch: string, format: string) => {
   const branchLabel = branch === 'normal' ? '健康 (normal)' : branch === 'abnormal' ? '异常 (abnormal)' : '失败 (failed)';
   
+  // Define metadata per branch
+  let planName = '';
+  let taskId = '';
+  let schedulePolicy = '';
+  let samplingRange = '近 30 分钟 (10:00 - 10:30)';
+  let verdictLabel = '';
+  let totalNodes = 23;
+  let healthyNodes = 0;
+  let abnormalNodes = 0;
+  let failedNodes = 0;
+
+  if (branch === 'normal') {
+    planName = '生产主干核心服务健康巡检';
+    taskId = 'INSP-20260705-001';
+    schedulePolicy = '每小时自动巡检';
+    verdictLabel = '正常 (Completed)';
+    healthyNodes = 23;
+  } else if (branch === 'abnormal') {
+    planName = '核心交易数据库实例高可用巡检';
+    taskId = 'INSP-20260705-002';
+    schedulePolicy = '单次手动触发';
+    verdictLabel = '异常 (Abnormal)';
+    healthyNodes = 20;
+    abnormalNodes = 2;
+    failedNodes = 1;
+  } else {
+    planName = '数据同步集群网络连通性巡检';
+    taskId = 'INSP-20260705-003';
+    schedulePolicy = '故障触发联动巡检';
+    verdictLabel = '失败 (Failed)';
+    failedNodes = 23;
+  }
+
+  // 1. Plan Info & Stats HTML / MD
+  const planInfoMarkdown = `
+### 1. 巡检计划信息
+| 配置项 | 配置内容 |
+| --- | --- |
+| 巡检计划名称 | ${planName} |
+| 任务 ID | ${taskId} |
+| 调度策略 | ${schedulePolicy} |
+| 数据采样范围 | ${samplingRange} |
+| 判定结论 | ${verdictLabel} |
+`;
+
+  const planInfoHtml = `
+    <div class="info-card">
+      <h3 style="margin-top: 0; color: #f8fafc; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 6px;">1. 巡检计划信息</h3>
+      <table style="margin: 10px 0; width: 100%;">
+        <tbody>
+          <tr><td style="color: #94a3b8; width: 180px; padding: 8px; border: 1px solid #334155;">巡检计划名称</td><td style="font-weight: bold; padding: 8px; border: 1px solid #334155;">${planName}</td></tr>
+          <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">任务 ID</td><td style="font-family: monospace; padding: 8px; border: 1px solid #334155;">${taskId}</td></tr>
+          <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">调度策略</td><td style="padding: 8px; border: 1px solid #334155;">${schedulePolicy}</td></tr>
+          <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">数据采样范围</td><td style="padding: 8px; border: 1px solid #334155;">${samplingRange}</td></tr>
+          <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">判定结论</td><td style="padding: 8px; border: 1px solid #334155;"><span class="badge ${branch === 'normal' ? 'badge-normal' : branch === 'abnormal' ? 'badge-abnormal' : 'badge-failed'}">${verdictLabel}</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const statsMarkdown = `
+### 2. 状态统计看板
+| 统计项 | 统计数量 |
+| --- | --- |
+| 巡检对象总数 | ${totalNodes} 个 |
+| 正常对象数 | ${healthyNodes} 个 |
+| 异常对象数 | ${abnormalNodes} 个 |
+| 失败对象数 | ${failedNodes} 个 |
+`;
+
+  const statsHtml = `
+    <div class="info-card">
+      <h3 style="margin-top: 0; color: #f8fafc; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 6px;">2. 状态统计看板</h3>
+      <div style="display: flex; gap: 20px; margin-top: 15px;">
+        <div style="flex: 1; background: #1e293b; padding: 12px; border-radius: 6px; text-align: center;">
+          <div style="font-size: 10px; color: #94a3b8; font-weight: bold;">对象总数</div>
+          <div style="font-size: 20px; font-weight: 800; color: #f8fafc; margin-top: 4px;">${totalNodes}</div>
+        </div>
+        <div style="flex: 1; background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.2);">
+          <div style="font-size: 10px; color: #34d399; font-weight: bold;">正常对象</div>
+          <div style="font-size: 20px; font-weight: 800; color: #34d399; margin-top: 4px;">${healthyNodes}</div>
+        </div>
+        <div style="flex: 1; background: rgba(244, 63, 94, 0.1); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(244, 63, 94, 0.2);">
+          <div style="font-size: 10px; color: #fb7185; font-weight: bold;">异常对象</div>
+          <div style="font-size: 20px; font-weight: 800; color: #fb7185; margin-top: 4px;">${abnormalNodes}</div>
+        </div>
+        <div style="flex: 1; background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(245, 158, 11, 0.2);">
+          <div style="font-size: 10px; color: #fbbf24; font-weight: bold;">失败对象</div>
+          <div style="font-size: 20px; font-weight: 800; color: #fbbf24; margin-top: 4px;">${failedNodes}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Objects Table
   let fullObjectsTableRows = '';
   let fullObjectsTableMarkdown = '| 序号 | 巡检对象 | 状态 | 严重级别 | 核心摘要 |\n| --- | --- | --- | --- | --- |\n';
   
@@ -4465,6 +4558,7 @@ const exportReport = (data: any, branch: string, format: string) => {
     `;
   });
 
+  // Trends Table
   let trendTableMarkdown = '| 指标名称 | 绑定参数 | 评估状态 | 10:00 | 10:10 | 10:20 | 10:30 | 趋势 |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n';
   let trendTableRows = '';
   
@@ -4504,11 +4598,12 @@ const exportReport = (data: any, branch: string, format: string) => {
         <td style="padding: 10px; border: 1px solid #334155;">${row[4]}</td>
         <td style="padding: 10px; border: 1px solid #334155;">${row[5]}</td>
         <td style="padding: 10px; border: 1px solid #334155;">${row[6]}</td>
-        <td style="padding: 10px; border: 1px solid #334155;"><span class="badge ${row[7] === '平稳' ? 'badge-normal' : row[7] === '稳步上升' ? 'badge-failed' : 'badge-abnormal'}">${row[7]}</span></td>
+        <td style="padding: 10px; border: 1px solid #334155;"><span class="badge ${row[7] === '平稳' ? 'badge-normal' : row[7] === '稳步上升' ? 'badge-failed' : row[7] === '突增' ? 'badge-abnormal' : 'badge-failed'}">${row[7]}</span></td>
       </tr>
     `;
   });
 
+  // Diagnostics & Verdict HTML / MD
   let diagMarkdown = '';
   let diagHtml = '';
 
@@ -4735,6 +4830,9 @@ const exportReport = (data: any, branch: string, format: string) => {
 ---
 
 ## 一、巡检基本状态概览 (Basic Status Overview)
+${planInfoMarkdown}
+${statsMarkdown}
+### 3. 全量巡检对象列表
 ${fullObjectsTableMarkdown}\n
 ## 二、指标对比与趋势概览 (Metrics and Trends Overview)
 ${trendTableMarkdown}\n
@@ -4788,19 +4886,25 @@ ${diagMarkdown}
   </div>
 
   <h2>一、巡检基本状态概览 (Basic Status Overview)</h2>
-  <table>
-    <thead>
-      <tr><th>序号</th><th>巡检对象</th><th>状态</th><th>严重级别</th><th>核心摘要</th></tr>
-    </thead>
-    <tbody>
-      ${fullObjectsTableRows}
-    </tbody>
-  </table>
+  ${planInfoHtml}
+  ${statsHtml}
+  
+  <div class="info-card">
+    <h3 style="margin-top: 0; color: #f8fafc; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 6px;">3. 全量巡检对象列表</h3>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+      <thead>
+        <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">序号</th><th style="padding: 10px; border: 1px solid #334155;">巡检对象</th><th style="padding: 10px; border: 1px solid #334155;">状态</th><th style="padding: 10px; border: 1px solid #334155;">严重级别</th><th style="padding: 10px; border: 1px solid #334155;">核心摘要</th></tr>
+      </thead>
+      <tbody>
+        ${fullObjectsTableRows}
+      </tbody>
+    </table>
+  </div>
 
   <h2>二、指标对比与趋势概览 (Metrics and Trends Overview)</h2>
-  <table>
+  <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
     <thead>
-      <tr><th>指标名称</th><th>绑定参数</th><th>评估状态</th><th>10:00</th><th>10:10</th><th>10:20</th><th>10:30</th><th>趋势</th></tr>
+      <tr style="background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left;"><th style="padding: 10px; border: 1px solid #334155;">指标名称</th><th style="padding: 10px; border: 1px solid #334155;">绑定参数</th><th style="padding: 10px; border: 1px solid #334155;">评估状态</th><th style="padding: 10px; border: 1px solid #334155;">10:00</th><th style="padding: 10px; border: 1px solid #334155;">10:10</th><th style="padding: 10px; border: 1px solid #334155;">10:20</th><th style="padding: 10px; border: 1px solid #334155;">10:30</th><th style="padding: 10px; border: 1px solid #334155;">趋势</th></tr>
     </thead>
     <tbody>
       ${trendTableRows}
