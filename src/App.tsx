@@ -5487,7 +5487,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                    {/* abnormal 分支 */}
+                                                      {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
                     <div className="space-y-6">
                       {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -5745,14 +5745,14 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                     </div>
                   )}
 
-                                    {/* abnormal 分支 */}
+                                                      {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
                     <div className="space-y-6">
-                      {/* 一、问题汇总与关键发现 */}
+                      {/* 1. 问题汇总与关键发现 */}
                       <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                         <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                           <div className="w-1.5 h-3.5 bg-blue-500 rounded-full" />
-                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">一、问题汇总与关键发现</span>
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 问题汇总与关键发现</span>
                         </div>
                         <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
                           <p className="font-medium">
@@ -5778,11 +5778,11 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         </div>
                       </div>
 
-                      {/* 二、自愈与处置修复方案 */}
+                      {/* 2. 自愈与处置修复方案 */}
                       <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                         <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                           <div className="w-1.5 h-3.5 bg-emerald-500 rounded-full" />
-                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">二、自愈与处置修复方案</span>
+                          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 自愈与处置修复方案</span>
                         </div>
                         <div className="overflow-hidden border border-slate-800 rounded-xl bg-slate-950/10">
                           <table className="w-full text-left border-collapse text-xs">
@@ -6080,6 +6080,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7755,7 +7757,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                            {/* abnormal 分支 */}
+                                                                  {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6">
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
@@ -8002,14 +8004,14 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                         </div>
                       )}
 
-                                             {/* abnormal 分支 */}
+                                                                   {/* abnormal 分支 */}
                       {branch === 'abnormal' && activeReportDetails.verdict && (
                         <div className="space-y-6">
-                          {/* 一、问题汇总与关键发现 */}
+                          {/* 1. 问题汇总与关键发现 */}
                           <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                             <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                               <div className="w-1.5 h-3.5 bg-blue-500 rounded-full" />
-                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">一、问题汇总与关键发现</span>
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">1. 问题汇总与关键发现</span>
                             </div>
                             <div className="bg-blue-950/10 border border-blue-500/10 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3 shadow-inner">
                               <p className="font-medium">
@@ -8035,11 +8037,11 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                             </div>
                           </div>
 
-                          {/* 二、自愈与处置修复方案 */}
+                          {/* 2. 自愈与处置修复方案 */}
                           <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                             <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                               <div className="w-1.5 h-3.5 bg-emerald-500 rounded-full" />
-                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">二、自愈与处置修复方案</span>
+                              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 自愈与处置修复方案</span>
                             </div>
                             <div className="overflow-hidden border border-slate-800 rounded-xl bg-slate-950/10">
                               <table className="w-full text-left border-collapse text-xs">
@@ -8298,6 +8300,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
