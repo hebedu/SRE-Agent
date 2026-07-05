@@ -4569,72 +4569,6 @@ const AllMetricsModal = ({ isOpen, onClose, title, data }: any) => {
 
 
 
-const MultiLineTrendChart = ({ title, labels, lines, events }: {
-  title: string,
-  labels: string[],
-  lines: { name: string, data: number[], color: string }[],
-  events?: { time: string, label: string }[]
-}) => {
-  const allData = lines.flatMap(l => l.data);
-  const max = Math.max(...allData, 100);
-  const min = 0;
-
-  return (
-    <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 text-left font-sans">
-      <div className="border-b border-slate-800/40 pb-2 mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-            <Activity size={12} className="text-blue-500" /> {title}
-          </h4>
-          <span className="text-[9px] font-mono text-slate-500 bg-slate-900/60 border border-slate-800/50 rounded px-1.5 py-0.5 shrink-0">
-            10:00 - 10:30
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 items-center">
-          {lines.map((l, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800/50 shadow-inner">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.color }} />
-              <span className="font-mono">{l.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="relative h-24 w-full">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-          <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-          <line x1="0" y1="80" x2="100" y2="80" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-
-          {lines.map((l, lineIdx) => {
-            const points = l.data.map((val, i) => {
-              const x = (i / (l.data.length - 1)) * 100;
-              const y = 100 - ((val - min) / (max - min)) * 100;
-              return `${x},${y}`;
-            }).join(' ');
-
-            return (
-              <polyline
-                key={lineIdx}
-                points={points}
-                fill="none"
-                stroke={l.color}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            );
-          })}
-        </svg>
-      </div>
-      <div className="flex justify-between w-full text-[8px] text-slate-500 font-mono mt-1.5 px-1">
-        <span className="shrink-0">{labels[0]}</span>
-        <span className="shrink-0">{labels[Math.floor(labels.length / 2)]}</span>
-        <span className="shrink-0">{labels[labels.length - 1]}</span>
-      </div>
-    </div>
-  );
-};
-
 const ExpertDiagnosticCard = ({ data, onAction }: any) => {
   const currentStep = data.currentStep || 0;
   const isPhased = data.format === '0412_phased';
@@ -4756,8 +4690,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage1?.objectsTable && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                            <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
                           </div>
                           <AnalysisTable 
                             title="" 
@@ -4880,8 +4814,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {/* 4. 巡检对象分析 */}
                       <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
                         <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 巡检对象分析</span>
+                          <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 巡检对象分析</span>
                         </div>
 
                         {/* （1）重点分析对象列表 */}
@@ -4899,7 +4833,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                     <th className="px-3.5 py-2">对象</th>
                                     <th className="px-3.5 py-2">类型</th>
                                     <th className="px-3.5 py-2">严重级别</th>
-                                    <th className="px-3.5 py-2">异常指标</th>
+                                    <th className="px-3.5 py-2">重点原因</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -4931,20 +4865,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                             {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
                                           </span>
                                         </td>
-                                        <td className="px-3.5 py-2">
-                                          {row.reason === 'CPU=92%，RSS=1821MB' || row.reason === 'CPU=92%, RSS=1821MB' ? (
-                                            <>
-                                              <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">CPU</span>
-                                              <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] font-bold ml-1">内存</span>
-                                            </>
-                                          ) : row.reason === 'FD=980 接近上限' ? (
-                                            <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">FD上限</span>
-                                          ) : row.reason === '连接超时' || row.reason === 'Agent 离线' ? (
-                                            <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 border border-slate-700/50 rounded text-[10px] font-bold">{row.reason}</span>
-                                          ) : (
-                                            <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">{row.reason || row.impact}</span>
-                                          )}
-                                        </td>
+                                        <td className="px-3.5 py-2 text-slate-300 font-bold">{row.reason || row.impact}</td>
                                       </tr>
                                     );
                                   })}
@@ -5155,8 +5076,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {/* 4. 重点失败对象 */}
                       <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
                         <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 重点失败对象</span>
+                          <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 重点失败对象</span>
                         </div>
 
                         {/* （1）重点失败对象列表 */}
@@ -5459,8 +5380,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage3?.evidenceList && (
                         <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">关键依据</span>
+                            <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">关键依据</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage3.evidenceList.map((e: string, i: number) => (
@@ -5591,8 +5512,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage3.judgments && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 失败原因判断</span>
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 失败原因判断</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage3.judgments.map((item: string, idx: number) => (
@@ -5609,8 +5530,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage3.unconfirmed && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 未确认信息</span>
+                            <div className="w-1 h-3.5 bg-amber-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 未确认信息</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage3.unconfirmed.map((item: string, idx: number) => (
@@ -5664,8 +5585,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage4?.verdictJudgments && (
                         <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">当前判断</span>
+                            <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">当前判断</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage4.verdictJudgments.map((item: string, idx: number) => (
@@ -5680,8 +5601,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage4?.verdictSuggestions && (
                         <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">总体建议</span>
+                            <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">总体建议</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage4.verdictSuggestions.map((item: string, idx: number) => (
@@ -5811,8 +5732,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage4.findings && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">2. 关键发现</span>
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 关键发现</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage4.findings.map((item: string, idx: number) => (
@@ -5829,8 +5750,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                       {data.stage4.judgments && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 当前判断</span>
+                            <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 当前判断</span>
                           </div>
                           <ul className="space-y-1.5">
                             {data.stage4.judgments.map((item: string, idx: number) => (
@@ -6052,6 +5973,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
     </div>
   );
 };
+
+
 
 
 
@@ -7045,8 +6968,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage1?.objectsTable && (
                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 全部巡检对象列表</span>
+                                <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 全部巡检对象列表</span>
                               </div>
                               <AnalysisTable 
                                 title="" 
@@ -7163,8 +7086,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {/* 4. 巡检对象分析 */}
                           <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
                             <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 巡检对象分析</span>
+                              <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 巡检对象分析</span>
                             </div>
 
                             {/* （1）重点分析对象列表 */}
@@ -7182,7 +7105,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                         <th className="px-3.5 py-2">对象</th>
                                         <th className="px-3.5 py-2">类型</th>
                                         <th className="px-3.5 py-2">严重级别</th>
-                                        <th className="px-3.5 py-2">异常指标</th>
+                                        <th className="px-3.5 py-2">重点原因</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -7214,20 +7137,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                                 {row.severity === 'info' ? '普通' : row.severity === 'warning' ? '警告' : row.severity === 'critical' ? '严重' : row.severity}
                                               </span>
                                             </td>
-                                            <td className="px-3.5 py-2">
-                                              {row.reason === 'CPU=92%，RSS=1821MB' || row.reason === 'CPU=92%, RSS=1821MB' ? (
-                                                <>
-                                                  <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">CPU</span>
-                                                  <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] font-bold ml-1">内存</span>
-                                                </>
-                                              ) : row.reason === 'FD=980 接近上限' ? (
-                                                <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">FD上限</span>
-                                              ) : row.reason === '连接超时' || row.reason === 'Agent 离线' ? (
-                                                <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 border border-slate-700/50 rounded text-[10px] font-bold">{row.reason}</span>
-                                              ) : (
-                                                <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[10px] font-bold">{row.reason || row.impact}</span>
-                                              )}
-                                            </td>
+                                            <td className="px-3.5 py-2 text-slate-300 font-bold">{row.reason || row.impact}</td>
                                           </tr>
                                         );
                                       })}
@@ -7423,8 +7333,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {/* 4. 重点失败对象 */}
                           <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-6">
                             <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2 mb-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 重点失败对象</span>
+                              <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 重点失败对象</span>
                             </div>
 
                             {/* （1）重点失败对象列表 */}
@@ -7697,8 +7607,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage3?.evidenceList && (
                             <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                               <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">关键依据</span>
+                                <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">关键依据</span>
                               </div>
                               <ul className="space-y-1.5">
                                 {data.stage3.evidenceList.map((e: string, i: number) => (
@@ -7829,8 +7739,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage3.judgments && (
                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                               <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 失败原因判断</span>
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 失败原因判断</span>
                               </div>
                               <ul className="space-y-1.5">
                                 {data.stage3.judgments.map((item: string, idx: number) => (
@@ -7847,8 +7757,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage3.unconfirmed && (
                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                               <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">4. 未确认信息</span>
+                                <div className="w-1 h-3.5 bg-amber-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">4. 未确认信息</span>
                               </div>
                               <ul className="space-y-1.5">
                                 {data.stage3.unconfirmed.map((item: string, idx: number) => (
@@ -7891,8 +7801,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                            {data.stage4?.verdictJudgments && (
                             <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                               <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">当前判断</span>
+                                <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">当前判断</span>
                               </div>
                               <ul className="space-y-1.5">
                                 {data.stage4.verdictJudgments.map((item: string, idx: number) => (
@@ -7907,8 +7817,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                           {data.stage4?.verdictSuggestions && (
                             <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
                               <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">总体建议</span>
+                                <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">总体建议</span>
                               </div>
                               <ul className="space-y-1.5">
                                 {data.stage4.verdictSuggestions.map((item: string, idx: number) => (
@@ -8038,8 +7948,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                            {data.stage4.findings && (
                              <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                                <div className="flex items-center gap-2 mb-3">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">2. 关键发现</span>
+                                 <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">2. 关键发现</span>
                                </div>
                                <ul className="space-y-1.5">
                                  {data.stage4.findings.map((item: string, idx: number) => (
@@ -8056,8 +7966,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                            {data.stage4.judgments && (
                              <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
                                <div className="flex items-center gap-2 mb-3">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">3. 当前判断</span>
+                                 <div className="w-1 h-3.5 bg-rose-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 当前判断</span>
                                </div>
                                <ul className="space-y-1.5">
                                  {data.stage4.judgments.map((item: string, idx: number) => (
@@ -8240,6 +8150,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
     </AnimatePresence>
   );
 };
+
+
 
 
 
