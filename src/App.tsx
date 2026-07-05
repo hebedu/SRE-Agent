@@ -5301,9 +5301,33 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                             <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
                             <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 历史对比表</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono tracking-tight mb-2">
-                            分析对象: {activeIp}
-                          </div>
+                          {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                            <div className="flex items-center flex-wrap gap-2.5 my-2">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {data.priorityObjects.map((node: any) => {
+                                  const isSelected = activeIp === node.ip;
+                                  return (
+                                    <button
+                                      key={node.ip}
+                                      onClick={() => setSelectedNodeIp(node.ip)}
+                                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                        isSelected
+                                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                          : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                      }`}
+                                    >
+                                      {node.ip}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-slate-500 font-mono tracking-tight my-2">
+                              分析对象: {activeIp}
+                            </div>
+                          )}
                           {isFailedNode ? (
                             <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
                               当前对象无可用历史对比数据
@@ -5398,9 +5422,33 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   {/* abnormal 分支 */}
                   {branch === 'abnormal' && (
                     <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                      <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                        分析对象: {activeIp}
-                      </div>
+                      {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                        <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {data.priorityObjects.map((node: any) => {
+                              const isSelected = activeIp === node.ip;
+                              return (
+                                <button
+                                  key={node.ip}
+                                  onClick={() => setSelectedNodeIp(node.ip)}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                    isSelected
+                                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                  }`}
+                                >
+                                  {node.ip}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                          分析对象: {activeIp}
+                        </div>
+                      )}
 
                       {(() => {
                         const isFailedNode = activeDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
@@ -5619,9 +5667,33 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                   {/* abnormal 分支 */}
                   {branch === 'abnormal' && activeDetails.verdict && (
                     <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                      <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                        分析对象: {activeIp}
-                      </div>
+                      {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                        <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {data.priorityObjects.map((node: any) => {
+                              const isSelected = activeIp === node.ip;
+                              return (
+                                <button
+                                  key={node.ip}
+                                  onClick={() => setSelectedNodeIp(node.ip)}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                    isSelected
+                                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                  }`}
+                                >
+                                  {node.ip}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                          分析对象: {activeIp}
+                        </div>
+                      )}
 
                       {/* 1. 问题概览 */}
                       {activeDetails.verdict.summary && (
@@ -7540,9 +7612,33 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                 <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
                                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 历史对比表</span>
                               </div>
-                              <div className="text-[10px] text-slate-500 font-mono tracking-tight mb-2">
-                                分析对象: {activeReportIp}
-                              </div>
+                                                              {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                                  <div className="flex items-center flex-wrap gap-2.5 my-2">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {data.priorityObjects.map((node: any) => {
+                                        const isSelected = activeReportIp === node.ip;
+                                        return (
+                                          <button
+                                            key={node.ip}
+                                            onClick={() => setSelectedReportNodeIp(node.ip)}
+                                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                              isSelected
+                                                ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                                : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                            }`}
+                                          >
+                                            {node.ip}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] text-slate-500 font-mono tracking-tight my-2">
+                                    分析对象: {activeReportIp}
+                                  </div>
+                                )}
                               {isFailedNode ? (
                                 <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-3 text-center text-slate-500 text-xs">
                                   当前对象无可用历史对比数据
@@ -7625,9 +7721,33 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                       {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                          <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                            分析对象: {activeReportIp}
-                          </div>
+                          {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                            <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {data.priorityObjects.map((node: any) => {
+                                  const isSelected = activeReportIp === node.ip;
+                                  return (
+                                    <button
+                                      key={node.ip}
+                                      onClick={() => setSelectedReportNodeIp(node.ip)}
+                                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                        isSelected
+                                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                          : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                      }`}
+                                    >
+                                      {node.ip}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                              分析对象: {activeReportIp}
+                            </div>
+                          )}
 
                           {(() => {
                             const isFailedNode = activeReportDetails.detailTable.find((r: any) => r[0] === '结果')?.[1] === 'failed';
@@ -7835,9 +7955,33 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                        {/* abnormal 分支 */}
                        {branch === 'abnormal' && activeReportDetails.verdict && (
                          <div className="space-y-6 bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
-                           <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
-                             分析对象: {activeReportIp}
-                           </div>
+                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
+                             <div className="flex items-center flex-wrap gap-2.5 border-b border-slate-800 pb-2.5 mb-2">
+                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                               <div className="flex flex-wrap gap-1.5">
+                                 {data.priorityObjects.map((node: any) => {
+                                   const isSelected = activeReportIp === node.ip;
+                                   return (
+                                     <button
+                                       key={node.ip}
+                                       onClick={() => setSelectedReportNodeIp(node.ip)}
+                                       className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                         isSelected
+                                           ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 font-bold shadow-sm shadow-blue-500/10'
+                                           : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
+                                       }`}
+                                     >
+                                       {node.ip}
+                                     </button>
+                                   );
+                                 })}
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="text-xs text-slate-400 font-bold border-b border-slate-800 pb-2">
+                               分析对象: {activeReportIp}
+                             </div>
+                           )}
 
                            {/* 1. 问题概览 */}
                            {activeReportDetails.verdict.summary && (
