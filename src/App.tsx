@@ -2969,10 +2969,7 @@ const ActionExecutionCard = ({ data, onAction }: any) => {
                       </div>
                     </div>
                     <div className="mt-2.5 space-y-1.5 border-t border-slate-800/40 pt-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                        <span>回滚脚本:</span>
-                        <span className="text-indigo-400 font-mono font-medium lowercase-none" title="SCR-MYSQL-CLEANUP-RB-v2.1">CLEAN-RB-v2.1</span>
-                      </div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">回滚脚本</div>
                       <pre className="p-3 bg-black/60 border border-slate-800/80 rounded-lg font-mono text-[10.5px] text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
 {`#!/bin/bash
 echo "[INFO] Starting rollback sequence for MySQL slave binlog sync..."
@@ -3015,13 +3012,10 @@ echo "[SUCCESS] Slave replication thread restarted. Replication latency restored
                     <div className="space-y-1.5 text-[10.5px]">
                       <div className="flex justify-between"><span className="text-slate-400">操作人</span><span className="text-slate-200 font-medium">超管（超）</span></div>
                       <div className="flex justify-between"><span className="text-slate-400">操作结果</span><span className="text-emerald-400 font-bold">自愈成功</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">操作时间</span><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>{audit?.time ? (audit.time.includes('-') || audit.time.includes('/') ? audit.time : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')} ${audit.time}`) : '—'}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">操作时间</span><span className="text-slate-200 font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={audit?.time || ''}>{audit?.time || '—'}</span></div>
                     </div>
                     <div className="mt-2.5 space-y-1.5 border-t border-indigo-500/10 pt-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                        <span>操作脚本:</span>
-                        <span className="text-indigo-400 font-mono font-medium lowercase-none" title={audit?.script || ''}>CLEAN-v2.1</span>
-                      </div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">操作脚本</div>
                       <pre className="p-3 bg-black/60 border border-slate-800/80 rounded-lg font-mono text-[10.5px] text-emerald-400 max-h-36 overflow-y-auto whitespace-pre no-scrollbar leading-relaxed">
 {`#!/bin/bash
 echo "[INFO] Checking replica status on mysql-user-slave-01..."
@@ -18364,7 +18358,10 @@ kubectl get pod <pod-name> -o yaml | grep -A 5 resources
             audit: {
               operator: "超管（超）",
               approver: "—",
-              time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              time: (() => {
+                const now = new Date();
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+              })(),
               script: "SCR-MYSQL-CLEANUP-v2.1 (预置)",
               result: "执行成功（已归档至故障特征库）"
             }
