@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3001 --host 127.0.0.1",
+    "dev": "vite --port 3001 --host 0.0.0.0",
     "deploy": "npm run build && node server.js",
     "lan": "node server.js",
     "start:bg": "bash start-lan.sh",

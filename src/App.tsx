@@ -1934,11 +1934,11 @@ const RemediationOfferCard = ({ data, onAction }: any) => {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 mb-0.5">
             <div className={`w-1 h-3.5 rounded-full ${risk === '高' ? 'bg-rose-500' : 'bg-amber-500'}`} />
-            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">③ 受影响的对象</span>
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">③ 影响范围</span>
           </div>
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3.5 text-xs space-y-3.5">
             <div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">受影响对象</div>
+              <div className="text-[10px] text-slate-500 font-bold uppercase mb-1.5">目标对象 (共 {remediation?.blastRadius?.targets?.length || 0} 个)</div>
               <div className="flex flex-wrap gap-2">
                 {remediation?.blastRadius?.targets?.map((t: string, i: number) => (
                   <span key={i} className="px-2.5 py-0.5 bg-slate-950 border border-slate-800/80 rounded text-[10.5px] text-slate-300 font-mono">{t}</span>
@@ -2013,7 +2013,7 @@ const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
                   : 'text-slate-500 border-transparent hover:text-slate-300'
               }`}
             >
-              {tab === 'script' ? '① 脚本内容' : tab === 'risk' ? '② 风险评估' : '③ 受影响的对象'}
+              {tab === 'script' ? '① 脚本内容' : tab === 'risk' ? '② 风险评估' : '③ 影响范围'}
             </button>
           ))}
         </div>
@@ -2074,7 +2074,7 @@ const SelfHealDetailDrawer = ({ data, onClose, onConfirm }: any) => {
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-500 font-bold uppercase">受影响对象</div>
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">目标对象 (共 {blastRadius?.targets?.length || 0} 个)</div>
                   <div className="flex flex-wrap gap-2">
                     {blastRadius?.targets?.map((t: string, i: number) => (
                       <span key={i} className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono italic">{t}</span>
@@ -3827,6 +3827,11 @@ const PREDEFINED_NODE_DETAILS = {
       candidates: [
         ['网络连接异常', '连接超时', '无法连接目标对象']
       ],
+      evidences: [
+        '巡检连接目标对象时发生超时（Connection Timeout）',
+        '目标端口无响应，脚本未能下发执行',
+        'CPU、内存、FD 等核心指标均未采集成功'
+      ],
       unconfirmed: [
         '未确认目标对象网络是否可达',
         '未确认 Agent 是否正常运行',
@@ -4211,12 +4216,6 @@ const generateInspectionAnalysisData = (task) => {
         'Agent 状态异常：目标对象 Agent 离线或无响应，导致巡检任务无法下发或执行。',
         '权限配置不足：巡检脚本缺少必要权限，导致部分指标无法采集。'
       ],
-      unconfirmed: [
-        '是否存在网络连通性问题，例如目标对象不可达、端口不通、防火墙限制。',
-        '是否存在 Agent 离线、异常退出、心跳中断等情况。',
-        '是否存在巡检脚本权限不足、账号授权缺失、指标访问受限等问题。',
-        '是否存在目标对象重启、迁移、下线或配置变更情况。'
-      ],
       conclusion: '本次失败属于巡检执行层面的失败，当前数据不足以判断失败对象的真实服务健康状态。需要先恢复巡检采集能力，再重新执行失败对象巡检，之后才能继续判断是否存在资源异常或业务异常。'
     };
 
@@ -4276,6 +4275,25 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
   const [filterResult, setFilterResult] = useState('全部');
   const [filterSeverity, setFilterSeverity] = useState('全部');
 
+  // 延迟渲染内容，等待弹窗打开动画完成
+  const [shouldRenderContent, setShouldRenderContent] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // 延迟 100ms 渲染内容
+      const timer = setTimeout(() => {
+        setShouldRenderContent(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setShouldRenderContent(false);
+      // 重置搜索和过滤状态
+      setSearch('');
+      setFilterResult('全部');
+      setFilterSeverity('全部');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const filtered = objects.filter((row: any) => {
@@ -4297,7 +4315,7 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
   });
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-4">
       <div className="bg-[#0b0b10] border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden text-left font-sans">
         <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[#101016]">
           <h3 className="text-sm font-bold text-slate-200">{title}</h3>
@@ -4305,7 +4323,16 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
             <X size={18} />
           </button>
         </div>
-        <div className="p-4 bg-slate-900/20 border-b border-slate-800 flex gap-4 items-center">
+
+        {!shouldRenderContent ? (
+          // 加载状态 - 动画完成前显示
+          <div className="flex flex-col items-center justify-center h-[400px] gap-3">
+            <Loader2 size={28} className="animate-spin text-indigo-500" />
+            <p className="text-xs text-slate-400 font-medium">正在加载数据...</p>
+          </div>
+        ) : (
+          <>
+            <div className="p-4 bg-slate-900/20 border-b border-slate-800 flex gap-4 items-center">
           <div className="relative flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input 
@@ -4391,6 +4418,8 @@ const AllObjectsModal = ({ isOpen, onClose, title, objects, selectedIp, onSelect
             </tbody>
           </table>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -5119,50 +5148,132 @@ const MultiLineTrendChart = ({ title, labels, lines, events }: {
   const max = Math.max(...allData, 100);
   const min = 0;
 
+  // 生成 Y 轴刻度（0, 25, 50, 75, 100）
+  const yTicks = [100, 75, 50, 25, 0];
+
+  // 提取单位（从标题中判断）
+  const unit = title.includes('使用率') || title.includes('错误率') ? '%' : '';
+
+  // Tooltip 状态
+  const [tooltipData, setTooltipData] = useState<{
+    x: number;
+    y: number;
+    index: number;
+    time: string;
+    values: { name: string; value: number; color: string }[];
+  } | null>(null);
+
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartRef.current) return;
+
+    const rect = chartRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const relativeX = x / rect.width;
+
+    // 计算最近的数据点索引
+    const index = Math.max(0, Math.min(labels.length - 1, Math.round(relativeX * (labels.length - 1))));
+
+    setTooltipData({
+      x: e.clientX,
+      y: e.clientY,
+      index,
+      time: labels[index],
+      values: lines.map(line => ({
+        name: line.name,
+        value: line.data[index],
+        color: line.color
+      }))
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltipData(null);
+  };
+
   return (
     <div className="bg-[#0f0f15] border border-slate-800 rounded-xl p-4 my-3 text-left font-sans">
       <div className="border-b border-slate-800/40 pb-2 mb-3">
         <div className="flex items-center justify-between">
           <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-            <Activity size={12} className="text-blue-500" /> {title}
+            <Activity size={12} className="text-blue-500" />
+            {title} {unit && <span className="text-slate-600">({unit})</span>}
           </h4>
           <span className="text-[9px] font-mono text-slate-500 bg-slate-900/60 border border-slate-800/50 rounded px-1.5 py-0.5 shrink-0">
             10:00 - 10:30
           </span>
         </div>
       </div>
-      <div className="relative h-24 w-full">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-          <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-          <line x1="0" y1="80" x2="100" y2="80" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
 
-          {lines.map((l, lineIdx) => {
-            const points = l.data.map((val, i) => {
-              const x = (i / (l.data.length - 1)) * 100;
-              const y = 100 - ((val - min) / (max - min)) * 100;
-              return `${x},${y}`;
-            }).join(' ');
+      {/* 图表主体：Y轴 + 图表区 */}
+      <div className="flex gap-2">
+        {/* Y 轴刻度 */}
+        <div className="w-10 flex flex-col justify-between text-right pr-2 py-0.5">
+          {yTicks.map(tick => (
+            <span key={tick} className="text-[10px] font-mono text-slate-500 leading-none">
+              {tick}
+            </span>
+          ))}
+        </div>
 
-            return (
-              <polyline
-                key={lineIdx}
-                points={points}
-                fill="none"
-                stroke={l.color}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            );
-          })}
-        </svg>
+        {/* 图表区域 */}
+        <div
+          ref={chartRef}
+          className="flex-1 relative h-24"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* 网格线 */}
+          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+            {yTicks.map(tick => (
+              <div key={tick} className="border-t border-dashed border-slate-800/30" />
+            ))}
+          </div>
+
+          {/* 垂直参考线 */}
+          {tooltipData && (
+            <div
+              className="absolute top-0 bottom-0 border-l border-dashed border-slate-500/50 pointer-events-none z-20"
+              style={{
+                left: `${(tooltipData.index / (labels.length - 1)) * 100}%`
+              }}
+            />
+          )}
+
+          {/* SVG 图表 */}
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full relative z-10">
+            {lines.map((l, lineIdx) => {
+              const points = l.data.map((val, i) => {
+                const x = (i / (l.data.length - 1)) * 100;
+                const y = 100 - ((val - min) / (max - min)) * 100;
+                return `${x},${y}`;
+              }).join(' ');
+
+              return (
+                <polyline
+                  key={lineIdx}
+                  points={points}
+                  fill="none"
+                  stroke={l.color}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              );
+            })}
+          </svg>
+        </div>
       </div>
-      <div className="flex justify-between text-[8px] text-slate-600 font-mono mt-1.5">
+
+      {/* X 轴时间标签 */}
+      <div className="flex justify-between text-[8px] text-slate-600 font-mono mt-1.5 pl-12">
         <span>{labels[0]}</span>
         <span>{labels[Math.floor(labels.length / 2)]}</span>
         <span>{labels[labels.length - 1]}</span>
       </div>
+
+      {/* 图例 */}
       <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 items-center justify-center mt-3 pt-2 border-t border-slate-800/40">
         {lines.map((l, idx) => (
           <div key={idx} className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800/50 shadow-inner">
@@ -5171,6 +5282,44 @@ const MultiLineTrendChart = ({ title, labels, lines, events }: {
           </div>
         ))}
       </div>
+
+      {/* Tooltip */}
+      {tooltipData && createPortal(
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.1 }}
+          className="fixed z-[9999] pointer-events-none"
+          style={{
+            left: tooltipData.x + 15 + 180 > window.innerWidth ? tooltipData.x - 180 : tooltipData.x + 15,
+            top: Math.max(10, tooltipData.y - 10),
+          }}
+        >
+          <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-lg shadow-xl p-2.5 min-w-[160px]">
+            <div className="text-slate-400 font-mono text-[10px] mb-1.5 pb-1.5 border-b border-slate-800">
+              {tooltipData.time}
+            </div>
+            <div className="space-y-1">
+              {tooltipData.values.map((v, i) => (
+                <div key={i} className="flex items-center gap-2 py-0.5">
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: v.color }}
+                  />
+                  <span className="text-slate-300 font-mono text-[9px] flex-1 truncate" title={v.name}>
+                    {v.name}
+                  </span>
+                  <span className="text-slate-100 font-bold font-mono text-[9px]">
+                    {v.value.toFixed(1)}{unit}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>,
+        document.body
+      )}
     </div>
   );
 };
@@ -5914,7 +6063,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           </div>
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
                             <div className="flex items-center flex-wrap gap-2.5 my-2">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">分析对象:</span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">异常对象:</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {data.priorityObjects.map((node: any) => {
                                   const isSelected = activeIp === node.ip;
@@ -5936,7 +6085,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                             </div>
                           ) : (
                             <div className="text-[10px] text-slate-500 font-mono tracking-tight my-2">
-                              分析对象: {activeIp}
+                              异常对象: {activeIp}
                             </div>
                           )}
                           {isFailedNode ? (
@@ -6038,54 +6187,53 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           {data.priorityObjects.map((node: any) => {
                             const nodeIp = node.ip;
                             const nodeDetails = data.nodeDetails?.[nodeIp] || getFallbackNodeDetails(nodeIp, branch);
-                            const isFailedNode = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                            
+                            const nodeResult = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1];
+
                             return (
                               <div key={nodeIp} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                   <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {nodeIp}</span>
+                                  {nodeResult === 'failed' ? (
+                                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase whitespace-nowrap">失败</span>
+                                  ) : (
+                                    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase whitespace-nowrap">异常</span>
+                                  )}
                                 </div>
 
-                                {isFailedNode ? (
-                                  <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                                    当前对象为巡检失败，无法基于指标进行根因分析
-                                  </div>
-                                ) : (
-                                  <div className="space-y-4">
-                                    {/* 1. 根因候选表 */}
-                                    {nodeDetails.diagnosis?.candidates && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2 pl-3.5 my-2">
-                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                          <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
-                                        </div>
-                                        <AnalysisTable 
-                                          title="" 
-                                          columns={['可能原因', '支撑证据', '说明']} 
-                                          data={nodeDetails.diagnosis.candidates} 
-                                        />
+                                <div className="space-y-4">
+                                  {/* 1. 根因候选表 */}
+                                  {nodeDetails.diagnosis?.candidates?.length > 0 && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2 pl-3.5 my-2">
+                                        <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                        <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
                                       </div>
-                                    )}
+                                      <AnalysisTable
+                                        title=""
+                                        columns={['可能原因', '支撑证据', '说明']}
+                                        data={nodeDetails.diagnosis.candidates}
+                                      />
+                                    </div>
+                                  )}
 
-                                    {/* 2. 关键证据总结 */}
-                                    {nodeDetails.diagnosis?.evidences && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2 pl-3.5 my-2">
-                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                          <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
-                                        </div>
-                                        <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                                          {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                            <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                            </li>
-                                          ))}
-                                        </ul>
+                                  {/* 2. 关键证据总结 */}
+                                  {nodeDetails.diagnosis?.evidences?.length > 0 && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2 pl-3.5 my-2">
+                                        <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                        <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
                                       </div>
-                                    )}
-                                  </div>
-                                )}
+                                      <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                        {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                          <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
@@ -6095,53 +6243,46 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                           <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                             <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {activeIp}</span>
+                            {activeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed' ? (
+                              <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase whitespace-nowrap">失败</span>
+                            ) : (
+                              <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase whitespace-nowrap">异常</span>
+                            )}
                           </div>
                           
-                          {(() => {
-                            const isFailedNode = activeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                            if (isFailedNode) {
-                              return (
-                                <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                                  当前对象为巡检失败，无法基于指标进行根因分析
+                          <div className="space-y-4">
+                            {/* 1. 根因候选表 */}
+                            {activeDetails.diagnosis?.candidates?.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 pl-3.5 my-2">
+                                  <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                  <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
                                 </div>
-                              );
-                            }
-                            return (
-                              <div className="space-y-4">
-                                {/* 1. 根因候选表 */}
-                                {activeDetails.diagnosis?.candidates && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2 pl-3.5 my-2">
-                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                      <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
-                                    </div>
-                                    <AnalysisTable 
-                                      title="" 
-                                      columns={['可能原因', '支撑证据', '说明']} 
-                                      data={activeDetails.diagnosis.candidates} 
-                                    />
-                                  </div>
-                                )}
-
-                                {/* 2. 关键证据总结 */}
-                                {activeDetails.diagnosis?.evidences && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2 pl-3.5 my-2">
-                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                      <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
-                                    </div>
-                                    <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                                      {activeDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
+                                <AnalysisTable
+                                  title=""
+                                  columns={['可能原因', '支撑证据', '说明']}
+                                  data={activeDetails.diagnosis.candidates}
+                                />
                               </div>
-                            );
-                          })()}
+                            )}
+
+                            {/* 2. 关键证据总结 */}
+                            {activeDetails.diagnosis?.evidences?.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 pl-3.5 my-2">
+                                  <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                  <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                </div>
+                                <ul className="space-y-1.5 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
+                                  {activeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -6216,11 +6357,11 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         </div>
                       )}
 
-                      {/* 5. 阶段结论 */}
+                      {/* 4. 阶段结论 */}
                       {data.stage3.conclusion && (
                         <div className="bg-gradient-to-r from-purple-500/[0.03] to-transparent border border-purple-500/10 rounded-xl p-4 relative overflow-hidden">
                           <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-purple-500/40 to-transparent" />
-                          <div className="text-[11px] text-slate-400 font-bold mb-2">5. 阶段结论</div>
+                          <div className="text-[11px] text-slate-400 font-bold mb-2">4. 阶段结论</div>
                           <p className="text-xs text-slate-200 font-bold leading-relaxed">{data.stage3.conclusion}</p>
                         </div>
                       )}
@@ -6887,7 +7028,7 @@ const ReportHistorySidebar = ({ history, selectedId, onSelect }: { history: any[
               <span className="absolute top-3 right-8 text-[9px] font-black text-indigo-500/60 uppercase">最新</span>
             )}
             {selectedId === item.id && (
-              <motion.div layoutId="active-indicator" className="absolute left-0 top-4 bottom-4 w-1 bg-indigo-500 rounded-r-lg" />
+              <div className="absolute left-0 top-4 bottom-4 w-1 bg-indigo-500 rounded-r-lg transition-all" />
             )}
           </button>
         ))}
@@ -7481,13 +7622,44 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
   const [isReportMetricsModalOpen, setIsReportMetricsModalOpen] = useState(false);
   const [reportModalMetrics, setReportModalMetrics] = useState<any[]>([]);
   const [reportModalTitle, setReportModalTitle] = useState('');
-  
+
+  // 延迟渲染内容，等待动画完成
+  const [shouldRenderContent, setShouldRenderContent] = useState(false);
+  const [shouldRenderSidebar, setShouldRenderSidebar] = useState(false);
+
   useEffect(() => {
     if (data?.id) {
       setSelectedReportId('current');
       setSelectedReportNodeIp('');
     }
   }, [data?.id]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // 禁用背景滚动
+      document.body.style.overflow = 'hidden';
+
+      // Sidebar 延迟 200ms 渲染（先渲染简单的侧边栏）
+      const sidebarTimer = setTimeout(() => {
+        setShouldRenderSidebar(true);
+      }, 200);
+
+      // 内容延迟 400ms 渲染（等动画完全结束）
+      const contentTimer = setTimeout(() => {
+        setShouldRenderContent(true);
+      }, 400);
+
+      return () => {
+        clearTimeout(sidebarTimer);
+        clearTimeout(contentTimer);
+        document.body.style.overflow = '';
+      };
+    } else {
+      setShouldRenderSidebar(false);
+      setShouldRenderContent(false);
+      document.body.style.overflow = '';
+    }
+  }, [isOpen]);
 
   if (!data) return null;
   const isPhased = data.format === '0412_phased';
@@ -7515,26 +7687,30 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/70 z-[100]"
           />
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[92%]' : 'w-[85%]'} max-w-7xl bg-[#0a0a0f] border-l border-white/10 z-[101] flex shadow-[0_0_100px_rgba(0,0,0,0.8)]`}
+            transition={{
+              duration: 0.35,
+              ease: [0.32, 0.72, 0, 1]
+            }}
+            style={{ willChange: 'transform' }}
+            className={`fixed top-0 right-0 h-full ${isPhased ? 'w-[85%]' : 'w-[75%]'} max-w-7xl bg-[#0a0a0f] border-l border-white/10 z-[101] flex shadow-[0_0_40px_rgba(0,0,0,0.5)]`}
           >
             {/* Sidebar for History (Only for Phase-style Inspection Reports) */}
-            {isPhased && (
-              <ReportHistorySidebar 
-                history={fullHistory} 
-                selectedId={selectedReportId} 
-                onSelect={setSelectedReportId} 
+            {isPhased && shouldRenderSidebar && (
+              <ReportHistorySidebar
+                history={fullHistory}
+                selectedId={selectedReportId}
+                onSelect={setSelectedReportId}
               />
             )}
 
             <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-              <div className="sticky top-0 bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5 p-6 flex justify-between items-center z-10 shrink-0">
+              <div className="sticky top-0 bg-[#0a0a0f] border-b border-white/5 p-6 flex justify-between items-center z-10 shrink-0">
                 <div>
                   <h2 className="text-2xl font-black text-white tracking-tighter flex items-center gap-3">
                     <div className={`p-2 ${isPhased ? 'bg-indigo-600/20 text-indigo-400' : 'bg-blue-600/20 text-blue-400'} rounded-xl`}>
@@ -7571,13 +7747,21 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
               </div>
 
               <div className="p-10 space-y-12 max-w-4xl mx-auto flex-1 text-left font-sans relative">
-                {/* 界面全量数据导出提示 */}
-                <div className="text-[11px] text-amber-400 bg-amber-950/10 border border-amber-500/10 rounded-xl px-4 py-3 leading-relaxed flex items-start gap-2 shadow-inner">
-                  <span className="shrink-0 select-none">💡</span>
-                  <span>
-                    <strong>提示：</strong>为优化网页加载与交互性能，当前界面仅精简展示 Top 关键对象与参数趋势。若需获取全部 23 个实例及完整历史趋势数据，请点击右上角 <strong>[导出 Markdown]</strong> 或 <strong>[导出 HTML]</strong> 获取完整报告文档。
-                  </span>
-                </div>
+                {!shouldRenderContent ? (
+                  // 加载状态 - 动画完成前显示
+                  <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                    <Loader2 size={32} className="animate-spin text-indigo-500" />
+                    <p className="text-sm text-slate-400 font-medium">正在加载报告内容...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* 界面全量数据导出提示 */}
+                    <div className="text-[11px] text-amber-400 bg-amber-950/10 border border-amber-500/10 rounded-xl px-4 py-3 leading-relaxed flex items-start gap-2 shadow-inner">
+                      <span className="shrink-0 select-none">💡</span>
+                      <span>
+                        <strong>提示：</strong>为优化网页加载与交互性能，当前界面仅精简展示 Top 关键对象与参数趋势。若需获取全部 23 个实例及完整历史趋势数据，请点击右上角 <strong>[导出 Markdown]</strong> 或 <strong>[导出 HTML]</strong> 获取完整报告文档。
+                      </span>
+                    </div>
 
                 {isPhased ? (
                   <>
@@ -8348,54 +8532,53 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                               {data.priorityObjects.map((node: any) => {
                                 const nodeIp = node.ip;
                                 const nodeDetails = data.nodeDetails?.[nodeIp] || getFallbackNodeDetails(nodeIp, branch);
-                                const isFailedNode = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                                
+                                const nodeResult = nodeDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1];
+
                                 return (
                                   <div key={nodeIp} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-4">
                                     <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                       <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {nodeIp}</span>
+                                      {nodeResult === 'failed' ? (
+                                        <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase whitespace-nowrap">失败</span>
+                                      ) : (
+                                        <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase whitespace-nowrap">异常</span>
+                                      )}
                                     </div>
 
-                                    {isFailedNode ? (
-                                      <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                                        当前对象为巡检失败，无法基于指标进行根因分析
-                                      </div>
-                                    ) : (
-                                      <div className="space-y-4">
-                                        {/* 1. 根因候选表 */}
-                                        {nodeDetails.diagnosis?.candidates && (
-                                          <div className="space-y-2">
-                                            <div className="flex items-center gap-2 pl-3.5 my-2">
-                                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                              <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
-                                            </div>
-                                            <AnalysisTable 
-                                              title="" 
-                                              columns={['可能原因', '支撑证据', '说明']} 
-                                              data={nodeDetails.diagnosis.candidates} 
-                                            />
+                                    <div className="space-y-4">
+                                      {/* 1. 根因候选表 */}
+                                      {nodeDetails.diagnosis?.candidates?.length > 0 && (
+                                        <div className="space-y-2">
+                                          <div className="flex items-center gap-2 pl-3.5 my-2">
+                                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                            <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
                                           </div>
-                                        )}
+                                          <AnalysisTable
+                                            title=""
+                                            columns={['可能原因', '支撑证据', '说明']}
+                                            data={nodeDetails.diagnosis.candidates}
+                                          />
+                                        </div>
+                                      )}
 
-                                        {/* 2. 关键证据总结 */}
-                                        {nodeDetails.diagnosis?.evidences && (
-                                          <div className="space-y-2">
-                                            <div className="flex items-center gap-2 pl-3.5 my-2">
-                                              <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                              <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
-                                            </div>
-                                            <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                              {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                                <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                                </li>
-                                              ))}
-                                            </ul>
+                                      {/* 2. 关键证据总结 */}
+                                      {nodeDetails.diagnosis?.evidences?.length > 0 && (
+                                        <div className="space-y-2">
+                                          <div className="flex items-center gap-2 pl-3.5 my-2">
+                                            <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                            <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
                                           </div>
-                                        )}
-                                      </div>
-                                    )}
+                                          <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                            {nodeDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                              <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               })}
@@ -8405,53 +8588,46 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                               <div className="flex items-center gap-2 border-b border-slate-800 pb-2 mb-1">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                 <span className="text-[11px] font-bold text-blue-400 font-mono">诊断对象: {activeReportIp}</span>
+                                {activeReportDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed' ? (
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase whitespace-nowrap">失败</span>
+                                ) : (
+                                  <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase whitespace-nowrap">异常</span>
+                                )}
                               </div>
                               
-                              {(() => {
-                                const isFailedNode = activeReportDetails.detailTable?.find((r: any) => r[0] === '结果')?.[1] === 'failed';
-                                if (isFailedNode) {
-                                  return (
-                                    <div className="bg-slate-950/20 border border-slate-800 rounded-lg p-4 text-center text-slate-500 text-xs">
-                                      当前对象为巡检失败，无法基于指标进行根因分析
+                              <div className="space-y-4">
+                                {/* 1. 根因候选表 */}
+                                {activeReportDetails.diagnosis?.candidates?.length > 0 && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 pl-3.5 my-2">
+                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                      <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
                                     </div>
-                                  );
-                                }
-                                return (
-                                  <div className="space-y-4">
-                                    {/* 1. 根因候选表 */}
-                                    {activeReportDetails.diagnosis?.candidates && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2 pl-3.5 my-2">
-                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                          <span className="text-[11px] font-bold text-slate-400">1. 根因候选表</span>
-                                        </div>
-                                        <AnalysisTable 
-                                          title="" 
-                                          columns={['可能原因', '支撑证据', '说明']} 
-                                          data={activeReportDetails.diagnosis.candidates} 
-                                        />
-                                      </div>
-                                    )}
-
-                                    {/* 2. 关键证据总结 */}
-                                    {activeReportDetails.diagnosis?.evidences && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2 pl-3.5 my-2">
-                                          <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
-                                          <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
-                                        </div>
-                                        <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
-                                          {activeReportDetails.diagnosis.evidences.map((e: string, i: number) => (
-                                            <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
+                                    <AnalysisTable
+                                      title=""
+                                      columns={['可能原因', '支撑证据', '说明']}
+                                      data={activeReportDetails.diagnosis.candidates}
+                                    />
                                   </div>
-                                );
-                              })()}
+                                )}
+
+                                {/* 2. 关键证据总结 */}
+                                {activeReportDetails.diagnosis?.evidences?.length > 0 && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 pl-3.5 my-2">
+                                      <div className="w-1.5 h-1.5 rounded-full border border-slate-700 bg-slate-900" />
+                                      <span className="text-[11px] font-bold text-slate-400">2. 关键证据总结</span>
+                                    </div>
+                                    <ul className="space-y-1.5 bg-[#0a0a0f] border border-slate-800 rounded-xl p-4">
+                                      {activeReportDetails.diagnosis.evidences.map((e: string, i: number) => (
+                                        <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" /> {e}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -8526,11 +8702,11 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                             </div>
                           )}
 
-                          {/* 5. 阶段结论 */}
+                          {/* 4. 阶段结论 */}
                           {data.stage3.conclusion && (
                             <div className="bg-gradient-to-r from-purple-500/[0.03] to-transparent border border-purple-500/10 rounded-xl p-4 relative overflow-hidden">
                               <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-purple-500/40 to-transparent" />
-                              <div className="text-[11px] text-slate-400 font-bold mb-2">5. 阶段结论</div>
+                              <div className="text-[11px] text-slate-400 font-bold mb-2">4. 阶段结论</div>
                               <p className="text-xs text-slate-200 font-bold leading-relaxed">{data.stage3.conclusion}</p>
                             </div>
                           )}
@@ -8883,6 +9059,8 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                     </section>
                   </>
                 )}
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
@@ -8946,17 +9124,17 @@ const AnalysisTable = ({ title, columns, data }: { title?: string, columns: stri
                 return (
                   <td key={j} className="px-3.5 py-2 text-xs font-medium text-slate-300 break-words whitespace-normal min-w-[80px]">
                     {displayCell === '异常' || displayCell === '未存活' || displayCell === '失败' || displayCell === '严重' || displayCell === '突增' ? (
-                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
+                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase whitespace-nowrap">
                         {displayCell}
                       </span>
                     ) : displayCell === '偏高' || displayCell === '警告' || displayCell === '稳步上升' ? (
-                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase">
+                      <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase whitespace-nowrap">
                         {displayCell}
                       </span>
                     ) : displayCell === '正常' || displayCell === '存活' || displayCell === '已完成' || displayCell === '普通' || displayCell === '平稳' ? (
-                      <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase ${
-                        displayCell === '普通' 
-                          ? 'bg-slate-800 text-slate-400 border-slate-700/50' 
+                      <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase whitespace-nowrap ${
+                        displayCell === '普通'
+                          ? 'bg-slate-800 text-slate-400 border-slate-700/50'
                           : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       }`}>
                         {displayCell}
