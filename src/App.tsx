@@ -7,7 +7,7 @@ import {
   Plus, Bell, Network, CheckSquare, Database, Shield, ChevronLeft, ChevronUp, Paperclip, X, Save, Lock, Edit, HelpCircle,
   AlertTriangle, Box, Filter, SlidersHorizontal, ArrowUpDown, Cpu, Server, Layers, HardDrive, Brain, Flame, Sparkles, Minus, Maximize,
   PlusCircle, BarChart3, LayoutDashboard, ListTodo, FilePieChart, ArrowUpRight, ArrowDownRight, RefreshCw, History, Maximize2, Folder, PanelLeft, PanelLeftClose, ShieldCheck, MessageSquare,
-  Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2, Copy, CheckCircle
+  Monitor, ArrowRight, Code, ClipboardCheck, Target, ArrowLeft, Book, Files, Share2, Quote, ExternalLink, Library, Loader2, Copy, CheckCircle, XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { createPortal } from 'react-dom';
@@ -4025,6 +4025,15 @@ const generateInspectionAnalysisData = (task) => {
         ['异常对象数', 0],
         ['失败对象数', 0]
       ],
+      inspectionTasks: [
+        {
+          id: 1,
+          name: '连通性与环境检查',
+          scopeCount: 23,
+          resourceType: 'HOST',
+          scriptContent: '采集 CPU、内存、磁盘（含 Inode）、系统负载、网络连接（TIME_WAIT/ESTAB）、进程数等7项指标，按阈值分级告警并输出 JSON 结构化报告。'
+        }
+      ],
       healthSummary: '本次巡检共覆盖 23 个对象，所有对象均执行成功，未发现异常对象或失败对象。关键资源指标整体处于正常范围内，CPU、内存、错误率均未出现超阈值情况，当前系统运行状态稳定。'
     };
 
@@ -4123,6 +4132,22 @@ const generateInspectionAnalysisData = (task) => {
         ['正常对象数', 20],
         ['异常对象数', 2],
         ['失败对象数', 1]
+      ],
+      inspectionTasks: [
+        {
+          id: 1,
+          name: '连通性与环境检查',
+          scopeCount: 23,
+          resourceType: 'HOST',
+          scriptContent: '采集 CPU、内存、磁盘（含 Inode）、系统负载、网络连接（TIME_WAIT/ESTAB）、进程数等7项指标，按阈值分级告警并输出 JSON 结构化报告。'
+        },
+        {
+          id: 2,
+          name: 'JVM 堆内存分析',
+          scopeCount: 3,
+          resourceType: 'JVM',
+          scriptContent: '采集 JVM 堆内存使用率、GC 频率（Young/Full）、老年代占用百分比、元空间使用情况，判断是否存在内存泄漏风险。'
+        }
       ]
     };
 
@@ -4183,6 +4208,15 @@ const generateInspectionAnalysisData = (task) => {
         ['正常对象数', 20],
         ['异常对象数', 0],
         ['失败对象数', 3]
+      ],
+      inspectionTasks: [
+        {
+          id: 1,
+          name: '连通性与环境检查',
+          scopeCount: 23,
+          resourceType: 'HOST',
+          scriptContent: '采集 CPU、内存、磁盘（含 Inode）、系统负载、网络连接（TIME_WAIT/ESTAB）、进程数等7项指标，按阈值分级告警并输出 JSON 结构化报告。'
+        }
       ]
     };
 
@@ -4442,15 +4476,15 @@ const exportReport = (data: any, branchParam: string, format: string) => {
 
   if (branch === 'normal') {
     section2Title = '二、指标健康与趋势 (Trends & Evidences)';
-    section3Title = '三、健康状态审查 (Diagnostics & Analysis)';
+    section3Title = '三、诊断与判断 (Diagnosis & Judgment)';
     section4Title = '四、审定结论与后续策略 (Verdict & Recommendations)';
   } else if (branch === 'abnormal') {
     section2Title = '二、指标趋势与数据演进 (Trends & Evidences)';
-    section3Title = '三、深度根因剖析与诊断依据 (Diagnostics & Analysis)';
+    section3Title = '三、诊断与判断 (Diagnosis & Judgment)';
     section4Title = '四、处置决策与修复方案 (Verdict & Recommendations)';
   } else {
     section2Title = '二、采集失败证据说明 (Trends & Evidences)';
-    section3Title = '三、原因归纳与排查建议 (Diagnostics & Analysis)';
+    section3Title = '三、诊断与判断 (Diagnosis & Judgment)';
     section4Title = '四、失败总结与自愈处置 (Verdict & Recommendations)';
   }
 
@@ -5444,6 +5478,60 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                         </div>
                       )}
 
+                      {/* 📋 巡检任务脚本 */}
+                      {data.stage1?.inspectionTasks && data.stage1.inspectionTasks.length > 0 && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📋 巡检任务脚本</span>
+                          </div>
+                          <div className="space-y-3">
+                            {data.stage1.inspectionTasks.map((task: any) => (
+                              <div key={task.id} className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3">
+                                {/* 任务标题 */}
+                                <div className="flex items-center gap-2 mb-2.5">
+                                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 text-[10px] font-black border border-purple-500/20">
+                                    {task.id}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-300">{task.name}</span>
+                                </div>
+
+                                {/* 执行范围 */}
+                                <div className="flex items-start gap-2 mb-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    执行范围
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-blue-400 font-medium">
+                                      {task.scopeCount}个对象
+                                    </span>
+                                    <span className={`inline-flex items-center justify-center h-4 px-1.5 rounded border text-[10px] font-black uppercase tracking-wider ${
+                                      task.resourceType === 'HOST' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                      task.resourceType === 'JVM' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                      task.resourceType === 'MYSQL' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                      task.resourceType === 'REDIS' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                      'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                    }`}>
+                                      {task.resourceType}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 脚本内容 */}
+                                <div className="flex items-start gap-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    脚本内容
+                                  </span>
+                                  <p className="text-xs text-slate-400 leading-relaxed">
+                                    {task.scriptContent}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* 3. 全部巡检对象列表 */}
                       {data.stage1?.objectsTable && (
                         <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 space-y-3">
@@ -5542,6 +5630,60 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                 ))}
                               </tbody>
                             </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 📋 巡检任务脚本 */}
+                      {data.stage1?.inspectionTasks && data.stage1.inspectionTasks.length > 0 && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📋 巡检任务脚本</span>
+                          </div>
+                          <div className="space-y-3">
+                            {data.stage1.inspectionTasks.map((task: any) => (
+                              <div key={task.id} className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3">
+                                {/* 任务标题 */}
+                                <div className="flex items-center gap-2 mb-2.5">
+                                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 text-[10px] font-black border border-purple-500/20">
+                                    {task.id}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-300">{task.name}</span>
+                                </div>
+
+                                {/* 执行范围 */}
+                                <div className="flex items-start gap-2 mb-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    执行范围
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-blue-400 font-medium">
+                                      {task.scopeCount}个对象
+                                    </span>
+                                    <span className={`inline-flex items-center justify-center h-4 px-1.5 rounded border text-[10px] font-black uppercase tracking-wider ${
+                                      task.resourceType === 'HOST' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                      task.resourceType === 'JVM' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                      task.resourceType === 'MYSQL' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                      task.resourceType === 'REDIS' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                      'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                    }`}>
+                                      {task.resourceType}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 脚本内容 */}
+                                <div className="flex items-start gap-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    脚本内容
+                                  </span>
+                                  <p className="text-xs text-slate-400 leading-relaxed">
+                                    {task.scriptContent}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -5804,6 +5946,60 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                 ))}
                               </tbody>
                             </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 📋 巡检任务脚本 */}
+                      {data.stage1?.inspectionTasks && data.stage1.inspectionTasks.length > 0 && (
+                        <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📋 巡检任务脚本</span>
+                          </div>
+                          <div className="space-y-3">
+                            {data.stage1.inspectionTasks.map((task: any) => (
+                              <div key={task.id} className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3">
+                                {/* 任务标题 */}
+                                <div className="flex items-center gap-2 mb-2.5">
+                                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 text-[10px] font-black border border-purple-500/20">
+                                    {task.id}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-300">{task.name}</span>
+                                </div>
+
+                                {/* 执行范围 */}
+                                <div className="flex items-start gap-2 mb-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    执行范围
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-blue-400 font-medium">
+                                      {task.scopeCount}个对象
+                                    </span>
+                                    <span className={`inline-flex items-center justify-center h-4 px-1.5 rounded border text-[10px] font-black uppercase tracking-wider ${
+                                      task.resourceType === 'HOST' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                      task.resourceType === 'JVM' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                      task.resourceType === 'MYSQL' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                      task.resourceType === 'REDIS' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                      'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                    }`}>
+                                      {task.resourceType}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 脚本内容 */}
+                                <div className="flex items-start gap-2 pl-7">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    脚本内容
+                                  </span>
+                                  <p className="text-xs text-slate-400 leading-relaxed">
+                                    {task.scriptContent}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -8492,41 +8688,66 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                     <section className="space-y-6">
                       <div className="flex items-center gap-3 border-b border-slate-800/40 pb-2 mb-4">
                         <h3 className="text-base font-black text-slate-100 tracking-tight flex items-center gap-2">
-                          三、{branch === 'normal' ? '健康状态审查' : branch === 'abnormal' ? '深度根因剖析与诊断依据' : '原因归纳与排查建议'} (Diagnostics & Analysis)
+                          三、诊断与判断 (Diagnosis & Judgment)
                         </h3>
                       </div>
 
                       {/* normal 分支 */}
                       {branch === 'normal' && (
                         <div className="space-y-4">
-                          {data.stage3?.judgmentTable && (
-                            <AnalysisTable 
-                              title="健康判断表" 
-                              columns={['判断项', '结果', '说明']} 
-                              data={data.stage3.judgmentTable} 
-                            />
-                          )}
-                          {data.stage3?.evidenceList && (
-                            <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
-<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">关键依据</span>
-                              </div>
-                              <ul className="space-y-1.5">
-                                {data.stage3.evidenceList.map((e: string, i: number) => (
-                                  <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-blue-500" /> {e}
-                                  </li>
-                                ))}
-                              </ul>
+                          {/* 诊断结论区域 */}
+                          <div className="bg-slate-950/20 border border-slate-800/30 rounded-2xl p-5 space-y-6">
+                            {/* 区域标题 */}
+                            <div className="flex items-center gap-2.5 border-b border-slate-800/40 pb-3">
+                              <CheckCircle size={16} className="text-emerald-400" />
+                              <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                                健康判断
+                              </h4>
+                              <span className="text-[10px] text-slate-500 ml-2">Health Assessment</span>
                             </div>
-                          )}
+
+                            {/* 原有内容 */}
+                            {data.stage3?.judgmentTable && (
+                              <AnalysisTable
+                                title="健康判断表"
+                                columns={['判断项', '结果', '说明']}
+                                data={data.stage3.judgmentTable}
+                              />
+                            )}
+                            {data.stage3?.evidenceList && (
+                              <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-1 h-3.5 bg-blue-500 rounded-full" />
+<span className="text-xs font-bold text-slate-200 uppercase tracking-wider">关键依据</span>
+                                </div>
+                                <ul className="space-y-1.5">
+                                  {data.stage3.evidenceList.map((e: string, i: number) => (
+                                    <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                                      <div className="w-1 h-1 rounded-full bg-blue-500" /> {e}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 
                                                                                                                                     {/* abnormal 分支 */}
                       {branch === 'abnormal' && (
                         <div className="space-y-6">
+                          {/* 根因诊断区域 */}
+                          <div className="bg-slate-950/20 border border-slate-800/30 rounded-2xl p-5 space-y-6">
+                            {/* 区域标题 */}
+                            <div className="flex items-center gap-2.5 border-b border-slate-800/40 pb-3">
+                              <AlertTriangle size={16} className="text-orange-400" />
+                              <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                                根因诊断
+                              </h4>
+                              <span className="text-[10px] text-slate-500 ml-2">Root Cause Analysis</span>
+                            </div>
+
+                            {/* 原有内容 */}
                           {data.priorityObjects && data.priorityObjects.length >= 2 ? (
                             <div className="space-y-6">
                               {data.priorityObjects.map((node: any) => {
@@ -8630,12 +8851,25 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                               </div>
                             </div>
                           )}
+                          </div>
                         </div>
                       )}
-                      
+
 {/* failed 分支 */}
                       {branch === 'failed' && data.stage3 && (
                         <div className="space-y-6">
+                          {/* 失败诊断区域 */}
+                          <div className="bg-slate-950/20 border border-slate-800/30 rounded-2xl p-5 space-y-6">
+                            {/* 区域标题 */}
+                            <div className="flex items-center gap-2.5 border-b border-slate-800/40 pb-3">
+                              <XCircle size={16} className="text-rose-400" />
+                              <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                                失败诊断
+                              </h4>
+                              <span className="text-[10px] text-slate-500 ml-2">Failure Analysis</span>
+                            </div>
+
+                            {/* 原有内容 */}
                           {/* 1. 失败原因归纳表 */}
                           {data.stage3.reasonsTable && (
                             <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
@@ -8710,6 +8944,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                               <p className="text-xs text-slate-200 font-bold leading-relaxed">{data.stage3.conclusion}</p>
                             </div>
                           )}
+                          </div>
                         </div>
                       )}
                     </section>
