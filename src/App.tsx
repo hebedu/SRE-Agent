@@ -4570,6 +4570,30 @@ const exportReport = (data: any, branchParam: string, format: string) => {
     </div>
   `;
 
+  // 3. 巡检任务脚本
+  const inspectionTasks = data.stage1?.inspectionTasks || [];
+  let taskScriptMarkdown = '';
+  let taskScriptHtml = '';
+  if (inspectionTasks.length > 0) {
+    taskScriptMarkdown = `\n### 3. 巡检任务脚本\n`;
+    taskScriptHtml = `
+    <div class="info-card">
+      <h3 style="margin-top: 0; color: #f8fafc; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 6px;">3. 巡检任务脚本</h3>`;
+    inspectionTasks.forEach((task: any) => {
+      taskScriptMarkdown += `\n**${task.id}. ${task.name}**\n`;
+      taskScriptMarkdown += `- 执行范围：${task.scopeCount}个对象（${task.resourceType}）\n`;
+      taskScriptMarkdown += `- 执行内容：${task.scriptContent}\n`;
+      taskScriptHtml += `
+      <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-top: 10px;">
+        <div style="font-weight: bold; color: #e2e8f0; margin-bottom: 8px;">${task.id}. ${task.name}</div>
+        <div style="font-size: 13px; margin-bottom: 4px;"><span style="color: #94a3b8;">执行范围：</span><span style="color: #60a5fa;">${task.scopeCount}个对象</span> <span style="color: #64748b;">(${task.resourceType})</span></div>
+        <div style="font-size: 13px;"><span style="color: #94a3b8;">执行内容：</span><span style="color: #cbd5e1;">${task.scriptContent}</span></div>
+      </div>`;
+    });
+    taskScriptHtml += `
+    </div>`;
+  }
+
   // Objects Table
   let fullObjectsTableRows = '';
   let fullObjectsTableMarkdown = '| 序号 | 巡检对象 | 状态 | 严重级别 | 核心摘要 |\n| --- | --- | --- | --- | --- |\n';
@@ -4778,6 +4802,7 @@ const exportReport = (data: any, branchParam: string, format: string) => {
 ## 一、巡检基本状态概览 (Basic Status Overview)
 ${planInfoMarkdown}
 ${statsMarkdown}
+${taskScriptMarkdown}
 ## ${section2Title}
 ### 1. 全部巡检对象列表
 ${fullObjectsTableMarkdown}\n
@@ -4836,6 +4861,7 @@ ${diagMarkdown}
   <h2>一、巡检基本状态概览 (Basic Status Overview)</h2>
   ${planInfoHtml}
   ${statsHtml}
+  ${taskScriptHtml}
 
   <h2>${section2Title}</h2>
   <div class="info-card">
@@ -7308,6 +7334,47 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                     ))}
                                   </tbody>
                                 </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 3. 巡检任务脚本 */}
+                          {data.stage1?.inspectionTasks && data.stage1.inspectionTasks.length > 0 && (
+                            <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4">
+                              <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-1 h-3.5 bg-purple-500 rounded-full" />
+                                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">3. 巡检任务脚本</span>
+                              </div>
+                              <div className="space-y-3">
+                                {data.stage1.inspectionTasks.map((task: any) => (
+                                  <div key={task.id} className="bg-slate-950/40 border border-slate-800/60 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 text-[10px] font-black border border-purple-500/20">
+                                        {task.id}
+                                      </span>
+                                      <span className="text-xs font-bold text-slate-300">{task.name}</span>
+                                    </div>
+                                    <div className="flex items-start gap-2 mb-2 pl-7">
+                                      <span className="text-[10px] font-bold text-slate-500 shrink-0">执行范围：</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-blue-400 font-medium">{task.scopeCount}个对象</span>
+                                        <span className={`inline-flex items-center justify-center h-4 px-1.5 rounded border text-[10px] font-black uppercase tracking-wider ${
+                                          task.resourceType === 'HOST' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                          task.resourceType === 'JVM' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                          task.resourceType === 'MYSQL' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                          task.resourceType === 'REDIS' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                          'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                        }`}>
+                                          {task.resourceType}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-start gap-2 pl-7">
+                                      <span className="text-[10px] font-bold text-slate-500 shrink-0">执行内容：</span>
+                                      <p className="text-xs text-slate-400 leading-relaxed">{task.scriptContent}</p>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
