@@ -4652,7 +4652,7 @@ const exportReport = (data: any, branchParam: string, format: string) => {
       objectAnalysisMarkdown += `| IP地址 | ${obj.ip} |\n`;
       objectAnalysisMarkdown += `| 类型 | ${typeText} |\n`;
       objectAnalysisMarkdown += `| 严重级别 | ${severityText} |\n`;
-      objectAnalysisMarkdown += `| 原因 | ${obj.reason || '-'} |\n`;
+      if (obj.type === 'failed') objectAnalysisMarkdown += `| 失败原因 | ${obj.reason || '-'} |\n`;
       if (obj.impact) objectAnalysisMarkdown += `\n影响说明：${obj.impact}\n`;
 
       // HTML - 基础信息
@@ -4664,7 +4664,7 @@ const exportReport = (data: any, branchParam: string, format: string) => {
               <tr><td style="color: #94a3b8; width: 120px; padding: 8px; border: 1px solid #334155;">IP地址</td><td style="font-family: monospace; padding: 8px; border: 1px solid #334155;">${obj.ip}</td></tr>
               <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">类型</td><td style="padding: 8px; border: 1px solid #334155;">${typeText}</td></tr>
               <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">严重级别</td><td style="padding: 8px; border: 1px solid #334155;">${severityText}</td></tr>
-              <tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">原因</td><td style="padding: 8px; border: 1px solid #334155;">${obj.reason || '-'}</td></tr>
+              ${obj.type === 'failed' ? `<tr><td style="color: #94a3b8; padding: 8px; border: 1px solid #334155;">失败原因</td><td style="padding: 8px; border: 1px solid #334155;">${obj.reason || '-'}</td></tr>` : ''}
             </tbody>
           </table>
           ${obj.impact ? `<p style="color: #cbd5e1;"><strong>影响说明：</strong>${obj.impact}</p>` : ''}`;
@@ -5364,8 +5364,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
 
                                 {/* 执行范围 */}
                                 <div className="flex items-start gap-2 mb-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    1
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行范围：
                                   </span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-blue-400 font-medium">
@@ -5383,10 +5383,10 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                   </div>
                                 </div>
 
-                                {/* 脚本内容 */}
+                                {/* 执行内容 */}
                                 <div className="flex items-start gap-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    2
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行内容：
                                   </span>
                                   <p className="text-xs text-slate-400 leading-relaxed">
                                     {task.scriptContent}
@@ -5490,8 +5490,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
 
                                 {/* 执行范围 */}
                                 <div className="flex items-start gap-2 mb-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    1
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行范围：
                                   </span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-blue-400 font-medium">
@@ -5509,10 +5509,10 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                   </div>
                                 </div>
 
-                                {/* 脚本内容 */}
+                                {/* 执行内容 */}
                                 <div className="flex items-start gap-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    2
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行内容：
                                   </span>
                                   <p className="text-xs text-slate-400 leading-relaxed">
                                     {task.scriptContent}
@@ -5617,8 +5617,8 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
 
                                 {/* 执行范围 */}
                                 <div className="flex items-start gap-2 mb-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    1
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行范围：
                                   </span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-blue-400 font-medium">
@@ -5636,10 +5636,10 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                   </div>
                                 </div>
 
-                                {/* 脚本内容 */}
+                                {/* 执行内容 */}
                                 <div className="flex items-start gap-2 pl-7">
-                                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-700/40 text-slate-400 text-[9px] font-black shrink-0 mt-0.5">
-                                    2
+                                  <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                    执行内容：
                                   </span>
                                   <p className="text-xs text-slate-400 leading-relaxed">
                                     {task.scriptContent}
@@ -5795,7 +5795,7 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                                 </span>
                                               </td>
                                             </tr>
-                                            <tr className="border-b border-slate-800/30">
+                                            <tr className={activeDetails.type === 'failed' ? 'border-b border-slate-800/30' : ''}>
                                               <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
                                               <td className="px-3.5 py-2">
                                                 <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase ${
@@ -5805,10 +5805,12 @@ const ExpertDiagnosticCard = ({ data, onAction }: any) => {
                                                 </span>
                                               </td>
                                             </tr>
-                                            <tr>
-                                              <td className="px-3.5 py-2 font-medium text-slate-400">原因</td>
-                                              <td className="px-3.5 py-2 text-slate-200 font-medium">{activeDetails.reason}</td>
-                                            </tr>
+                                            {activeDetails.type === 'failed' && (
+                                              <tr>
+                                                <td className="px-3.5 py-2 font-medium text-slate-400">失败原因</td>
+                                                <td className="px-3.5 py-2 text-slate-200 font-medium">{activeDetails.reason}</td>
+                                              </tr>
+                                            )}
                                           </tbody>
                                         </table>
                                       </div>
@@ -7578,7 +7580,7 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                                 </span>
                                               </td>
                                             </tr>
-                                            <tr className="border-b border-slate-800/30">
+                                            <tr className={activeDetails.type === 'failed' ? 'border-b border-slate-800/30' : ''}>
                                               <td className="px-3.5 py-2 font-medium text-slate-400">严重级别</td>
                                               <td className="px-3.5 py-2">
                                                 <span className={`inline-flex items-center justify-center h-5 px-1.5 rounded-sm text-[10px] font-black border uppercase ${
@@ -7588,10 +7590,12 @@ const DiagnosticReportDrawer = ({ isOpen, onClose, data }: { isOpen: boolean, on
                                                 </span>
                                               </td>
                                             </tr>
-                                            <tr>
-                                              <td className="px-3.5 py-2 font-medium text-slate-400">原因</td>
-                                              <td className="px-3.5 py-2 text-slate-200 font-medium">{activeDetails.reason}</td>
-                                            </tr>
+                                            {activeDetails.type === 'failed' && (
+                                              <tr>
+                                                <td className="px-3.5 py-2 font-medium text-slate-400">失败原因</td>
+                                                <td className="px-3.5 py-2 text-slate-200 font-medium">{activeDetails.reason}</td>
+                                              </tr>
+                                            )}
                                           </tbody>
                                         </table>
                                       </div>
